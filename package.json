@@ -29,6 +29,7 @@
 		"vitest": "^4.1.0"
 	},
 	"dependencies": {
+		"@ericblade/quagga2": "^1.12.1",
 		"dexie": "^4.3.0"
 	}
 }

@@ -3,6 +3,7 @@
   import { addBook } from '$lib/services/books';
   import { resizeImage } from '$lib/services/covers';
   import { searchOpenLibrary, lookupByISBN, type OpenLibraryResult } from '$lib/services/openlibrary';
+  import BarcodeScanner from '$lib/components/BarcodeScanner.svelte';
 
   let mode = $state<'search' | 'manual' | 'scan'>('search');
   let searchQuery = $state('');
@@ -18,6 +19,17 @@
   let coverPreview = $state<string | null>(null);
   let saving = $state(false);
   let error = $state('');
+
+  async function handleBarcode(code: string) {
+    isbn = code;
+    const result = await lookupByISBN(code);
+    if (result) {
+      title = result.title;
+      authors = result.authors.join(', ');
+      coverPreview = result.coverUrl || null;
+    }
+    mode = 'manual';
+  }
 
   async function handleSearch() {
     if (!searchQuery.trim()) return;
@@ -126,9 +138,9 @@
     {/each}
   {/if}
 
-  <!-- Scan mode placeholder -->
+  <!-- Scan mode -->
   {#if mode === 'scan'}
-    <p class="text-slate-400">Barcode scanning will be implemented in a later task.</p>
+    <BarcodeScanner onDetected={handleBarcode} />
   {/if}
 
   <!-- Manual mode -->
