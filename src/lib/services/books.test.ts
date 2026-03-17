@@ -50,7 +50,9 @@ describe('Book service', () => {
   });
 
   it('should get all books sorted by dateAdded desc', async () => {
-    await addBook({ title: 'A', authors: [], categories: [] });
+    const bookA = await addBook({ title: 'A', authors: [], categories: [] });
+    // Ensure B has a later dateAdded so it sorts first in reverse order
+    await db.books.update(bookA!.id, { dateAdded: new Date('2024-01-01') });
     await addBook({ title: 'B', authors: [], categories: [] });
     const books = await getBooks();
     expect(books[0].title).toBe('B');
