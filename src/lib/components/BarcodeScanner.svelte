@@ -1,6 +1,7 @@
 <script lang="ts">
   import Quagga from '@ericblade/quagga2';
   import { onMount, onDestroy } from 'svelte';
+  import { t } from '$lib/i18n/index.svelte';
 
   let { onDetected }: { onDetected: (code: string) => void } = $props();
   let scannerRef: HTMLDivElement;
@@ -21,7 +22,7 @@
       },
       (err: any) => {
         if (err) {
-          error = 'Camera access denied or not available';
+          error = t('scanner.error');
           return;
         }
         Quagga.start();
@@ -44,10 +45,12 @@
   });
 </script>
 
-<div class="relative">
+<div class="relative animate-fade-in">
   {#if error}
-    <p class="text-red-400 text-sm">{error}</p>
+    <div class="card p-4 mb-3 border-berry/20">
+      <p class="text-berry text-sm font-medium">{error}</p>
+    </div>
   {/if}
-  <div bind:this={scannerRef} class="w-full rounded-lg overflow-hidden bg-black aspect-video"></div>
-  <p class="text-center text-sm text-slate-400 mt-2">Point camera at book barcode</p>
+  <div bind:this={scannerRef} class="w-full rounded-xl overflow-hidden bg-warm-900 aspect-video"></div>
+  <p class="text-center text-xs text-ink-muted mt-3">{t('scanner.hint')}</p>
 </div>

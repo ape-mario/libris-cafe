@@ -1,7 +1,8 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { db } from '$lib/db';
-  import type { Category, Series } from '$lib/db';
+  import type { Series } from '$lib/db';
+  import { t } from '$lib/i18n/index.svelte';
 
   let categories = $state<{ name: string; count: number }[]>([]);
   let seriesList = $state<(Series & { count: number })[]>([]);
@@ -40,49 +41,60 @@
   });
 </script>
 
-<h1 class="text-xl font-bold mb-4">Browse</h1>
+<div class="animate-fade-up">
+  <h1 class="font-display text-2xl font-bold text-ink tracking-tight mb-6">{t('browse.title')}</h1>
 
-<div class="flex gap-2 mb-6">
-  {#each ['categories', 'series', 'authors'] as t}
-    <button
-      class="px-4 py-2 rounded-lg text-sm capitalize {tab === t ? 'bg-blue-600' : 'bg-slate-800'}"
-      onclick={() => tab = t as typeof tab}
-    >{t}</button>
-  {/each}
+  <div class="flex gap-2 mb-6 overflow-x-auto pb-1">
+    {#each [
+      { key: 'categories', label: t('browse.categories') },
+      { key: 'series', label: t('browse.series') },
+      { key: 'authors', label: t('browse.authors') }
+    ] as tab_item}
+      <button
+        class="tab-pill {tab === tab_item.key ? 'tab-pill-active' : 'tab-pill-inactive'}"
+        onclick={() => tab = tab_item.key as typeof tab}
+      >{tab_item.label}</button>
+    {/each}
+  </div>
+
+  <div class="flex flex-col gap-2">
+    {#if tab === 'categories'}
+      {#each categories as cat, i}
+        <a href="/browse/category/{encodeURIComponent(cat.name)}"
+          class="card flex items-center justify-between p-4 hover:shadow-md transition-shadow animate-fade-up"
+          style="animation-delay: {i * 40}ms">
+          <span class="capitalize font-medium text-sm text-ink">{cat.name}</span>
+          <span class="text-xs text-ink-muted bg-warm-100 px-2.5 py-0.5 rounded-full">{cat.count}</span>
+        </a>
+      {:else}
+        <p class="text-ink-muted text-sm py-8 text-center">{t('browse.no_categories')}</p>
+      {/each}
+    {/if}
+
+    {#if tab === 'series'}
+      {#each seriesList as s, i}
+        <a href="/browse/series/{s.id}"
+          class="card flex items-center justify-between p-4 hover:shadow-md transition-shadow animate-fade-up"
+          style="animation-delay: {i * 40}ms">
+          <span class="font-medium text-sm text-ink">{s.name}</span>
+          <span class="text-xs text-ink-muted bg-warm-100 px-2.5 py-0.5 rounded-full">{s.count}</span>
+        </a>
+      {:else}
+        <p class="text-ink-muted text-sm py-8 text-center">{t('browse.no_series')}</p>
+      {/each}
+    {/if}
+
+    {#if tab === 'authors'}
+      {#each authors as author, i}
+        <a href="/browse/author/{encodeURIComponent(author.name)}"
+          class="card flex items-center justify-between p-4 hover:shadow-md transition-shadow animate-fade-up"
+          style="animation-delay: {i * 40}ms">
+          <span class="font-medium text-sm text-ink">{author.name}</span>
+          <span class="text-xs text-ink-muted bg-warm-100 px-2.5 py-0.5 rounded-full">{author.count}</span>
+        </a>
+      {:else}
+        <p class="text-ink-muted text-sm py-8 text-center">{t('browse.no_authors')}</p>
+      {/each}
+    {/if}
+  </div>
 </div>
-
-{#if tab === 'categories'}
-  {#each categories as cat}
-    <a href="/browse/category/{encodeURIComponent(cat.name)}"
-      class="flex items-center justify-between p-3 mb-2 bg-slate-800 rounded-lg hover:bg-slate-700">
-      <span class="capitalize">{cat.name}</span>
-      <span class="text-sm text-slate-400">{cat.count} books</span>
-    </a>
-  {:else}
-    <p class="text-slate-400">No categories yet. Add categories when adding books.</p>
-  {/each}
-{/if}
-
-{#if tab === 'series'}
-  {#each seriesList as s}
-    <a href="/browse/series/{s.id}"
-      class="flex items-center justify-between p-3 mb-2 bg-slate-800 rounded-lg hover:bg-slate-700">
-      <span>{s.name}</span>
-      <span class="text-sm text-slate-400">{s.count} books</span>
-    </a>
-  {:else}
-    <p class="text-slate-400">No series yet.</p>
-  {/each}
-{/if}
-
-{#if tab === 'authors'}
-  {#each authors as author}
-    <a href="/browse/author/{encodeURIComponent(author.name)}"
-      class="flex items-center justify-between p-3 mb-2 bg-slate-800 rounded-lg hover:bg-slate-700">
-      <span>{author.name}</span>
-      <span class="text-sm text-slate-400">{author.count} books</span>
-    </a>
-  {:else}
-    <p class="text-slate-400">No authors yet.</p>
-  {/each}
-{/if}

@@ -7,13 +7,13 @@
   import { getAllSeries, createSeries } from '$lib/services/series';
   import type { Series } from '$lib/db';
   import BarcodeScanner from '$lib/components/BarcodeScanner.svelte';
+  import { t } from '$lib/i18n/index.svelte';
 
   let mode = $state<'search' | 'manual' | 'scan'>('search');
   let searchQuery = $state('');
   let searchResults = $state<OpenLibraryResult[]>([]);
   let searching = $state(false);
 
-  // Manual form fields
   let title = $state('');
   let authors = $state('');
   let isbn = $state('');
@@ -23,7 +23,6 @@
   let saving = $state(false);
   let error = $state('');
 
-  // Series fields
   let seriesList = $state<Series[]>([]);
   let selectedSeriesId = $state<string>('');
   let seriesOrder = $state<string>('');
@@ -69,7 +68,7 @@
 
   async function handleSave() {
     if (!title.trim()) {
-      error = 'Title is required';
+      error = t('add.error_title');
       return;
     }
     saving = true;
@@ -92,7 +91,7 @@
     });
 
     if (result === null) {
-      error = 'A book with this ISBN already exists';
+      error = t('add.error_duplicate');
       saving = false;
       return;
     }
@@ -101,105 +100,116 @@
   }
 </script>
 
-<div class="max-w-lg mx-auto">
-  <h1 class="text-xl font-bold mb-4">Add Book</h1>
+<div class="max-w-lg mx-auto animate-fade-up">
+  <!-- Back -->
+  <button onclick={() => history.back()} class="flex items-center gap-1.5 text-sm text-ink-muted hover:text-ink mb-4 transition-colors">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+    {t('common.back')}
+  </button>
+
+  <h1 class="font-display text-2xl font-bold text-ink tracking-tight mb-6">{t('add.title')}</h1>
 
   <!-- Mode tabs -->
   <div class="flex gap-2 mb-6">
-    <button
-      class="px-4 py-2 rounded-lg text-sm {mode === 'search' ? 'bg-blue-600' : 'bg-slate-800'}"
-      onclick={() => mode = 'search'}
-    >Search</button>
-    <button
-      class="px-4 py-2 rounded-lg text-sm {mode === 'manual' ? 'bg-blue-600' : 'bg-slate-800'}"
-      onclick={() => mode = 'manual'}
-    >Manual</button>
-    <button
-      class="px-4 py-2 rounded-lg text-sm {mode === 'scan' ? 'bg-blue-600' : 'bg-slate-800'}"
-      onclick={() => mode = 'scan'}
-    >Scan</button>
+    {#each [
+      { key: 'search', label: t('add.search') },
+      { key: 'manual', label: t('add.manual') },
+      { key: 'scan', label: t('add.scan') }
+    ] as tab_item}
+      <button
+        class="tab-pill {mode === tab_item.key ? 'tab-pill-active' : 'tab-pill-inactive'}"
+        onclick={() => mode = tab_item.key as typeof mode}
+      >{tab_item.label}</button>
+    {/each}
   </div>
 
   <!-- Search mode -->
   {#if mode === 'search'}
-    <form class="flex gap-2 mb-4" onsubmit={(e) => { e.preventDefault(); handleSearch(); }}>
-      <input
-        type="text"
-        bind:value={searchQuery}
-        placeholder="Search by title or author..."
-        class="flex-1 px-4 py-2 rounded-lg bg-slate-800 border border-slate-600 text-white"
-      />
-      <button type="submit" class="px-4 py-2 bg-blue-600 rounded-lg" disabled={searching}>
-        {searching ? '...' : 'Search'}
+    <form class="flex gap-2 mb-5" onsubmit={(e) => { e.preventDefault(); handleSearch(); }}>
+      <div class="relative flex-1">
+        <svg class="absolute left-3.5 top-1/2 -translate-y-1/2 text-warm-300" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        <input
+          type="text"
+          bind:value={searchQuery}
+          placeholder={t('add.search_placeholder')}
+          class="input-field !pl-10"
+        />
+      </div>
+      <button type="submit" class="btn-primary" disabled={searching}>
+        {searching ? '...' : t('add.search')}
       </button>
     </form>
 
-    {#each searchResults as result}
-      <button
-        class="w-full flex gap-3 p-3 mb-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-left"
-        onclick={() => selectResult(result)}
-      >
-        {#if result.coverUrl}
-          <img src={result.coverUrl} alt="" class="w-12 h-16 object-cover rounded" />
-        {:else}
-          <div class="w-12 h-16 bg-slate-700 rounded flex items-center justify-center text-xs text-slate-500">No cover</div>
-        {/if}
-        <div>
-          <div class="font-medium">{result.title}</div>
-          <div class="text-sm text-slate-400">{result.authors.join(', ')}</div>
-          {#if result.publishYear}<div class="text-xs text-slate-500">{result.publishYear}</div>{/if}
-        </div>
-      </button>
-    {/each}
+    <div class="flex flex-col gap-2">
+      {#each searchResults as result, i}
+        <button
+          class="card w-full flex gap-4 p-4 text-left hover:shadow-md transition-shadow animate-fade-up"
+          style="animation-delay: {i * 40}ms"
+          onclick={() => selectResult(result)}
+        >
+          {#if result.coverUrl}
+            <img src={result.coverUrl} alt="" class="w-11 h-16 object-cover rounded book-shadow flex-shrink-0" />
+          {:else}
+            <div class="w-11 h-16 bg-warm-100 rounded flex items-center justify-center text-warm-300 flex-shrink-0">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
+            </div>
+          {/if}
+          <div class="min-w-0">
+            <div class="font-display text-sm font-semibold text-ink truncate">{result.title}</div>
+            <div class="text-xs text-ink-muted truncate">{result.authors.join(', ')}</div>
+            {#if result.publishYear}<div class="text-[11px] text-warm-400 mt-0.5">{result.publishYear}</div>{/if}
+          </div>
+        </button>
+      {/each}
+    </div>
   {/if}
 
   <!-- Scan mode -->
   {#if mode === 'scan'}
-    <BarcodeScanner onDetected={handleBarcode} />
+    <div class="rounded-xl overflow-hidden">
+      <BarcodeScanner onDetected={handleBarcode} />
+    </div>
   {/if}
 
   <!-- Manual mode -->
   {#if mode === 'manual'}
-    <form class="flex flex-col gap-4" onsubmit={(e) => { e.preventDefault(); handleSave(); }}>
+    <form class="flex flex-col gap-5" onsubmit={(e) => { e.preventDefault(); handleSave(); }}>
       {#if coverPreview}
-        <img src={coverPreview} alt="Cover" class="w-32 h-44 object-cover rounded mx-auto" />
+        <div class="flex justify-center">
+          <img src={coverPreview} alt="Cover" class="w-28 h-40 object-cover rounded-lg book-shadow-lg" />
+        </div>
       {/if}
 
-      <label class="flex flex-col gap-1">
-        <span class="text-sm text-slate-400">Cover Image</span>
+      <label class="flex flex-col gap-1.5">
+        <span class="text-xs font-semibold text-ink-muted uppercase tracking-wider">{t('add.cover_image')}</span>
         <input type="file" accept="image/*" onchange={handleCoverUpload}
-          class="text-sm text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-slate-700 file:text-white" />
+          class="text-sm text-ink-muted file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-warm-100 file:text-ink-light file:font-medium file:text-xs file:cursor-pointer" />
       </label>
 
-      <label class="flex flex-col gap-1">
-        <span class="text-sm text-slate-400">Title *</span>
-        <input type="text" bind:value={title}
-          class="px-4 py-2 rounded-lg bg-slate-800 border border-slate-600 text-white" />
+      <label class="flex flex-col gap-1.5">
+        <span class="text-xs font-semibold text-ink-muted uppercase tracking-wider">{t('add.book_title')} *</span>
+        <input type="text" bind:value={title} class="input-field" />
       </label>
 
-      <label class="flex flex-col gap-1">
-        <span class="text-sm text-slate-400">Authors (comma-separated)</span>
-        <input type="text" bind:value={authors}
-          class="px-4 py-2 rounded-lg bg-slate-800 border border-slate-600 text-white" />
+      <label class="flex flex-col gap-1.5">
+        <span class="text-xs font-semibold text-ink-muted uppercase tracking-wider">{t('add.authors')}</span>
+        <input type="text" bind:value={authors} placeholder={t('add.authors_placeholder')} class="input-field" />
       </label>
 
-      <label class="flex flex-col gap-1">
-        <span class="text-sm text-slate-400">ISBN</span>
-        <input type="text" bind:value={isbn}
-          class="px-4 py-2 rounded-lg bg-slate-800 border border-slate-600 text-white" />
+      <label class="flex flex-col gap-1.5">
+        <span class="text-xs font-semibold text-ink-muted uppercase tracking-wider">{t('add.isbn')}</span>
+        <input type="text" bind:value={isbn} class="input-field font-mono" />
       </label>
 
-      <label class="flex flex-col gap-1">
-        <span class="text-sm text-slate-400">Categories (comma-separated)</span>
-        <input type="text" bind:value={categories} placeholder="e.g. sci-fi, novel"
-          class="px-4 py-2 rounded-lg bg-slate-800 border border-slate-600 text-white" />
+      <label class="flex flex-col gap-1.5">
+        <span class="text-xs font-semibold text-ink-muted uppercase tracking-wider">{t('add.categories')}</span>
+        <input type="text" bind:value={categories} placeholder={t('add.categories_placeholder')} class="input-field" />
       </label>
 
-      <label class="flex flex-col gap-1">
-        <span class="text-sm text-slate-400">Series</span>
-        <select bind:value={selectedSeriesId}
-          class="px-4 py-2 rounded-lg bg-slate-800 border border-slate-600 text-white">
-          <option value="">None</option>
+      <label class="flex flex-col gap-1.5">
+        <span class="text-xs font-semibold text-ink-muted uppercase tracking-wider">{t('add.series')}</span>
+        <select bind:value={selectedSeriesId} class="input-field">
+          <option value="">{t('add.series_none')}</option>
           {#each seriesList as s}
             <option value={s.id}>{s.name}</option>
           {/each}
@@ -207,32 +217,31 @@
       </label>
 
       {#if selectedSeriesId}
-        <label class="flex flex-col gap-1">
-          <span class="text-sm text-slate-400">Position in series</span>
-          <input type="number" bind:value={seriesOrder} min="1" placeholder="e.g. 1"
-            class="px-4 py-2 rounded-lg bg-slate-800 border border-slate-600 text-white" />
+        <label class="flex flex-col gap-1.5">
+          <span class="text-xs font-semibold text-ink-muted uppercase tracking-wider">{t('add.series_position')}</span>
+          <input type="number" bind:value={seriesOrder} min="1" placeholder="e.g. 1" class="input-field" />
         </label>
       {/if}
 
       <div class="flex gap-2">
-        <input type="text" bind:value={newSeriesName} placeholder="Or create new series..."
-          class="flex-1 px-4 py-2 rounded-lg bg-slate-800 border border-slate-600 text-white text-sm" />
-        <button type="button" class="px-3 py-2 bg-slate-700 rounded-lg text-sm"
+        <input type="text" bind:value={newSeriesName} placeholder={t('add.series_create')}
+          class="input-field flex-1" />
+        <button type="button" class="btn-secondary"
           onclick={async () => {
             if (!newSeriesName.trim()) return;
             const s = await createSeries(newSeriesName.trim());
             seriesList = await getAllSeries();
             selectedSeriesId = s.id;
             newSeriesName = '';
-          }}>Add</button>
+          }}>{t('add.series_add')}</button>
       </div>
 
       {#if error}
-        <p class="text-red-400 text-sm">{error}</p>
+        <p class="text-berry text-sm font-medium">{error}</p>
       {/if}
 
-      <button type="submit" class="px-4 py-3 bg-blue-600 rounded-lg hover:bg-blue-500 font-medium" disabled={saving}>
-        {saving ? 'Saving...' : 'Add Book'}
+      <button type="submit" class="btn-primary w-full" disabled={saving}>
+        {saving ? t('add.saving') : t('add.save')}
       </button>
     </form>
   {/if}

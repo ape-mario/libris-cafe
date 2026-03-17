@@ -6,9 +6,10 @@
   import { getBookById } from '$lib/services/books';
   import type { Book, UserBookData } from '$lib/db';
   import BookCard from '$lib/components/BookCard.svelte';
+  import { t } from '$lib/i18n/index.svelte';
 
   let user = $derived(getCurrentUser());
-  let tab = $state<'reading' | 'wishlist' | 'lent' | 'read'>('reading');
+  let tab = $state<'reading' | 'wishlist' | 'lent' | 'read' | 'dnf'>('reading');
 
   let books = $state<(UserBookData & { book: Book })[]>([]);
   let loading = $state(true);
@@ -26,6 +27,8 @@
       data = await getUserBooks(user.id, { isWishlist: true });
     } else if (tab === 'lent') {
       data = await getLentBooks(user.id);
+    } else if (tab === 'dnf') {
+      data = await getUserBooks(user.id, { status: 'dnf' });
     } else {
       data = await getUserBooks(user.id, { status: 'read' });
     }
@@ -41,41 +44,61 @@
   }
 </script>
 
-<h1 class="text-xl font-bold mb-4">My Books</h1>
+<div class="animate-fade-up">
+  <h1 class="font-display text-2xl font-bold text-ink tracking-tight mb-6">{t('mine.title')}</h1>
 
-<div class="flex gap-2 mb-6 overflow-x-auto">
-  {#each [
-    { key: 'reading', label: 'Reading' },
-    { key: 'read', label: 'Read' },
-    { key: 'wishlist', label: 'Wishlist' },
-    { key: 'lent', label: 'Lent Out' }
-  ] as t}
-    <button
-      class="px-4 py-2 rounded-lg text-sm whitespace-nowrap {tab === t.key ? 'bg-blue-600' : 'bg-slate-800'}"
-      onclick={() => { tab = t.key as typeof tab; loadTab(); }}
-    >{t.label}</button>
-  {/each}
-</div>
-
-{#if loading}
-  <p class="text-slate-400">Loading...</p>
-{:else if books.length === 0}
-  <p class="text-slate-400">Nothing here yet.</p>
-{:else}
-  {#if tab === 'lent'}
-    {#each books as item}
-      <div class="flex items-center gap-3 p-3 mb-2 bg-slate-800 rounded-lg">
-        <button class="flex-1 text-left" onclick={() => goto(`/book/${item.bookId}`)}>
-          <div class="font-medium">{item.book.title}</div>
-          <div class="text-sm text-slate-400">Lent to {item.lentTo}</div>
-        </button>
-      </div>
+  <div class="flex gap-2 mb-6 overflow-x-auto pb-1">
+    {#each [
+      { key: 'reading', label: t('mine.reading') },
+      { key: 'read', label: t('mine.finished') },
+      { key: 'dnf', label: t('mine.dnf') },
+      { key: 'wishlist', label: t('mine.wishlist') },
+      { key: 'lent', label: t('mine.lent') }
+    ] as tab_item}
+      <button
+        class="tab-pill {tab === tab_item.key ? 'tab-pill-active' : 'tab-pill-inactive'}"
+        onclick={() => { tab = tab_item.key as typeof tab; loadTab(); }}
+      >{tab_item.label}</button>
     {/each}
-  {:else}
-    <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
-      {#each books as item}
-        <BookCard book={item.book} onclick={() => goto(`/book/${item.bookId}`)} />
-      {/each}
+  </div>
+
+  {#if loading}
+    <div class="flex justify-center py-16">
+      <div class="w-8 h-0.5 bg-warm-300 rounded-full animate-pulse"></div>
     </div>
+  {:else if books.length === 0}
+    <div class="text-center py-16">
+      <p class="text-ink-muted text-sm">{t('mine.empty')}</p>
+    </div>
+  {:else}
+    {#if tab === 'lent'}
+      <div class="flex flex-col gap-2">
+        {#each books as item, i}
+          <button
+            class="card flex items-center gap-4 p-4 text-left hover:shadow-md transition-shadow w-full animate-fade-up"
+            style="animation-delay: {i * 40}ms"
+            onclick={() => goto(`/book/${item.bookId}`)}
+          >
+            <div class="w-10 h-14 rounded overflow-hidden book-shadow bg-warm-100 flex-shrink-0">
+              {#if item.book.coverBlob || item.book.coverUrl}
+                <img src={item.book.coverBlob ? URL.createObjectURL(item.book.coverBlob) : item.book.coverUrl} alt="" class="w-full h-full object-cover" />
+              {/if}
+            </div>
+            <div class="min-w-0">
+              <div class="font-display text-sm font-semibold text-ink truncate">{item.book.title}</div>
+              <div class="text-xs text-ink-muted">{t('mine.lent_to')} <span class="font-medium text-accent">{item.lentTo}</span></div>
+            </div>
+          </button>
+        {/each}
+      </div>
+    {:else}
+      <div class="flex flex-wrap gap-x-4 gap-y-6">
+        {#each books as item, i}
+          <div style="animation-delay: {i * 40}ms" class="animate-fade-up">
+            <BookCard book={item.book} onclick={() => goto(`/book/${item.bookId}`)} />
+          </div>
+        {/each}
+      </div>
+    {/if}
   {/if}
-{/if}
+</div>

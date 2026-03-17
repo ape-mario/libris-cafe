@@ -22,7 +22,7 @@ export interface UserBookData {
   id: string;
   userId: string;
   bookId: string;
-  status: 'unread' | 'reading' | 'read';
+  status: 'unread' | 'reading' | 'read' | 'dnf';
   rating?: number;
   notes?: string;
   lentTo?: string;

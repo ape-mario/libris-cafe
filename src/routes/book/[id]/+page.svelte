@@ -6,18 +6,72 @@
   import { getUserBookData, setUserBookData } from '$lib/services/userbooks';
   import { resizeImage } from '$lib/services/covers';
   import { getCurrentUser } from '$lib/stores/user.svelte';
-  import type { Book, UserBookData } from '$lib/db';
+  import { getAllSeries, createSeries } from '$lib/services/series';
+  import { db } from '$lib/db';
+  import type { Book, UserBookData, Series } from '$lib/db';
+  import { showConfirm, showPrompt } from '$lib/stores/dialog.svelte';
+  import { showToast } from '$lib/stores/toast.svelte';
+  import { t } from '$lib/i18n/index.svelte';
 
   let book = $state<Book | null>(null);
   let userData = $state<UserBookData | null>(null);
   let user = $derived(getCurrentUser());
+  let editing = $state(false);
+
+  // Edit form fields
+  let editTitle = $state('');
+  let editAuthors = $state('');
+  let editIsbn = $state('');
+  let editCategories = $state('');
+  let editSeriesId = $state('');
+  let editSeriesOrder = $state('');
+  let seriesList = $state<Series[]>([]);
+  let newSeriesName = $state('');
+  let seriesName = $state('');
 
   onMount(async () => {
     book = (await getBookById(page.params.id)) || null;
     if (book && user) {
       userData = await getUserBookData(user.id, book.id);
     }
+    if (book?.seriesId) {
+      const s = await db.series.get(book.seriesId);
+      if (s) seriesName = s.name;
+    }
   });
+
+  function startEditing() {
+    if (!book) return;
+    editTitle = book.title;
+    editAuthors = book.authors.join(', ');
+    editIsbn = book.isbn || '';
+    editCategories = book.categories.join(', ');
+    editSeriesId = book.seriesId || '';
+    editSeriesOrder = book.seriesOrder?.toString() || '';
+    newSeriesName = '';
+    getAllSeries().then(s => seriesList = s);
+    editing = true;
+  }
+
+  async function saveEdit() {
+    if (!book || !editTitle.trim()) return;
+    await updateBook(book.id, {
+      title: editTitle.trim(),
+      authors: editAuthors.split(',').map(a => a.trim()).filter(Boolean),
+      isbn: editIsbn.trim() || undefined,
+      categories: editCategories.split(',').map(c => c.trim().toLowerCase()).filter(Boolean),
+      seriesId: editSeriesId || undefined,
+      seriesOrder: editSeriesOrder ? parseInt(editSeriesOrder) : undefined
+    });
+    book = await getBookById(book.id) || null;
+    if (book?.seriesId) {
+      const s = await db.series.get(book.seriesId);
+      seriesName = s?.name || '';
+    } else {
+      seriesName = '';
+    }
+    editing = false;
+  }
 
   function getCoverSrc(): string | null {
     if (!book) return null;
@@ -26,7 +80,7 @@
     return null;
   }
 
-  async function updateStatus(status: 'unread' | 'reading' | 'read') {
+  async function updateStatus(status: 'unread' | 'reading' | 'read' | 'dnf') {
     if (!user || !book) return;
     userData = await setUserBookData(user.id, book.id, { status });
   }
@@ -48,14 +102,22 @@
   }
 
   async function handleLend() {
-    const name = prompt('Lent to:');
-    if (!name || !user || !book) return;
+    if (!user || !book) return;
+    const name = await showPrompt({
+      title: t('dialog.lend_title'),
+      message: t('dialog.lend_message'),
+      placeholder: t('dialog.lend_placeholder'),
+      confirmLabel: t('dialog.lend_confirm')
+    });
+    if (!name) return;
     userData = await setUserBookData(user.id, book.id, { lentTo: name, lentDate: new Date() });
+    showToast(t('toast.lent', { name }), 'success');
   }
 
   async function handleReturn() {
     if (!user || !book) return;
     userData = await setUserBookData(user.id, book.id, { lentTo: undefined, lentDate: undefined });
+    showToast(t('toast.returned'), 'success');
   }
 
   async function handleCoverUpload(e: Event) {
@@ -68,99 +130,218 @@
   }
 
   async function handleDelete() {
-    if (!book || !confirm(`Delete "${book.title}"?`)) return;
+    if (!book) return;
+    const confirmed = await showConfirm({
+      title: t('dialog.delete_title'),
+      message: t('dialog.delete_message', { title: book.title }),
+      confirmLabel: t('dialog.delete_confirm'),
+      danger: true
+    });
+    if (!confirmed) return;
     await deleteBook(book.id);
+    showToast(t('toast.deleted'), 'info');
     goto('/');
   }
+
+  let statusConfig = $derived({
+    unread: { label: t('book.status_unread'), color: 'bg-warm-200 text-warm-700' },
+    reading: { label: t('book.status_reading'), color: 'bg-accent/10 text-accent' },
+    read: { label: t('book.status_read'), color: 'bg-sage-light text-sage' },
+    dnf: { label: t('book.status_dnf'), color: 'bg-berry/10 text-berry' }
+  });
 </script>
 
 {#if !book}
-  <p class="text-slate-400">Book not found.</p>
+  <p class="text-ink-muted text-center py-12">{t('book.not_found')}</p>
 {:else}
-  <div class="max-w-lg mx-auto">
-    <!-- Cover -->
-    <div class="flex flex-col items-center mb-6">
-      {#if getCoverSrc()}
-        <img src={getCoverSrc()} alt={book.title} class="w-40 h-56 object-cover rounded-lg shadow-lg" />
-      {:else}
-        <div class="w-40 h-56 bg-slate-800 rounded-lg flex items-center justify-center text-slate-500">No cover</div>
-      {/if}
-      <label class="mt-2 text-xs text-blue-400 cursor-pointer">
-        Change cover
-        <input type="file" accept="image/*" class="hidden" onchange={handleCoverUpload} />
-      </label>
-    </div>
+  <div class="max-w-lg mx-auto animate-fade-up">
+    <!-- Back button -->
+    <button onclick={() => history.back()} class="flex items-center gap-1.5 text-sm text-ink-muted hover:text-ink mb-6 transition-colors">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+      {t('common.back')}
+    </button>
 
-    <!-- Metadata -->
-    <h1 class="text-2xl font-bold">{book.title}</h1>
-    <p class="text-slate-400">{book.authors.join(', ')}</p>
-    {#if book.isbn}<p class="text-xs text-slate-500 mt-1">ISBN: {book.isbn}</p>{/if}
+    {#if editing}
+      <!-- Edit mode -->
+      <div class="flex gap-5 mb-6 items-start">
+        <div class="w-20 h-28 rounded-lg overflow-hidden book-shadow bg-warm-100 flex-shrink-0">
+          {#if getCoverSrc()}
+            <img src={getCoverSrc()} alt={book.title} class="w-full h-full object-cover" />
+          {:else}
+            <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-warm-100 to-warm-200 text-ink-muted text-[10px] text-center px-2 font-display">{book.title}</div>
+          {/if}
+        </div>
+        <div>
+          <h2 class="font-display text-lg font-bold text-ink leading-snug">{t('book.edit')}</h2>
+          <p class="text-xs text-ink-muted mt-0.5">{t('book.edit_subtitle')}</p>
+        </div>
+      </div>
 
-    {#if book.categories.length}
-      <div class="flex gap-2 mt-3 flex-wrap">
-        {#each book.categories as cat}
-          <span class="text-xs px-3 py-1 bg-slate-800 rounded-full">{cat}</span>
-        {/each}
+      <form class="flex flex-col gap-4 animate-fade-up" onsubmit={(e) => { e.preventDefault(); saveEdit(); }}>
+        <div class="card p-5 flex flex-col gap-4">
+          <label class="flex flex-col gap-1.5">
+            <span class="text-xs font-semibold text-ink-muted uppercase tracking-wider">{t('add.book_title')} *</span>
+            <input type="text" bind:value={editTitle} class="input-field" />
+          </label>
+
+          <label class="flex flex-col gap-1.5">
+            <span class="text-xs font-semibold text-ink-muted uppercase tracking-wider">{t('add.authors')}</span>
+            <input type="text" bind:value={editAuthors} placeholder={t('add.authors_placeholder')} class="input-field" />
+          </label>
+
+          <label class="flex flex-col gap-1.5">
+            <span class="text-xs font-semibold text-ink-muted uppercase tracking-wider">{t('add.isbn')}</span>
+            <input type="text" bind:value={editIsbn} class="input-field font-mono" />
+          </label>
+
+          <label class="flex flex-col gap-1.5">
+            <span class="text-xs font-semibold text-ink-muted uppercase tracking-wider">{t('add.categories')}</span>
+            <input type="text" bind:value={editCategories} placeholder={t('add.categories_placeholder')} class="input-field" />
+          </label>
+        </div>
+
+        <div class="card p-5 flex flex-col gap-4">
+          <h3 class="text-xs font-semibold text-ink-muted uppercase tracking-wider">{t('add.series')}</h3>
+          <select bind:value={editSeriesId} class="input-field">
+            <option value="">{t('add.series_none')}</option>
+            {#each seriesList as s}
+              <option value={s.id}>{s.name}</option>
+            {/each}
+          </select>
+
+          {#if editSeriesId}
+            <label class="flex flex-col gap-1.5">
+              <span class="text-xs font-semibold text-ink-muted uppercase tracking-wider">{t('add.series_position')}</span>
+              <input type="number" bind:value={editSeriesOrder} min="1" placeholder="e.g. 1" class="input-field" />
+            </label>
+          {/if}
+
+          <div class="flex gap-2">
+            <input type="text" bind:value={newSeriesName} placeholder={t('add.series_create')}
+              class="input-field flex-1" />
+            <button type="button" class="btn-secondary"
+              onclick={async () => {
+                if (!newSeriesName.trim()) return;
+                const s = await createSeries(newSeriesName.trim());
+                seriesList = await getAllSeries();
+                editSeriesId = s.id;
+                newSeriesName = '';
+              }}>{t('add.series_add')}</button>
+          </div>
+        </div>
+
+        <div class="flex gap-3 pt-1">
+          <button type="submit" class="btn-primary flex-1">{t('book.save')}</button>
+          <button type="button" class="btn-secondary" onclick={() => editing = false}>{t('dialog.cancel')}</button>
+        </div>
+      </form>
+    {:else}
+      <!-- View mode -->
+      <!-- Hero: Cover + Info side by side -->
+      <div class="flex gap-6 mb-8">
+        <div class="flex-shrink-0">
+          <div class="w-32 h-44 rounded-lg overflow-hidden book-shadow-lg bg-warm-100">
+            {#if getCoverSrc()}
+              <img src={getCoverSrc()} alt={book.title} class="w-full h-full object-cover" />
+            {:else}
+              <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-warm-100 to-warm-200 text-ink-muted text-xs text-center px-3 font-display">
+                {book.title}
+              </div>
+            {/if}
+          </div>
+          <label class="block mt-2 text-[11px] text-accent cursor-pointer text-center font-medium hover:text-accent-dark transition-colors">
+            {t('book.change_cover')}
+            <input type="file" accept="image/*" class="hidden" onchange={handleCoverUpload} />
+          </label>
+        </div>
+
+        <div class="flex flex-col justify-center min-w-0">
+          <div class="flex items-start gap-1.5">
+            <h1 class="font-display text-xl font-bold text-ink leading-snug flex-1">{book.title}</h1>
+            <button onclick={toggleWishlist} class="mt-0.5 flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center transition-all {userData?.isWishlist ? 'text-accent bg-accent/10' : 'text-warm-300 hover:text-accent hover:bg-accent/5'}" title="{userData?.isWishlist ? t('book.wishlist_in') : t('book.wishlist_add')}">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="{userData?.isWishlist ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+            </button>
+            <button onclick={startEditing} class="mt-0.5 flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center text-warm-300 hover:text-accent hover:bg-accent/5 transition-colors" title="Edit details">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
+            </button>
+          </div>
+          <p class="text-sm text-ink-muted mt-1">{book.authors.join(', ')}</p>
+          {#if book.isbn}<p class="text-xs text-warm-400 mt-1 font-mono">ISBN {book.isbn}</p>{/if}
+
+          {#if book.categories.length}
+            <div class="flex gap-1.5 mt-3 flex-wrap">
+              {#each book.categories as cat}
+                <span class="text-[11px] px-2.5 py-0.5 bg-warm-100 text-ink-muted rounded-full capitalize font-medium">{cat}</span>
+              {/each}
+            </div>
+          {/if}
+
+          {#if seriesName}
+            <p class="text-xs text-accent mt-2 font-medium">
+              {seriesName}{#if book.seriesOrder} &middot; {t('book.book_number', { n: book.seriesOrder })}{/if}
+            </p>
+          {/if}
+
+          <!-- Rating inline -->
+          <div class="flex gap-0.5 mt-3">
+            {#each [1, 2, 3, 4, 5] as star}
+              <button
+                class="star-btn {(userData?.rating || 0) >= star ? 'star-active' : 'star-inactive'}"
+                onclick={() => updateRating(star)}
+              >&#9733;</button>
+            {/each}
+          </div>
+        </div>
+      </div>
+
+      <!-- Status pills -->
+      <div class="mb-6">
+        <h2 class="text-xs font-semibold text-ink-muted uppercase tracking-wider mb-2.5">{t('book.status')}</h2>
+        <div class="flex gap-2">
+          {#each (['unread', 'reading', 'read', 'dnf'] as const) as status}
+            <button
+              class="tab-pill {userData?.status === status ? 'tab-pill-active' : 'tab-pill-inactive'}"
+              onclick={() => updateStatus(status)}
+            >{statusConfig[status].label}</button>
+          {/each}
+        </div>
+      </div>
+
+      <!-- Notes -->
+      <div class="mb-6">
+        <h2 class="text-xs font-semibold text-ink-muted uppercase tracking-wider mb-2.5">{t('book.notes')}</h2>
+        <textarea
+          class="input-field resize-none h-24 text-sm"
+          placeholder={t('book.notes_placeholder')}
+          value={userData?.notes || ''}
+          onblur={updateNotes}
+        ></textarea>
+      </div>
+
+      <!-- Lending -->
+      <div class="mb-6">
+        <h2 class="text-xs font-semibold text-ink-muted uppercase tracking-wider mb-2.5">{t('book.lending')}</h2>
+        {#if userData?.lentTo}
+          <div class="card flex items-center justify-between p-4">
+            <div>
+              <span class="text-sm text-ink">{t('book.lent_to')} <strong class="font-semibold">{userData.lentTo}</strong></span>
+            </div>
+            <button class="text-sm text-accent font-medium hover:text-accent-dark transition-colors" onclick={handleReturn}>{t('book.return')}</button>
+          </div>
+        {:else}
+          <button class="btn-secondary" onclick={handleLend}>
+            {t('book.lend')}
+          </button>
+        {/if}
+      </div>
+
+      <!-- Danger zone -->
+      <div class="mt-8 pt-6 border-t border-warm-100">
+        <button
+          class="text-xs text-warm-400 hover:text-berry transition-colors"
+          onclick={handleDelete}
+        >{t('book.delete')}</button>
       </div>
     {/if}
-
-    <!-- Reading Status -->
-    <div class="mt-6">
-      <h2 class="text-sm font-medium text-slate-400 mb-2">Reading Status</h2>
-      <div class="flex gap-2">
-        {#each ['unread', 'reading', 'read'] as status}
-          <button
-            class="px-4 py-2 rounded-lg text-sm capitalize {userData?.status === status ? 'bg-blue-600' : 'bg-slate-800'}"
-            onclick={() => updateStatus(status as 'unread' | 'reading' | 'read')}
-          >{status}</button>
-        {/each}
-      </div>
-    </div>
-
-    <!-- Rating -->
-    <div class="mt-6">
-      <h2 class="text-sm font-medium text-slate-400 mb-2">Rating</h2>
-      <div class="flex gap-1">
-        {#each [1, 2, 3, 4, 5] as star}
-          <button
-            class="text-2xl {(userData?.rating || 0) >= star ? 'text-yellow-400' : 'text-slate-600'}"
-            onclick={() => updateRating(star)}
-          >★</button>
-        {/each}
-      </div>
-    </div>
-
-    <!-- Notes -->
-    <div class="mt-6">
-      <h2 class="text-sm font-medium text-slate-400 mb-2">Notes</h2>
-      <textarea
-        class="w-full h-24 px-4 py-2 rounded-lg bg-slate-800 border border-slate-700 text-white text-sm resize-none"
-        placeholder="Your thoughts..."
-        value={userData?.notes || ''}
-        onblur={updateNotes}
-      ></textarea>
-    </div>
-
-    <!-- Lending -->
-    <div class="mt-6">
-      <h2 class="text-sm font-medium text-slate-400 mb-2">Lending</h2>
-      {#if userData?.lentTo}
-        <div class="flex items-center justify-between bg-slate-800 p-3 rounded-lg">
-          <span>Lent to <strong>{userData.lentTo}</strong></span>
-          <button class="text-sm text-blue-400" onclick={handleReturn}>Mark returned</button>
-        </div>
-      {:else}
-        <button class="px-4 py-2 bg-slate-800 rounded-lg text-sm" onclick={handleLend}>Lend this book</button>
-      {/if}
-    </div>
-
-    <!-- Actions -->
-    <div class="mt-6 flex gap-3">
-      <button
-        class="flex-1 px-4 py-2 rounded-lg text-sm {userData?.isWishlist ? 'bg-yellow-600' : 'bg-slate-800'}"
-        onclick={toggleWishlist}
-      >{userData?.isWishlist ? 'In Wishlist' : 'Add to Wishlist'}</button>
-      <button class="px-4 py-2 bg-red-900 rounded-lg text-sm" onclick={handleDelete}>Delete</button>
-    </div>
   </div>
 {/if}

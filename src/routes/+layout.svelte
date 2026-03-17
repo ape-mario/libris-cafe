@@ -5,6 +5,9 @@
   import ProfilePicker from '$lib/components/ProfilePicker.svelte';
   import TopBar from '$lib/components/TopBar.svelte';
   import BottomNav from '$lib/components/BottomNav.svelte';
+  import Toast from '$lib/components/Toast.svelte';
+  import Dialog from '$lib/components/Dialog.svelte';
+  import { t } from '$lib/i18n/index.svelte';
 
   let { children } = $props();
   let loaded = $state(false);
@@ -17,15 +20,21 @@
 </script>
 
 {#if !loaded}
-  <div class="min-h-screen bg-slate-900 flex items-center justify-center text-white">
-    Loading...
+  <div class="min-h-screen bg-cream flex items-center justify-center">
+    <div class="animate-fade-in flex flex-col items-center gap-3">
+      <span class="font-display text-2xl text-ink font-semibold tracking-tight">{t('app.name')}</span>
+      <div class="w-8 h-0.5 bg-warm-300 rounded-full animate-pulse"></div>
+    </div>
   </div>
 {:else if !user}
   <ProfilePicker />
 {:else}
   <TopBar />
-  <main class="pt-16 pb-20 px-4 min-h-screen bg-slate-950 text-white">
+  <main class="pt-20 pb-24 px-5 min-h-screen bg-cream max-w-2xl mx-auto">
     {@render children()}
   </main>
   <BottomNav />
 {/if}
+
+<Toast />
+<Dialog />
