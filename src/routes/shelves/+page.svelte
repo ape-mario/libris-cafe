@@ -1,9 +1,10 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
+  import { onMount, onDestroy } from 'svelte';
   import { goto } from '$app/navigation';
   import { base } from '$app/paths';
   import { getCurrentUser } from '$lib/stores/user.svelte';
   import { getUserShelves, createShelf, deleteShelf } from '$lib/services/shelves';
+  import { q } from '$lib/db';
   import { getBookById } from '$lib/services/books';
   import type { Shelf, Book } from '$lib/db';
   import { showConfirm } from '$lib/stores/dialog.svelte';
@@ -17,7 +18,12 @@
   let newShelfName = $state('');
   let showCreate = $state(false);
 
-  onMount(() => loadShelves());
+  let unsub: (() => void)[] = [];
+  onMount(() => {
+    loadShelves();
+    unsub = [q.observe('shelves', () => loadShelves()), q.observe('books', () => loadShelves())];
+  });
+  onDestroy(() => unsub.forEach(f => f()));
 
   function loadShelves() {
     if (!user) return;

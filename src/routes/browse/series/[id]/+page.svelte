@@ -2,7 +2,7 @@
   import { page } from '$app/state';
   import { goto } from '$app/navigation';
   import { base } from '$app/paths';
-  import { onMount } from 'svelte';
+  import { onMount, onDestroy } from 'svelte';
   import { getBooksBySeries } from '$lib/services/books';
   import { q } from '$lib/db';
   import type { Book, Series } from '$lib/db';
@@ -11,11 +11,18 @@
 
   let books = $state<Book[]>([]);
   let series = $state<Series | null>(null);
+  let unsub: (() => void)[] = [];
 
-  onMount(() => {
+  function loadSeriesData() {
     series = (q.getItem('series', page.params.id!) as Series | undefined) || null;
     books = getBooksBySeries(page.params.id!);
+  }
+
+  onMount(() => {
+    loadSeriesData();
+    unsub = [q.observe('books', loadSeriesData), q.observe('series', loadSeriesData)];
   });
+  onDestroy(() => unsub.forEach(f => f()));
 </script>
 
 <div class="animate-fade-up">

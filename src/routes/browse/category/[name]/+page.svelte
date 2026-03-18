@@ -2,18 +2,22 @@
   import { page } from '$app/state';
   import { goto } from '$app/navigation';
   import { base } from '$app/paths';
-  import { onMount } from 'svelte';
+  import { onMount, onDestroy } from 'svelte';
   import { getBooksByCategory } from '$lib/services/books';
+  import { q } from '$lib/db';
   import type { Book } from '$lib/db';
   import BookCard from '$lib/components/BookCard.svelte';
   import { t, bookCount } from '$lib/i18n/index.svelte';
 
   let books = $state<Book[]>([]);
   let name = $derived(decodeURIComponent(page.params.name!));
+  let unsub: (() => void) | null = null;
 
   onMount(() => {
     books = getBooksByCategory(name);
+    unsub = q.observe('books', () => { books = getBooksByCategory(name); });
   });
+  onDestroy(() => unsub?.());
 </script>
 
 <div class="animate-fade-up">

@@ -1,10 +1,11 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
+  import { onMount, onDestroy } from 'svelte';
   import { goto } from '$app/navigation';
   import { base } from '$app/paths';
   import { getCurrentUser } from '$lib/stores/user.svelte';
   import { getUserBooks, getLentBooks } from '$lib/services/userbooks';
   import { getBookById } from '$lib/services/books';
+  import { q } from '$lib/db';
   import type { Book, UserBookData } from '$lib/db';
   import BookCard from '$lib/components/BookCard.svelte';
   import { t } from '$lib/i18n/index.svelte';
@@ -15,7 +16,12 @@
   let books = $state<(UserBookData & { book: Book })[]>([]);
   let loading = $state(true);
 
-  onMount(() => loadTab());
+  let unsub: (() => void)[] = [];
+  onMount(() => {
+    loadTab();
+    unsub = [q.observe('userBookData', () => loadTab()), q.observe('books', () => loadTab())];
+  });
+  onDestroy(() => unsub.forEach(f => f()));
 
   function loadTab() {
     if (!user) return;

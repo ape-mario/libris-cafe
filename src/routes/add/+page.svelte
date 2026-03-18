@@ -1,12 +1,13 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
   import { base } from '$app/paths';
-  import { onMount } from 'svelte';
+  import { onMount, onDestroy } from 'svelte';
   import { addBook, hasBookWithISBN } from '$lib/services/books';
   import { showConfirm } from '$lib/stores/dialog.svelte';
   import { resizeImage } from '$lib/services/covers';
   import { searchOpenLibrary, lookupByISBN, type OpenLibraryResult } from '$lib/services/openlibrary';
   import { getAllSeries, createSeries } from '$lib/services/series';
+  import { q } from '$lib/db';
   import { setCoverBase64 } from '$lib/services/coverCache';
   import type { Series } from '$lib/db';
   import BarcodeScanner from '$lib/components/BarcodeScanner.svelte';
@@ -32,9 +33,12 @@
   let seriesOrder = $state<string>('');
   let newSeriesName = $state('');
 
+  let unsubAdd: (() => void) | null = null;
   onMount(() => {
     seriesList = getAllSeries();
+    unsubAdd = q.observe('series', () => { seriesList = getAllSeries(); });
   });
+  onDestroy(() => unsubAdd?.());
 
   async function handleBarcode(code: string) {
     isbn = code;

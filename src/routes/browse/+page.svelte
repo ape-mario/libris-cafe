@@ -1,9 +1,10 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
+  import { onMount, onDestroy } from 'svelte';
   import { base } from '$app/paths';
   import { getBooks } from '$lib/services/books';
   import { getAllSeries } from '$lib/services/series';
   import { getBooksBySeries } from '$lib/services/books';
+  import { q } from '$lib/db';
   import type { Series } from '$lib/db';
   import { t } from '$lib/i18n/index.svelte';
 
@@ -12,7 +13,9 @@
   let authors = $state<{ name: string; count: number }[]>([]);
   let tab = $state<'categories' | 'series' | 'authors'>('categories');
 
-  onMount(() => {
+  let unsubBrowse: (() => void)[] = [];
+
+  function loadBrowseData() {
     const books = getBooks();
     const catMap = new Map<string, number>();
     const authorMap = new Map<string, number>();
@@ -39,7 +42,13 @@
       ...s,
       count: getBooksBySeries(s.id).length
     }));
+  }
+
+  onMount(() => {
+    loadBrowseData();
+    unsubBrowse = [q.observe('books', () => loadBrowseData()), q.observe('series', () => loadBrowseData())];
   });
+  onDestroy(() => unsubBrowse.forEach(f => f()));
 </script>
 
 <div class="animate-fade-up">

@@ -2,7 +2,7 @@
   import { page } from '$app/state';
   import { goto } from '$app/navigation';
   import { base } from '$app/paths';
-  import { onMount } from 'svelte';
+  import { onMount, onDestroy } from 'svelte';
   import { getBookById, updateBook, deleteBook } from '$lib/services/books';
   import { getUserBookData, setUserBookData } from '$lib/services/userbooks';
   import { resizeImage } from '$lib/services/covers';
@@ -35,33 +35,40 @@
   let newSeriesName = $state('');
   let seriesName = $state('');
 
-  onMount(async () => {
+  let unsubBook: (() => void)[] = [];
+
+  function reloadBookData() {
     const id = page.params.id;
     if (!id) return;
     book = getBookById(id) || null;
-    if (!book) return; // Book not found — template shows not_found message
+    if (!book) return;
     if (user) {
       userData = getUserBookData(user.id, book.id);
+      shelves = getUserShelves(user.id);
+      bookShelfIds = new Set(shelves.filter(s => s.bookIds.includes(book!.id)).map(s => s.id));
     }
     if (book.seriesId) {
       const s = q.getItem('series', book.seriesId) as Series | undefined;
       if (s) seriesName = s.name;
     }
+  }
+
+  onMount(async () => {
+    reloadBookData();
     // Load cover from cache or URL
     if (book) {
       const base64 = await getCoverBase64(book.id);
       coverSrc = base64 || book.coverUrl || null;
-      // Cache cover for offline use
       cacheCoverIfNeeded(book.id);
     }
-    // Load shelves
-    if (user) {
-      shelves = getUserShelves(user.id);
-      if (book) {
-        bookShelfIds = new Set(shelves.filter(s => s.bookIds.includes(book!.id)).map(s => s.id));
-      }
-    }
+    unsubBook = [
+      q.observe('books', () => reloadBookData()),
+      q.observe('userBookData', () => reloadBookData()),
+      q.observe('shelves', () => reloadBookData())
+    ];
   });
+
+  onDestroy(() => unsubBook.forEach(f => f()));
 
   function startEditing() {
     if (!book) return;

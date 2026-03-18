@@ -4,6 +4,7 @@
   import { getReadingStats, getAvailableYears, type ReadingStats } from '$lib/services/stats';
   import { getGoal, setGoal, getBooksReadThisYear } from '$lib/services/goals';
   import { getRecommendations, type Recommendation } from '$lib/services/recommendations';
+  import { q } from '$lib/db';
   import { t } from '$lib/i18n/index.svelte';
 
   let user = $derived(getCurrentUser());
@@ -85,6 +86,8 @@
     }
   }
 
+  let unsubStats: (() => void)[] = [];
+
   onMount(() => {
     document.addEventListener('click', handleClickOutside);
     if (user) {
@@ -101,6 +104,8 @@
         recs = r;
         loadingRecs = false;
       }).catch(() => { loadingRecs = false; });
+
+      unsubStats = [q.observe('userBookData', () => loadStats()), q.observe('books', () => loadStats())];
     }
     loading = false;
   });
@@ -109,6 +114,7 @@
     if (typeof document !== 'undefined') {
       document.removeEventListener('click', handleClickOutside);
     }
+    unsubStats.forEach(f => f());
   });
 
   function saveGoal() {
