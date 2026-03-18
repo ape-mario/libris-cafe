@@ -2,7 +2,7 @@ import type { SyncProvider, SyncStatus } from './provider';
 import { getSyncConfig, saveSyncConfig, type SyncConfig } from './provider';
 import { createPartyKitProvider } from './partykit';
 import { createHocuspocusProvider } from './hocuspocus';
-import { createWebRTCProvider } from './webrtc';
+import { createTrysteroProvider } from './trystero';
 import { generateRoomCode } from './room';
 import { doc } from '$lib/db';
 
@@ -24,7 +24,7 @@ function createProvider(config: SyncConfig): SyncProvider {
 	if (config.provider === 'partykit') {
 		return createPartyKitProvider();
 	}
-	return createWebRTCProvider();
+	return createTrysteroProvider();
 }
 
 export function getSyncStatus(): SyncStatus {
