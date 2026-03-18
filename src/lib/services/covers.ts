@@ -1,5 +1,5 @@
-const MAX_WIDTH = 400;
-const JPEG_QUALITY = 0.8;
+const MAX_WIDTH = 300;
+const JPEG_QUALITY = 0.7;
 
 export async function resizeImage(file: File | Blob): Promise<Blob> {
   const bitmap = await createImageBitmap(file);

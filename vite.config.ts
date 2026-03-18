@@ -1,7 +1,7 @@
 import { sveltekit } from '@sveltejs/kit/vite';
 import tailwindcss from '@tailwindcss/vite';
 import { SvelteKitPWA } from '@vite-pwa/sveltekit';
-import { defineConfig } from 'vite';
+import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
 	test: {
@@ -14,9 +14,9 @@ export default defineConfig({
 		SvelteKitPWA({
 			registerType: 'autoUpdate',
 			manifest: {
-				name: 'My Books',
-				short_name: 'MyBooks',
-				description: 'Personal book collection manager',
+				name: 'Libris',
+				short_name: 'Libris',
+				description: 'Your personal book collection',
 				theme_color: '#faf6f1',
 				background_color: '#faf6f1',
 				display: 'standalone',

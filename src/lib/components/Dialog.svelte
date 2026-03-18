@@ -3,7 +3,7 @@
   import { t } from '$lib/i18n/index.svelte';
 
   let dialog = $derived(getDialog());
-  let inputRef: HTMLInputElement | undefined;
+  let inputRef: HTMLInputElement | undefined = $state();
 
   $effect(() => {
     if (dialog.open && dialog.type === 'prompt') {
@@ -22,8 +22,7 @@
 
 {#if dialog.open}
   <div class="fixed inset-0 z-[200] flex items-center justify-center p-6 dialog-backdrop">
-    <!-- svelte-ignore a11y_no_static_element_interactions -->
-    <div class="absolute inset-0 bg-ink/30 backdrop-blur-sm" onclick={cancelDialog}></div>
+    <button class="absolute inset-0 bg-ink/30 backdrop-blur-sm border-none cursor-default" onclick={cancelDialog} aria-label="Close dialog"></button>
 
     <div class="relative bg-cream rounded-2xl shadow-2xl w-full max-w-sm p-6 dialog-content">
       <h2 class="font-display text-lg font-bold text-ink">{dialog.title}</h2>

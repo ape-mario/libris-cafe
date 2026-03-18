@@ -8,13 +8,17 @@
   import { getCurrentUser } from '$lib/stores/user.svelte';
   import { getAllSeries, createSeries } from '$lib/services/series';
   import { db } from '$lib/db';
-  import type { Book, UserBookData, Series } from '$lib/db';
+  import type { Book, UserBookData, Series, Shelf } from '$lib/db';
   import { showConfirm, showPrompt } from '$lib/stores/dialog.svelte';
   import { showToast } from '$lib/stores/toast.svelte';
   import { t } from '$lib/i18n/index.svelte';
+  import { cacheCoverIfNeeded } from '$lib/services/coverCache';
+  import { getUserShelves, addBookToShelf, removeBookFromShelf } from '$lib/services/shelves';
 
   let book = $state<Book | null>(null);
   let userData = $state<UserBookData | null>(null);
+  let shelves = $state<Shelf[]>([]);
+  let bookShelfIds = $state<Set<string>>(new Set());
   let user = $derived(getCurrentUser());
   let editing = $state(false);
 
@@ -30,13 +34,24 @@
   let seriesName = $state('');
 
   onMount(async () => {
-    book = (await getBookById(page.params.id)) || null;
+    const id = page.params.id;
+    if (!id) return;
+    book = (await getBookById(id)) || null;
     if (book && user) {
       userData = await getUserBookData(user.id, book.id);
     }
     if (book?.seriesId) {
       const s = await db.series.get(book.seriesId);
       if (s) seriesName = s.name;
+    }
+    // Cache cover for offline use
+    if (book) cacheCoverIfNeeded(book.id);
+    // Load shelves
+    if (user) {
+      shelves = await getUserShelves(user.id);
+      if (book) {
+        bookShelfIds = new Set(shelves.filter(s => s.bookIds.includes(book!.id)).map(s => s.id));
+      }
     }
   });
 
@@ -143,6 +158,33 @@
     goto('/');
   }
 
+  let progressPercent = $derived(
+    userData?.currentPage && userData?.totalPages && userData.totalPages > 0
+      ? Math.min(100, Math.round((userData.currentPage / userData.totalPages) * 100))
+      : null
+  );
+
+  async function updateProgress(field: 'currentPage' | 'totalPages', value: string) {
+    if (!user || !book) return;
+    const num = parseInt(value) || undefined;
+    userData = await setUserBookData(user.id, book.id, { [field]: num });
+  }
+
+  async function toggleShelf(shelf: Shelf) {
+    if (!book) return;
+    if (bookShelfIds.has(shelf.id)) {
+      await removeBookFromShelf(shelf.id, book.id);
+      bookShelfIds.delete(shelf.id);
+      bookShelfIds = new Set(bookShelfIds);
+      showToast(t('toast.book_removed_from_shelf', { name: shelf.name }), 'info');
+    } else {
+      await addBookToShelf(shelf.id, book.id);
+      bookShelfIds.add(shelf.id);
+      bookShelfIds = new Set(bookShelfIds);
+      showToast(t('toast.book_added_to_shelf', { name: shelf.name }), 'success');
+    }
+  }
+
   let statusConfig = $derived({
     unread: { label: t('book.status_unread'), color: 'bg-warm-200 text-warm-700' },
     reading: { label: t('book.status_reading'), color: 'bg-accent/10 text-accent' },
@@ -156,7 +198,7 @@
 {:else}
   <div class="max-w-lg mx-auto animate-fade-up">
     <!-- Back button -->
-    <button onclick={() => history.back()} class="flex items-center gap-1.5 text-sm text-ink-muted hover:text-ink mb-6 transition-colors">
+    <button onclick={() => history.back()} class="flex items-center gap-1.5 text-sm text-ink-muted hover:text-ink mb-4 transition-colors">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
       {t('common.back')}
     </button>
@@ -212,7 +254,7 @@
           {#if editSeriesId}
             <label class="flex flex-col gap-1.5">
               <span class="text-xs font-semibold text-ink-muted uppercase tracking-wider">{t('add.series_position')}</span>
-              <input type="number" bind:value={editSeriesOrder} min="1" placeholder="e.g. 1" class="input-field" />
+              <input type="number" bind:value={editSeriesOrder} min="1" placeholder="1" class="input-field" />
             </label>
           {/if}
 
@@ -249,7 +291,7 @@
               </div>
             {/if}
           </div>
-          <label class="block mt-2 text-[11px] text-accent cursor-pointer text-center font-medium hover:text-accent-dark transition-colors">
+          <label class="block mt-2 text-xs text-accent cursor-pointer text-center font-medium hover:text-accent-dark transition-colors">
             {t('book.change_cover')}
             <input type="file" accept="image/*" class="hidden" onchange={handleCoverUpload} />
           </label>
@@ -257,12 +299,12 @@
 
         <div class="flex flex-col justify-center min-w-0">
           <div class="flex items-start gap-1.5">
-            <h1 class="font-display text-xl font-bold text-ink leading-snug flex-1">{book.title}</h1>
-            <button onclick={toggleWishlist} class="mt-0.5 flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center transition-all {userData?.isWishlist ? 'text-accent bg-accent/10' : 'text-warm-300 hover:text-accent hover:bg-accent/5'}" title="{userData?.isWishlist ? t('book.wishlist_in') : t('book.wishlist_add')}">
+            <h1 class="font-display text-2xl font-bold text-ink tracking-tight leading-snug flex-1">{book.title}</h1>
+            <button onclick={toggleWishlist} class="mt-0.5 flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center transition-all {userData?.isWishlist ? 'text-accent bg-accent/10' : 'text-warm-300 hover:text-accent hover:bg-accent/5'}" aria-label="{userData?.isWishlist ? t('book.wishlist_in') : t('book.wishlist_add')}">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="{userData?.isWishlist ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
             </button>
-            <button onclick={startEditing} class="mt-0.5 flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center text-warm-300 hover:text-accent hover:bg-accent/5 transition-colors" title="Edit details">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
+            <button onclick={startEditing} class="mt-0.5 flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center text-warm-300 hover:text-accent hover:bg-accent/5 transition-colors" aria-label={t('book.edit')}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
             </button>
           </div>
           <p class="text-sm text-ink-muted mt-1">{book.authors.join(', ')}</p>
@@ -271,7 +313,7 @@
           {#if book.categories.length}
             <div class="flex gap-1.5 mt-3 flex-wrap">
               {#each book.categories as cat}
-                <span class="text-[11px] px-2.5 py-0.5 bg-warm-100 text-ink-muted rounded-full capitalize font-medium">{cat}</span>
+                <span class="text-xs px-2.5 py-0.5 bg-warm-100 text-ink-muted rounded-full capitalize font-medium">{cat}</span>
               {/each}
             </div>
           {/if}
@@ -307,6 +349,54 @@
         </div>
       </div>
 
+      <!-- Reading Progress (only for "reading" status) -->
+      {#if userData?.status === 'reading'}
+        <div class="mb-6 animate-fade-up">
+          <h2 class="text-xs font-semibold text-ink-muted uppercase tracking-wider mb-2.5">{t('book.progress')}</h2>
+          <div class="card p-4">
+            <div class="flex gap-3 mb-3">
+              <label class="flex-1 flex flex-col gap-1">
+                <span class="text-xs text-ink-muted">{t('book.progress.current_page')}</span>
+                <input
+                  type="number"
+                  min="0"
+                  max={userData?.totalPages || undefined}
+                  value={userData?.currentPage || ''}
+                  onblur={(e) => updateProgress('currentPage', (e.target as HTMLInputElement).value)}
+                  class="input-field !py-1.5 text-sm text-center"
+                />
+              </label>
+              <label class="flex-1 flex flex-col gap-1">
+                <span class="text-xs text-ink-muted">{t('book.progress.total_pages')}</span>
+                <input
+                  type="number"
+                  min="1"
+                  value={userData?.totalPages || ''}
+                  onblur={(e) => updateProgress('totalPages', (e.target as HTMLInputElement).value)}
+                  class="input-field !py-1.5 text-sm text-center"
+                />
+              </label>
+            </div>
+            {#if progressPercent !== null}
+              <div class="flex items-center gap-3">
+                <div class="flex-1 h-2 rounded-full bg-warm-100 overflow-hidden">
+                  <div
+                    class="h-full rounded-full bg-accent transition-all duration-500 ease-out"
+                    style="width: {progressPercent}%"
+                  ></div>
+                </div>
+                <span class="text-xs font-medium text-accent flex-shrink-0">
+                  {t('book.progress.percent', { percent: progressPercent })}
+                </span>
+              </div>
+              {#if userData?.currentPage && userData?.totalPages}
+                <p class="text-xs text-ink-muted mt-1.5">{t('book.progress.pages', { current: userData.currentPage, total: userData.totalPages })}</p>
+              {/if}
+            {/if}
+          </div>
+        </div>
+      {/if}
+
       <!-- Notes -->
       <div class="mb-6">
         <h2 class="text-xs font-semibold text-ink-muted uppercase tracking-wider mb-2.5">{t('book.notes')}</h2>
@@ -332,6 +422,25 @@
           <button class="btn-secondary" onclick={handleLend}>
             {t('book.lend')}
           </button>
+        {/if}
+      </div>
+
+      <!-- Shelves -->
+      <div class="mb-6">
+        <h2 class="text-xs font-semibold text-ink-muted uppercase tracking-wider mb-2.5">{t('shelves.add_to')}</h2>
+        {#if shelves.length > 0}
+          <div class="flex gap-2 flex-wrap">
+            {#each shelves as shelf}
+              <button
+                class="tab-pill !py-1 !px-3 !text-xs {bookShelfIds.has(shelf.id) ? 'tab-pill-active' : 'tab-pill-inactive'}"
+                onclick={() => toggleShelf(shelf)}
+              >{shelf.name}</button>
+            {/each}
+          </div>
+        {:else}
+          <a href="/shelves" class="text-xs text-accent hover:text-accent-dark transition-colors font-medium">
+            + {t('shelves.create')}
+          </a>
         {/if}
       </div>
 

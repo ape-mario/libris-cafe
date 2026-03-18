@@ -1,10 +1,10 @@
 export default {
   // App
-  'app.name': 'buku saya',
+  'app.name': 'Libris',
   'app.loading': 'Memuat...',
 
   // Profile picker
-  'profile.title': 'buku saya',
+  'profile.title': 'Libris',
   'profile.subtitle': 'Siapa yang membaca hari ini?',
   'profile.add': 'Tambah Profil',
   'profile.placeholder': 'Nama kamu',
@@ -16,6 +16,8 @@ export default {
   // Bottom nav
   'nav.library': 'Koleksi',
   'nav.browse': 'Jelajahi',
+  'nav.shelves': 'Rak',
+  'nav.stats': 'Statistik',
   'nav.mine': 'Milik Saya',
 
   // Library page
@@ -26,6 +28,12 @@ export default {
   'library.empty.cta': 'Tambah buku pertama',
   'library.no_results': 'Tidak ada buku yang cocok',
   'library.book_count': '{count} buku',
+  'library.sort': 'Urutkan',
+  'library.sort.recent': 'Terbaru',
+  'library.sort.title': 'Judul',
+  'library.sort.author': 'Penulis',
+  'library.filter': 'Filter',
+  'library.filter.all': 'Semua',
 
   // Browse page
   'browse.title': 'Jelajahi',
@@ -68,6 +76,9 @@ export default {
   'add.saving': 'Menyimpan...',
   'add.error_title': 'Judul wajib diisi',
   'add.error_duplicate': 'Buku dengan ISBN ini sudah ada',
+  'add.duplicate_title': 'ISBN Duplikat',
+  'add.duplicate_message': 'Kamu sudah punya buku dengan ISBN ini. Tambah kopi lain?',
+  'add.duplicate_confirm': 'Tambah Kopi',
 
   // Book detail page
   'book.not_found': 'Buku tidak ditemukan.',
@@ -112,15 +123,96 @@ export default {
   // Settings
   'settings.title': 'Pengaturan',
   'settings.language': 'Bahasa',
+  'settings.theme': 'Tema',
+  'settings.theme.light': 'Terang',
+  'settings.theme.dark': 'Gelap',
+  'settings.theme.system': 'Sistem',
   'settings.export_title': 'Ekspor Koleksi',
   'settings.export_desc': 'Unduh seluruh koleksi sebagai file cadangan JSON.',
   'settings.export_btn': 'Ekspor Data',
   'settings.import_title': 'Impor Koleksi',
   'settings.import_desc': 'Pulihkan dari file cadangan. Data yang ada akan digabungkan.',
+  'settings.sync_title': 'Sinkronisasi Cloud',
+  'settings.sync_desc': 'Sinkronkan koleksi antar perangkat menggunakan server CouchDB.',
+  'settings.sync_url': 'URL Database CouchDB',
+  'settings.sync_url_placeholder': 'https://server-anda.com/mybooks',
+  'settings.sync_auto': 'Sinkron otomatis',
+  'settings.sync_save': 'Simpan',
+  'settings.sync_now': 'Sinkron Sekarang',
+  'settings.sync_last': 'Terakhir disinkronkan: {time}',
+  'settings.sync_never': 'Belum pernah disinkronkan',
+  'toast.sync_pushed': 'Koleksi dikirim ke server',
+  'toast.sync_pulled': 'Koleksi ditarik dari server',
+  'toast.sync_failed': 'Sinkronisasi gagal',
 
   // Scanner
   'scanner.hint': 'Arahkan kamera ke barcode buku',
   'scanner.error': 'Akses kamera ditolak atau tidak tersedia',
+
+  // Reading progress
+  'book.progress': 'Progres',
+  'book.progress.current_page': 'Halaman saat ini',
+  'book.progress.total_pages': 'Total halaman',
+  'book.progress.percent': '{percent}% selesai',
+  'book.progress.pages': 'Halaman {current} dari {total}',
+
+  // Goodreads import
+  'settings.goodreads_title': 'Impor dari Goodreads',
+  'settings.goodreads_desc': 'Unggah file CSV ekspor koleksi Goodreads.',
+  'settings.goodreads_help': 'Buka Goodreads → My Books → Import/Export → Export Library',
+  'toast.goodreads_imported': 'Berhasil mengimpor {count} buku dari Goodreads',
+  'toast.goodreads_failed': 'Gagal membaca file CSV Goodreads',
+
+  // Stats page
+  'stats.title': 'Statistik Membaca',
+  'stats.total_books': 'Total Buku',
+  'stats.books_read': 'Buku Selesai',
+  'stats.reading': 'Sedang Dibaca',
+  'stats.avg_rating': 'Rata-rata Rating',
+  'stats.pages_read': 'Halaman Dibaca',
+  'stats.books_per_month': 'Buku Dibaca Per Bulan',
+  'stats.genre_breakdown': 'Sebaran Genre',
+  'stats.rating_distribution': 'Distribusi Rating',
+  'stats.top_authors': 'Penulis Favorit',
+  'stats.no_data': 'Mulai membaca untuk melihat statistikmu!',
+  'stats.reading_goal': 'Target Membaca',
+  'stats.goal.set': 'Atur target',
+  'stats.goal.books_this_year': 'buku tahun ini',
+  'stats.goal.progress': '{read} dari {goal} buku',
+  'stats.goal.on_track': 'Sesuai target!',
+  'stats.goal.behind': 'Sedikit tertinggal',
+  'stats.goal.completed': 'Target tercapai!',
+  'stats.goal.edit': 'Ubah target',
+  'stats.recommendations': 'Rekomendasi Untukmu',
+  'stats.recommendations.based_on': 'Karena kamu membaca {title}',
+  'stats.recommendations.loading': 'Mencari rekomendasi...',
+  'stats.recommendations.none': 'Tambahkan buku untuk mendapatkan rekomendasi',
+
+  // Shelves
+  'shelves.title': 'Rak Buku',
+  'shelves.create': 'Rak Baru',
+  'shelves.create_placeholder': 'Nama rak',
+  'shelves.empty': 'Belum ada rak. Buat satu untuk mengatur bukumu.',
+  'shelves.shelf_empty': 'Belum ada buku di rak ini.',
+  'shelves.add_to': 'Tambah ke Rak',
+  'shelves.remove_from': 'Hapus',
+  'shelves.manage': 'Kelola Rak',
+  'shelves.delete': 'Hapus rak',
+  'shelves.delete_confirm': 'Hapus rak "{name}"?',
+  'shelves.on_shelf': 'Di rak',
+  'toast.shelf_created': 'Rak berhasil dibuat',
+  'toast.shelf_deleted': 'Rak berhasil dihapus',
+  'toast.book_added_to_shelf': 'Ditambahkan ke {name}',
+  'toast.book_removed_from_shelf': 'Dihapus dari {name}',
+
+  // Profile stats
+  'profile.stats': '{books} buku · {read} selesai dibaca',
+
+  // Errors
+  'error.not_found': 'Halaman tidak ditemukan',
+  'error.generic': 'Terjadi kesalahan',
+  'error.unexpected': 'Terjadi kesalahan yang tidak terduga.',
+  'error.back': 'Kembali ke Perpustakaan',
 
   // Common
   'common.back': 'Kembali',

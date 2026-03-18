@@ -28,6 +28,8 @@ export interface UserBookData {
   lentTo?: string;
   lentDate?: Date;
   isWishlist: boolean;
+  currentPage?: number;
+  totalPages?: number;
 }
 
 export interface Series {
@@ -40,4 +42,19 @@ export interface Category {
   id: string;
   name: string;
   color?: string;
+}
+
+export interface Shelf {
+  id: string;
+  userId: string;
+  name: string;
+  bookIds: string[];
+  dateCreated: Date;
+}
+
+export interface SyncConfig {
+  id: string;
+  serverUrl: string;
+  lastSyncedAt?: Date;
+  autoSync: boolean;
 }

@@ -3,10 +3,14 @@ import { db, type Book } from '$lib/db';
 type NewBook = Pick<Book, 'title' | 'authors' | 'categories'> &
   Partial<Pick<Book, 'isbn' | 'coverUrl' | 'coverBlob' | 'seriesId' | 'seriesOrder'>>;
 
-export async function addBook(data: NewBook): Promise<Book | null> {
-  if (data.isbn) {
-    const existing = await db.books.where('isbn').equals(data.isbn).first();
-    if (existing) return null;
+export async function hasBookWithISBN(isbn: string): Promise<boolean> {
+  const existing = await db.books.where('isbn').equals(isbn).first();
+  return !!existing;
+}
+
+export async function addBook(data: NewBook, allowDuplicate = false): Promise<Book | null> {
+  if (data.isbn && !allowDuplicate) {
+    if (await hasBookWithISBN(data.isbn)) return null;
   }
 
   const book: Book = {

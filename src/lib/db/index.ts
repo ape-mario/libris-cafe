@@ -1,5 +1,5 @@
 import Dexie, { type EntityTable } from 'dexie';
-import type { User, Book, UserBookData, Series, Category } from './types';
+import type { User, Book, UserBookData, Series, Category, Shelf, SyncConfig } from './types';
 
 const db = new Dexie('MyBooksDB') as Dexie & {
   users: EntityTable<User, 'id'>;
@@ -7,6 +7,8 @@ const db = new Dexie('MyBooksDB') as Dexie & {
   userBookData: EntityTable<UserBookData, 'id'>;
   series: EntityTable<Series, 'id'>;
   categories: EntityTable<Category, 'id'>;
+  shelves: EntityTable<Shelf, 'id'>;
+  syncConfig: EntityTable<SyncConfig, 'id'>;
 };
 
 db.version(1).stores({
@@ -17,5 +19,14 @@ db.version(1).stores({
   categories: 'id, name'
 });
 
+// v2: added currentPage/totalPages to UserBookData (no index changes needed)
+db.version(2).stores({});
+
+// v3: added shelves and syncConfig tables
+db.version(3).stores({
+  shelves: 'id, userId, name',
+  syncConfig: 'id'
+});
+
 export { db };
-export type { User, Book, UserBookData, Series, Category };
+export type { User, Book, UserBookData, Series, Category, Shelf, SyncConfig };

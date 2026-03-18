@@ -13,9 +13,9 @@ beforeEach(async () => {
 describe('Book service', () => {
   it('should add a book with auto-generated fields', async () => {
     const book = await addBook({ title: 'Dune', authors: ['Frank Herbert'], categories: ['sci-fi'] });
-    expect(book.id).toBeDefined();
-    expect(book.dateAdded).toBeInstanceOf(Date);
-    expect(book.dateModified).toBeInstanceOf(Date);
+    expect(book!.id).toBeDefined();
+    expect(book!.dateAdded).toBeInstanceOf(Date);
+    expect(book!.dateModified).toBeInstanceOf(Date);
   });
 
   it('should detect duplicate by ISBN', async () => {

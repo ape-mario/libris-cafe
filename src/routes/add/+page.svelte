@@ -1,13 +1,15 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
   import { onMount } from 'svelte';
-  import { addBook } from '$lib/services/books';
+  import { addBook, hasBookWithISBN } from '$lib/services/books';
+  import { showConfirm } from '$lib/stores/dialog.svelte';
   import { resizeImage } from '$lib/services/covers';
   import { searchOpenLibrary, lookupByISBN, type OpenLibraryResult } from '$lib/services/openlibrary';
   import { getAllSeries, createSeries } from '$lib/services/series';
   import type { Series } from '$lib/db';
   import BarcodeScanner from '$lib/components/BarcodeScanner.svelte';
   import { t } from '$lib/i18n/index.svelte';
+  import { showToast } from '$lib/stores/toast.svelte';
 
   let mode = $state<'search' | 'manual' | 'scan'>('search');
   let searchQuery = $state('');
@@ -74,29 +76,54 @@
     saving = true;
     error = '';
 
-    let coverBlob: Blob | undefined;
-    if (coverFile) {
-      coverBlob = await resizeImage(coverFile);
-    }
+    try {
+      let allowDuplicate = false;
+      const trimmedIsbn = isbn.trim();
+      if (trimmedIsbn && await hasBookWithISBN(trimmedIsbn)) {
+        const confirmed = await showConfirm({
+          title: t('add.duplicate_title'),
+          message: t('add.duplicate_message'),
+          confirmLabel: t('add.duplicate_confirm')
+        });
+        if (!confirmed) {
+          saving = false;
+          return;
+        }
+        allowDuplicate = true;
+      }
 
-    const result = await addBook({
-      title: title.trim(),
-      authors: authors.split(',').map((a) => a.trim()).filter(Boolean),
-      isbn: isbn.trim() || undefined,
-      coverUrl: !coverFile && coverPreview ? coverPreview : undefined,
-      coverBlob,
-      categories: categories.split(',').map((c) => c.trim().toLowerCase()).filter(Boolean),
-      seriesId: selectedSeriesId || undefined,
-      seriesOrder: seriesOrder ? parseInt(seriesOrder) : undefined
-    });
+      let coverBlob: Blob | undefined;
+      if (coverFile) {
+        coverBlob = await resizeImage(coverFile);
+      }
 
-    if (result === null) {
-      error = t('add.error_duplicate');
+      const result = await addBook({
+        title: title.trim(),
+        authors: authors.split(',').map((a) => a.trim()).filter(Boolean),
+        isbn: trimmedIsbn || undefined,
+        coverUrl: !coverFile && coverPreview ? coverPreview : undefined,
+        coverBlob,
+        categories: categories.split(',').map((c) => c.trim().toLowerCase()).filter(Boolean),
+        seriesId: selectedSeriesId || undefined,
+        seriesOrder: seriesOrder ? parseInt(seriesOrder) : undefined
+      }, allowDuplicate);
+
+      if (result === null) {
+        error = t('add.error_duplicate');
+        saving = false;
+        return;
+      }
+
+      goto('/');
+    } catch (e) {
+      if (e instanceof DOMException && e.name === 'QuotaExceededError') {
+        showToast('Storage full. Try exporting and clearing old data.', 'error');
+      } else {
+        showToast('Failed to save book.', 'error');
+      }
       saving = false;
       return;
     }
-
-    goto('/');
   }
 </script>
 
@@ -148,7 +175,7 @@
           onclick={() => selectResult(result)}
         >
           {#if result.coverUrl}
-            <img src={result.coverUrl} alt="" class="w-11 h-16 object-cover rounded book-shadow flex-shrink-0" />
+            <img src={result.coverUrl} alt={result.title} class="w-11 h-16 object-cover rounded book-shadow flex-shrink-0" />
           {:else}
             <div class="w-11 h-16 bg-warm-100 rounded flex items-center justify-center text-warm-300 flex-shrink-0">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
@@ -173,67 +200,69 @@
 
   <!-- Manual mode -->
   {#if mode === 'manual'}
-    <form class="flex flex-col gap-5" onsubmit={(e) => { e.preventDefault(); handleSave(); }}>
+    <form class="flex flex-col gap-4" onsubmit={(e) => { e.preventDefault(); handleSave(); }}>
       {#if coverPreview}
         <div class="flex justify-center">
           <img src={coverPreview} alt="Cover" class="w-28 h-40 object-cover rounded-lg book-shadow-lg" />
         </div>
       {/if}
 
-      <label class="flex flex-col gap-1.5">
-        <span class="text-xs font-semibold text-ink-muted uppercase tracking-wider">{t('add.cover_image')}</span>
-        <input type="file" accept="image/*" onchange={handleCoverUpload}
-          class="text-sm text-ink-muted file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-warm-100 file:text-ink-light file:font-medium file:text-xs file:cursor-pointer" />
-      </label>
+      <div class="card p-5 flex flex-col gap-4">
+        <label class="flex flex-col gap-1.5">
+          <span class="text-xs font-semibold text-ink-muted uppercase tracking-wider">{t('add.cover_image')}</span>
+          <input type="file" accept="image/*" onchange={handleCoverUpload}
+            class="text-sm text-ink-muted file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-warm-100 file:text-ink-light file:font-medium file:text-xs file:cursor-pointer" />
+        </label>
 
-      <label class="flex flex-col gap-1.5">
-        <span class="text-xs font-semibold text-ink-muted uppercase tracking-wider">{t('add.book_title')} *</span>
-        <input type="text" bind:value={title} class="input-field" />
-      </label>
+        <label class="flex flex-col gap-1.5">
+          <span class="text-xs font-semibold text-ink-muted uppercase tracking-wider">{t('add.book_title')} *</span>
+          <input type="text" bind:value={title} class="input-field" />
+        </label>
 
-      <label class="flex flex-col gap-1.5">
-        <span class="text-xs font-semibold text-ink-muted uppercase tracking-wider">{t('add.authors')}</span>
-        <input type="text" bind:value={authors} placeholder={t('add.authors_placeholder')} class="input-field" />
-      </label>
+        <label class="flex flex-col gap-1.5">
+          <span class="text-xs font-semibold text-ink-muted uppercase tracking-wider">{t('add.authors')}</span>
+          <input type="text" bind:value={authors} placeholder={t('add.authors_placeholder')} class="input-field" />
+        </label>
 
-      <label class="flex flex-col gap-1.5">
-        <span class="text-xs font-semibold text-ink-muted uppercase tracking-wider">{t('add.isbn')}</span>
-        <input type="text" bind:value={isbn} class="input-field font-mono" />
-      </label>
+        <label class="flex flex-col gap-1.5">
+          <span class="text-xs font-semibold text-ink-muted uppercase tracking-wider">{t('add.isbn')}</span>
+          <input type="text" bind:value={isbn} class="input-field font-mono" />
+        </label>
 
-      <label class="flex flex-col gap-1.5">
-        <span class="text-xs font-semibold text-ink-muted uppercase tracking-wider">{t('add.categories')}</span>
-        <input type="text" bind:value={categories} placeholder={t('add.categories_placeholder')} class="input-field" />
-      </label>
+        <label class="flex flex-col gap-1.5">
+          <span class="text-xs font-semibold text-ink-muted uppercase tracking-wider">{t('add.categories')}</span>
+          <input type="text" bind:value={categories} placeholder={t('add.categories_placeholder')} class="input-field" />
+        </label>
+      </div>
 
-      <label class="flex flex-col gap-1.5">
-        <span class="text-xs font-semibold text-ink-muted uppercase tracking-wider">{t('add.series')}</span>
+      <div class="card p-5 flex flex-col gap-4">
+        <h3 class="text-xs font-semibold text-ink-muted uppercase tracking-wider">{t('add.series')}</h3>
         <select bind:value={selectedSeriesId} class="input-field">
           <option value="">{t('add.series_none')}</option>
           {#each seriesList as s}
             <option value={s.id}>{s.name}</option>
           {/each}
         </select>
-      </label>
 
-      {#if selectedSeriesId}
-        <label class="flex flex-col gap-1.5">
-          <span class="text-xs font-semibold text-ink-muted uppercase tracking-wider">{t('add.series_position')}</span>
-          <input type="number" bind:value={seriesOrder} min="1" placeholder="e.g. 1" class="input-field" />
-        </label>
-      {/if}
+        {#if selectedSeriesId}
+          <label class="flex flex-col gap-1.5">
+            <span class="text-xs font-semibold text-ink-muted uppercase tracking-wider">{t('add.series_position')}</span>
+            <input type="number" bind:value={seriesOrder} min="1" placeholder="1" class="input-field" />
+          </label>
+        {/if}
 
-      <div class="flex gap-2">
-        <input type="text" bind:value={newSeriesName} placeholder={t('add.series_create')}
-          class="input-field flex-1" />
-        <button type="button" class="btn-secondary"
-          onclick={async () => {
-            if (!newSeriesName.trim()) return;
-            const s = await createSeries(newSeriesName.trim());
-            seriesList = await getAllSeries();
-            selectedSeriesId = s.id;
-            newSeriesName = '';
-          }}>{t('add.series_add')}</button>
+        <div class="flex gap-2">
+          <input type="text" bind:value={newSeriesName} placeholder={t('add.series_create')}
+            class="input-field flex-1" />
+          <button type="button" class="btn-secondary"
+            onclick={async () => {
+              if (!newSeriesName.trim()) return;
+              const s = await createSeries(newSeriesName.trim());
+              seriesList = await getAllSeries();
+              selectedSeriesId = s.id;
+              newSeriesName = '';
+            }}>{t('add.series_add')}</button>
+        </div>
       </div>
 
       {#if error}

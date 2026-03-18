@@ -8,7 +8,7 @@ export async function getUserBookData(userId: string, bookId: string): Promise<U
 export async function setUserBookData(
   userId: string,
   bookId: string,
-  updates: Partial<Pick<UserBookData, 'status' | 'rating' | 'notes' | 'lentTo' | 'lentDate' | 'isWishlist'>>
+  updates: Partial<Pick<UserBookData, 'status' | 'rating' | 'notes' | 'lentTo' | 'lentDate' | 'isWishlist' | 'currentPage' | 'totalPages'>>
 ): Promise<UserBookData> {
   const existing = await db.userBookData.where({ userId, bookId }).first();
 

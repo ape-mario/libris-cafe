@@ -4,8 +4,10 @@
 
   let tabs = $derived([
     { href: '/', label: t('nav.library'), icon: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>` },
+    { href: '/mine', label: t('nav.mine'), icon: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>` },
     { href: '/browse', label: t('nav.browse'), icon: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></svg>` },
-    { href: '/mine', label: t('nav.mine'), icon: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>` }
+    { href: '/shelves', label: t('nav.shelves'), icon: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 6H3"/><path d="M21 12H8"/><path d="M21 18H8"/><path d="M3 12h.01"/><path d="M3 18h.01"/></svg>` },
+    { href: '/stats', label: t('nav.stats'), icon: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>` }
   ]);
 
   function isActive(href: string) {
@@ -19,10 +21,10 @@
     {#each tabs as tab}
       <a
         href={tab.href}
-        class="flex flex-col items-center gap-1 px-6 py-1.5 rounded-xl transition-all {isActive(tab.href) ? 'text-accent' : 'text-ink-muted hover:text-ink-light'}"
+        class="flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-xl transition-all {isActive(tab.href) ? 'text-accent' : 'text-ink-muted hover:text-ink-light'}"
       >
         <span class="transition-transform {isActive(tab.href) ? 'scale-110' : ''}">{@html tab.icon}</span>
-        <span class="text-[10px] font-semibold tracking-wide uppercase">{tab.label}</span>
+        <span class="text-[9px] font-semibold tracking-wide uppercase">{tab.label}</span>
       </a>
     {/each}
   </div>

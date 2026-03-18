@@ -1,10 +1,10 @@
 export default {
   // App
-  'app.name': 'my books',
+  'app.name': 'Libris',
   'app.loading': 'Loading...',
 
   // Profile picker
-  'profile.title': 'my books',
+  'profile.title': 'Libris',
   'profile.subtitle': "Who's reading today?",
   'profile.add': 'Add Profile',
   'profile.placeholder': 'Your name',
@@ -16,6 +16,8 @@ export default {
   // Bottom nav
   'nav.library': 'Library',
   'nav.browse': 'Browse',
+  'nav.shelves': 'Shelves',
+  'nav.stats': 'Stats',
   'nav.mine': 'Mine',
 
   // Library page
@@ -26,6 +28,12 @@ export default {
   'library.empty.cta': 'Add your first book',
   'library.no_results': 'No books match',
   'library.book_count': '{count} {count, plural, one {book} other {books}}',
+  'library.sort': 'Sort',
+  'library.sort.recent': 'Recent',
+  'library.sort.title': 'Title',
+  'library.sort.author': 'Author',
+  'library.filter': 'Filter',
+  'library.filter.all': 'All',
 
   // Browse page
   'browse.title': 'Browse',
@@ -68,6 +76,9 @@ export default {
   'add.saving': 'Saving...',
   'add.error_title': 'Title is required',
   'add.error_duplicate': 'A book with this ISBN already exists',
+  'add.duplicate_title': 'Duplicate ISBN',
+  'add.duplicate_message': 'You already have a book with this ISBN. Add another copy?',
+  'add.duplicate_confirm': 'Add Copy',
 
   // Book detail page
   'book.not_found': 'Book not found.',
@@ -112,15 +123,96 @@ export default {
   // Settings
   'settings.title': 'Settings',
   'settings.language': 'Language',
+  'settings.theme': 'Theme',
+  'settings.theme.light': 'Light',
+  'settings.theme.dark': 'Dark',
+  'settings.theme.system': 'System',
   'settings.export_title': 'Export Library',
   'settings.export_desc': 'Download your entire library as a JSON backup file.',
   'settings.export_btn': 'Export Data',
   'settings.import_title': 'Import Library',
   'settings.import_desc': 'Restore from a backup file. Existing data will be merged.',
+  'settings.sync_title': 'Cloud Sync',
+  'settings.sync_desc': 'Sync your library across devices using a CouchDB server.',
+  'settings.sync_url': 'CouchDB Database URL',
+  'settings.sync_url_placeholder': 'https://your-server.com/mybooks',
+  'settings.sync_auto': 'Auto-sync',
+  'settings.sync_save': 'Save',
+  'settings.sync_now': 'Sync Now',
+  'settings.sync_last': 'Last synced: {time}',
+  'settings.sync_never': 'Never synced',
+  'toast.sync_pushed': 'Library pushed to server',
+  'toast.sync_pulled': 'Library pulled from server',
+  'toast.sync_failed': 'Sync failed',
 
   // Scanner
   'scanner.hint': 'Point your camera at the book\'s barcode',
   'scanner.error': 'Camera access denied or not available',
+
+  // Reading progress
+  'book.progress': 'Progress',
+  'book.progress.current_page': 'Current page',
+  'book.progress.total_pages': 'Total pages',
+  'book.progress.percent': '{percent}% complete',
+  'book.progress.pages': 'Page {current} of {total}',
+
+  // Goodreads import
+  'settings.goodreads_title': 'Import from Goodreads',
+  'settings.goodreads_desc': 'Upload your Goodreads library export CSV file.',
+  'settings.goodreads_help': 'Go to Goodreads → My Books → Import/Export → Export Library',
+  'toast.goodreads_imported': 'Imported {count} books from Goodreads',
+  'toast.goodreads_failed': 'Failed to parse Goodreads CSV',
+
+  // Stats page
+  'stats.title': 'Reading Stats',
+  'stats.total_books': 'Total Books',
+  'stats.books_read': 'Books Read',
+  'stats.reading': 'Reading',
+  'stats.avg_rating': 'Avg Rating',
+  'stats.pages_read': 'Pages Read',
+  'stats.books_per_month': 'Books Read Per Month',
+  'stats.genre_breakdown': 'Genre Breakdown',
+  'stats.rating_distribution': 'Rating Distribution',
+  'stats.top_authors': 'Top Authors',
+  'stats.no_data': 'Start reading to see your stats!',
+  'stats.reading_goal': 'Reading Goal',
+  'stats.goal.set': 'Set a goal',
+  'stats.goal.books_this_year': 'books this year',
+  'stats.goal.progress': '{read} of {goal} books',
+  'stats.goal.on_track': 'On track!',
+  'stats.goal.behind': 'A bit behind',
+  'stats.goal.completed': 'Goal reached!',
+  'stats.goal.edit': 'Edit goal',
+  'stats.recommendations': 'Recommended for You',
+  'stats.recommendations.based_on': 'Because you read {title}',
+  'stats.recommendations.loading': 'Finding recommendations...',
+  'stats.recommendations.none': 'Add more books to get recommendations',
+
+  // Shelves
+  'shelves.title': 'Shelves',
+  'shelves.create': 'New Shelf',
+  'shelves.create_placeholder': 'Shelf name',
+  'shelves.empty': 'No shelves yet. Create one to organize your books.',
+  'shelves.shelf_empty': 'No books on this shelf yet.',
+  'shelves.add_to': 'Add to Shelf',
+  'shelves.remove_from': 'Remove',
+  'shelves.manage': 'Manage Shelves',
+  'shelves.delete': 'Delete shelf',
+  'shelves.delete_confirm': 'Delete shelf "{name}"?',
+  'shelves.on_shelf': 'On shelf',
+  'toast.shelf_created': 'Shelf created',
+  'toast.shelf_deleted': 'Shelf deleted',
+  'toast.book_added_to_shelf': 'Added to {name}',
+  'toast.book_removed_from_shelf': 'Removed from {name}',
+
+  // Profile stats
+  'profile.stats': '{books} books · {read} read',
+
+  // Errors
+  'error.not_found': 'Page not found',
+  'error.generic': 'Something went wrong',
+  'error.unexpected': 'An unexpected error occurred.',
+  'error.back': 'Back to Library',
 
   // Common
   'common.back': 'Back',
