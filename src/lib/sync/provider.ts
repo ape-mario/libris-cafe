@@ -9,7 +9,7 @@ export interface SyncProvider {
 	onStatusChange(cb: (status: SyncStatus) => void): () => void;
 }
 
-export type ProviderType = 'partykit' | 'hocuspocus';
+export type ProviderType = 'webrtc' | 'partykit' | 'hocuspocus';
 
 export interface SyncConfig {
 	provider: ProviderType;
@@ -18,11 +18,11 @@ export interface SyncConfig {
 
 export function getSyncConfig(): SyncConfig {
 	const raw = localStorage.getItem('libris_sync_config');
-	if (!raw) return { provider: 'partykit' };
+	if (!raw) return { provider: 'webrtc' };
 	try {
 		return JSON.parse(raw);
 	} catch {
-		return { provider: 'partykit' };
+		return { provider: 'webrtc' };
 	}
 }
 
