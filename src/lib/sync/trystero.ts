@@ -17,7 +17,16 @@ export function createTrysteroProvider(): SyncProvider {
 		const room = joinRoom(
 			{
 				appId: 'libris-books',
-				relayRedundancy: 5
+				relayUrls: [
+					'wss://relay.damus.io',
+					'wss://nos.lol',
+					'wss://relay.nostraddress.com',
+					'wss://relay.mostro.network',
+					'wss://nostr.data.haus',
+					'wss://relay.binaryrobot.com',
+					'wss://nostr.vulpem.com',
+					'wss://relay.agorist.space'
+				]
 			},
 			`libris-${roomCode}`
 		);
