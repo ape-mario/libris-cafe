@@ -14,7 +14,7 @@
   let books = $state<Book[]>([]);
   let visibleCount = $state(PAGE_SIZE);
   let query = $state('');
-  let loading = $state(true);
+  let loading = $state(false);
   let sortBy = $state<SortKey>('recent');
   let filterCategory = $state('');
   let categories = $state<string[]>([]);
@@ -31,7 +31,6 @@
   });
 
   function loadLibrary() {
-    loading = true;
     allBooks = getBooks();
     const catSet = new Set<string>();
     for (const book of allBooks) {
@@ -39,7 +38,6 @@
     }
     categories = [...catSet].sort();
     applyFilters();
-    loading = false;
   }
 
   let visibleBooks = $derived(books.slice(0, visibleCount));
