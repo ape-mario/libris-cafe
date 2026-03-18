@@ -63,9 +63,15 @@ export function leaveRoom(): void {
 }
 
 export function connectToRoom(code: string): void {
+	// Skip if already connected to the same room
+	if (currentRoomCode === code && provider) {
+		return;
+	}
+
 	// Disconnect existing
 	if (provider) {
 		provider.disconnect();
+		provider = null;
 	}
 
 	const config = getSyncConfig();

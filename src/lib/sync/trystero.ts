@@ -18,14 +18,15 @@ export function createTrysteroProvider(): SyncProvider {
 			{
 				appId: 'libris-books',
 				relayUrls: [
-					'wss://relay.damus.io',
 					'wss://nos.lol',
-					'wss://relay.nostraddress.com',
 					'wss://relay.mostro.network',
 					'wss://nostr.data.haus',
 					'wss://relay.binaryrobot.com',
 					'wss://nostr.vulpem.com',
-					'wss://relay.agorist.space'
+					'wss://relay.agorist.space',
+					'wss://nostr.sathoarder.com',
+					'wss://relay.nostrdice.com',
+					'wss://relay.nostromo.social'
 				]
 			},
 			`libris-${roomCode}`
