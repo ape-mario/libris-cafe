@@ -1,32 +1,28 @@
-import Dexie, { type EntityTable } from 'dexie';
-import type { User, Book, UserBookData, Series, Category, Shelf, SyncConfig } from './types';
+import * as Y from 'yjs';
+import { IndexeddbPersistence } from 'y-indexeddb';
+import { createQueryHelpers } from './query';
 
-const db = new Dexie('MyBooksDB') as Dexie & {
-  users: EntityTable<User, 'id'>;
-  books: EntityTable<Book, 'id'>;
-  userBookData: EntityTable<UserBookData, 'id'>;
-  series: EntityTable<Series, 'id'>;
-  categories: EntityTable<Category, 'id'>;
-  shelves: EntityTable<Shelf, 'id'>;
-  syncConfig: EntityTable<SyncConfig, 'id'>;
-};
+export const doc = new Y.Doc();
+export const q = createQueryHelpers(doc);
 
-db.version(1).stores({
-  users: 'id, name',
-  books: 'id, title, isbn, *categories, seriesId, dateAdded',
-  userBookData: 'id, [userId+bookId], userId, bookId, status, isWishlist',
-  series: 'id, name',
-  categories: 'id, name'
-});
+let persistence: IndexeddbPersistence | null = null;
 
-// v2: added currentPage/totalPages to UserBookData (no index changes needed)
-db.version(2).stores({});
+export function initDoc(): Promise<void> {
+	return new Promise((resolve) => {
+		persistence = new IndexeddbPersistence('libris-crdt', doc);
+		persistence.once('synced', () => {
+			const meta = doc.getMap('meta');
+			if (!meta.get('schemaVersion')) {
+				meta.set('schemaVersion', 1);
+				meta.set('createdAt', new Date().toISOString());
+			}
+			resolve();
+		});
+	});
+}
 
-// v3: added shelves and syncConfig tables
-db.version(3).stores({
-  shelves: 'id, userId, name',
-  syncConfig: 'id'
-});
+export function isDocEmpty(): boolean {
+	return doc.getMap('books').size === 0 && doc.getMap('users').size === 0;
+}
 
-export { db };
-export type { User, Book, UserBookData, Series, Category, Shelf, SyncConfig };
+export type { User, Book, UserBookData, Series, Shelf, ReadingGoal } from './types';
