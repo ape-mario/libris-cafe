@@ -27,14 +27,14 @@ export function formatRoomCode(code: string): string {
 	return `${normalized.slice(0, 4)}-${normalized.slice(4)}`;
 }
 
-export function getRoomLink(roomCode: string): string {
-	return `${window.location.origin}/join/${roomCode}`;
+export function getRoomLink(roomCode: string, basePath: string = ''): string {
+	return `${window.location.origin}${basePath}/join/${roomCode}`;
 }
 
 export function parseRoomCodeFromUrl(url: string): string | null {
 	try {
 		const parsed = new URL(url);
-		const match = parsed.pathname.match(/^\/join\/([A-Za-z2-9-]+)$/);
+		const match = parsed.pathname.match(/\/join\/([A-Za-z2-9-]+)$/);
 		if (!match) return null;
 		const code = formatRoomCode(match[1]);
 		return isValidRoomCode(code) ? code : null;

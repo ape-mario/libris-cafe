@@ -40,6 +40,11 @@ describe('Room codes', () => {
 		expect(code).toBe('ABCD-EF23');
 	});
 
+	it('parseRoomCodeFromUrl works with base path', () => {
+		const code = parseRoomCodeFromUrl('https://user.github.io/libris/join/ABCD-EF23');
+		expect(code).toBe('ABCD-EF23');
+	});
+
 	it('parseRoomCodeFromUrl returns null for invalid URL', () => {
 		expect(parseRoomCodeFromUrl('https://libris.app/settings')).toBeNull();
 		expect(parseRoomCodeFromUrl('not-a-url')).toBeNull();

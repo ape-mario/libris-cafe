@@ -7,6 +7,7 @@
   import { t } from '$lib/i18n/index.svelte';
   import { getLocale, setLocale, type Locale } from '$lib/i18n/index.svelte';
   import { getTheme, setTheme, type Theme } from '$lib/stores/theme.svelte';
+  import { base } from '$app/paths';
   import { isValidRoomCode, formatRoomCode, getRoomLink } from '$lib/sync/room';
   import {
     getSyncStatus,
@@ -111,11 +112,11 @@
   async function handleCopyLink() {
     if (!roomCode) return;
     try {
-      await navigator.clipboard.writeText(getRoomLink(roomCode));
+      await navigator.clipboard.writeText(getRoomLink(roomCode, base));
       showToast(t('settings.sync_copied'), 'success');
     } catch {
       // Fallback
-      showToast(getRoomLink(roomCode), 'info');
+      showToast(getRoomLink(roomCode, base), 'info');
     }
   }
 
