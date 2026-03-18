@@ -11,6 +11,7 @@
   import { getLocale } from '$lib/i18n/index.svelte';
   import { cacheAllCovers } from '$lib/services/coverCache';
   import { initTheme } from '$lib/stores/theme.svelte';
+  import { initDoc } from '$lib/db';
 
   let { children } = $props();
   let loaded = $state(false);
@@ -25,7 +26,24 @@
 
   onMount(async () => {
     initTheme();
-    await restoreUser();
+
+    // Initialize Y.Doc with IndexedDB persistence
+    await initDoc();
+
+    // Run one-time Dexie→Yjs migration if needed
+    try {
+      const { migrateFromDexie, shouldCleanupDexie, cleanupDexie } = await import('$lib/db/migrate');
+      await migrateFromDexie((await import('$lib/db')).doc);
+
+      // Cleanup old Dexie DB after 90 days
+      if (shouldCleanupDexie()) {
+        await cleanupDexie();
+      }
+    } catch (e) {
+      console.warn('[Libris] Migration check failed:', e);
+    }
+
+    restoreUser();
     loaded = true;
     setTimeout(() => cacheAllCovers(), 3000);
   });
