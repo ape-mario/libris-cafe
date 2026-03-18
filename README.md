@@ -2,26 +2,26 @@
 
 A personal book collection manager built as a Progressive Web App. Track your reading, organize with shelves, and share a single library across family profiles — all offline-first with no account required.
 
-## Features
+## Fitur
 
-- **Multi-profile support** — One shared book catalog, individual reading tracking per person ("Who's reading today?")
-- **Library management** — Add books manually, search via Open Library API, or scan barcodes with your camera
-- **Multiple copies** — Own duplicate books (different editions or extra copies) with independent tracking per copy
-- **Reading status** — Track books as reading, read, DNF, or wishlist per profile
-- **Shelves** — Create custom shelves to organize books your way
-- **Series tracking** — Group books by series with reading order
-- **Browse** — Explore your catalog by category, series, or author
-- **Reading stats** — Per-user statistics with yearly filter: books read, pages, ratings, genre breakdown, monthly progress, and top authors
-- **Reading goals** — Set and track yearly reading targets
-- **Recommendations** — Get book suggestions based on your reading history (via Open Library)
-- **Lending tracker** — Keep track of who you've lent books to
-- **Notes & ratings** — Add personal notes and rate your books
-- **Reading progress** — Track current page for books you're reading
-- **Export/Import** — Backup and restore your library as JSON
-- **Goodreads import** — Migrate your existing library from a Goodreads CSV export
-- **Device sync** — Real-time sync across devices using room codes and Yjs CRDTs
-- **Offline-first** — Works fully offline with IndexedDB storage and cover caching
-- **Bilingual** — English and Bahasa Indonesia
+- **Multi-profil** — Satu katalog buku bersama, tracking bacaan per orang ("Siapa yang membaca hari ini?")
+- **Kelola koleksi** — Tambah buku manual, cari via Open Library API, atau scan barcode pakai kamera
+- **Banyak kopi** — Simpan buku duplikat (edisi berbeda atau kopi tambahan) dengan tracking terpisah
+- **Status bacaan** — Tandai buku sebagai sedang dibaca, selesai, DNF, atau wishlist per profil
+- **Rak buku** — Buat rak kustom untuk mengatur buku sesukamu
+- **Seri buku** — Kelompokkan buku berdasarkan seri dengan urutan baca
+- **Jelajahi** — Telusuri koleksi berdasarkan kategori, seri, atau penulis
+- **Statistik** — Statistik per user dengan filter tahunan: buku selesai, halaman, rating, genre, progres bulanan, dan penulis favorit
+- **Target membaca** — Atur dan pantau target bacaan tahunan
+- **Rekomendasi** — Dapat saran buku berdasarkan riwayat bacaan (via Open Library)
+- **Peminjaman** — Catat siapa yang meminjam bukumu
+- **Catatan & rating** — Tambah catatan pribadi dan beri rating
+- **Progres baca** — Tandai halaman terakhir untuk buku yang sedang dibaca
+- **Ekspor/Impor** — Backup dan restore koleksi sebagai JSON
+- **Impor Goodreads** — Migrasi koleksi dari file CSV ekspor Goodreads
+- **Sync antar perangkat** — Sync real-time via room code menggunakan Yjs CRDTs
+- **Offline-first** — Berfungsi penuh tanpa internet, data di IndexedDB dengan cache sampul
+- **Bilingual** — English dan Bahasa Indonesia
 
 ## Tech Stack
 
@@ -34,48 +34,48 @@ A personal book collection manager built as a Progressive Web App. Track your re
 - [Vite PWA](https://vite-pwa-org.netlify.app) (service worker & manifest)
 - Static adapter (deploy anywhere)
 
-## Getting Started
+## Mulai
 
 ```sh
 npm install
 npm run dev
 ```
 
-## Scripts
+## Skrip
 
-| Command | Description |
-|---------|-------------|
-| `npm run dev` | Start development server (exposed to local network) |
-| `npm run build` | Production build to `build/` |
-| `npm run preview` | Preview production build |
-| `npm run check` | Type-check with svelte-check |
-| `npm run test` | Run unit tests (Vitest) |
+| Perintah | Keterangan |
+|----------|------------|
+| `npm run dev` | Jalankan dev server (terbuka ke jaringan lokal) |
+| `npm run build` | Build produksi ke `build/` |
+| `npm run preview` | Preview build produksi |
+| `npm run check` | Type-check dengan svelte-check |
+| `npm run test` | Jalankan unit test (Vitest) |
 
-## Project Structure
+## Struktur Proyek
 
 ```
 src/
 ├── lib/
-│   ├── components/    # Reusable UI components
-│   ├── db/            # Yjs Y.Doc, query helpers, reactive stores, migration
-│   ├── i18n/          # Translations (en, id)
-│   ├── services/      # Business logic (books, stats, backup, etc.)
+│   ├── components/    # Komponen UI
+│   ├── db/            # Yjs Y.Doc, query helpers, reactive stores, migrasi
+│   ├── i18n/          # Terjemahan (en, id)
+│   ├── services/      # Business logic (books, stats, backup, dll.)
 │   ├── stores/        # Svelte stores (user, theme, toast, dialog)
 │   └── sync/          # Room codes, provider interface, WebRTC/PartyKit/Hocuspocus
 ├── routes/
-│   ├── add/           # Add book (search, manual, scan)
-│   ├── book/[id]/     # Book detail & editing
-│   ├── browse/        # Browse by category, series, author
-│   ├── join/[code]/   # Shareable room code join link
-│   ├── mine/          # Per-user reading status
-│   ├── settings/      # Settings, backup, sync
-│   ├── shelves/       # Custom shelves
-│   └── stats/         # Reading statistics & goals
-├── static/            # PWA icons & assets
-partykit/              # PartyKit sync server (optional)
+│   ├── add/           # Tambah buku (cari, manual, scan)
+│   ├── book/[id]/     # Detail & edit buku
+│   ├── browse/        # Jelajahi per kategori, seri, penulis
+│   ├── join/[code]/   # Link join room yang bisa dibagikan
+│   ├── mine/          # Status bacaan per user
+│   ├── settings/      # Pengaturan, backup, sync
+│   ├── shelves/       # Rak buku kustom
+│   └── stats/         # Statistik & target membaca
+├── static/            # Ikon PWA & aset
+partykit/              # PartyKit sync server (opsional)
 ```
 
-## Sync
+## Sinkronisasi
 
 Data disimpan lokal di IndexedDB via Yjs CRDTs. Sync bersifat opsional — buat atau join room dengan kode (format: `XXXX-XXXX`) untuk sync antar device secara real-time.
 
@@ -181,6 +181,6 @@ node index.js
 
 Di Settings, pilih **Self-hosted** → masukkan `wss://your-vps:1234` → Create/Join Room.
 
-## License
+## Lisensi
 
 Private
