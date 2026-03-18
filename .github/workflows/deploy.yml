@@ -27,6 +27,8 @@ jobs:
 
       - run: npm ci
       - run: npm run build
+        env:
+          VITE_PARTYKIT_HOST: ${{ secrets.VITE_PARTYKIT_HOST }}
       - run: cp build/index.html build/404.html
 
       - uses: actions/upload-pages-artifact@v3
