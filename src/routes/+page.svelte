@@ -4,7 +4,6 @@
   import type { Book } from '$lib/db';
   import BookCard from '$lib/components/BookCard.svelte';
   import { t, bookCount } from '$lib/i18n/index.svelte';
-  import { onMount } from 'svelte';
 
   type SortKey = 'recent' | 'title' | 'author';
   const PAGE_SIZE = 60;
@@ -19,16 +18,10 @@
   let categories = $state<string[]>([]);
   let showFilters = $state(false);
   let debounceTimer: ReturnType<typeof setTimeout> | null = null;
-  let initialized = false;
 
-  onMount(() => {
-    loadLibrary();
-  });
-
+  // afterNavigate fires on initial load AND on every navigation back to this page
   afterNavigate(() => {
-    if (initialized) {
-      loadLibrary();
-    }
+    loadLibrary();
   });
 
   function loadLibrary() {
@@ -36,12 +29,11 @@
     allBooks = getBooks();
     const catSet = new Set<string>();
     for (const book of allBooks) {
-      for (const cat of book.categories) catSet.add(cat);
+      for (const cat of (book.categories || [])) catSet.add(cat);
     }
     categories = [...catSet].sort();
     applyFilters();
     loading = false;
-    initialized = true;
   }
 
   let visibleBooks = $derived(books.slice(0, visibleCount));
@@ -56,7 +48,7 @@
     } else if (filterCategory) {
       result = getBooksByCategory(filterCategory);
     } else {
-      result = getBooks();
+      result = [...allBooks];
     }
 
     if (sortBy === 'title') {

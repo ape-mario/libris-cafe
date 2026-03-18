@@ -1,5 +1,5 @@
-import { doc, q, type Book } from '$lib/db';
-import * as Y from 'yjs';
+import { q, type Book } from '$lib/db';
+import { removeBookFromAllShelves } from './shelves';
 
 type NewBook = Pick<Book, 'title' | 'authors' | 'categories'> &
 	Partial<Pick<Book, 'isbn' | 'coverUrl' | 'seriesId' | 'seriesOrder'>>;
@@ -44,17 +44,8 @@ export function deleteBook(id: string): void {
 		q.deleteItem('userBookData', `${ubd.userId}:${ubd.bookId}`);
 	}
 
-	// Remove book from all shelves (direct Y.Map manipulation)
-	const shelvesMap = doc.getMap('shelves');
-	doc.transact(() => {
-		shelvesMap.forEach((value) => {
-			if (!(value instanceof Y.Map)) return;
-			const bookIdsMap = value.get('bookIds');
-			if (bookIdsMap instanceof Y.Map && bookIdsMap.has(id)) {
-				bookIdsMap.delete(id);
-			}
-		});
-	});
+	// Remove book from all shelves
+	removeBookFromAllShelves(id);
 
 	// Delete cover from cache (async, fire-and-forget)
 	deleteCoverFromCache(id);

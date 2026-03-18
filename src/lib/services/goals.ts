@@ -6,7 +6,7 @@ export function getGoal(userId: string, year: number = new Date().getFullYear())
 }
 
 export function setGoal(userId: string, target: number, year: number = new Date().getFullYear()): void {
-	q.setItem('goals', `${userId}:${year}`, { target });
+	q.setItem('goals', `${userId}:${year}`, { userId, year, target });
 }
 
 export function removeGoal(userId: string, year: number = new Date().getFullYear()): void {

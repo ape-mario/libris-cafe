@@ -22,16 +22,28 @@ export function addBookToShelf(shelfId: string, bookId: string): void {
 	const entry = q.getRawEntry('shelves', shelfId);
 	if (!entry) return;
 
-	let bookIdsMap = entry.get('bookIds') as Y.Map<true> | undefined;
-	if (!bookIdsMap || !(bookIdsMap instanceof Y.Map)) {
-		doc.transact(() => {
+	doc.transact(() => {
+		let bookIdsMap = entry.get('bookIds') as Y.Map<true> | undefined;
+		if (!bookIdsMap || !(bookIdsMap instanceof Y.Map)) {
 			bookIdsMap = new Y.Map<true>();
 			entry.set('bookIds', bookIdsMap);
-		});
-	}
-	if (bookIdsMap!.has(bookId)) return;
+		}
+		if (!bookIdsMap.has(bookId)) {
+			bookIdsMap.set(bookId, true);
+		}
+	});
+}
+
+export function removeBookFromAllShelves(bookId: string): void {
+	const shelvesMap = doc.getMap('shelves');
 	doc.transact(() => {
-		bookIdsMap!.set(bookId, true);
+		shelvesMap.forEach((value) => {
+			if (!(value instanceof Y.Map)) return;
+			const bookIdsMap = value.get('bookIds');
+			if (bookIdsMap instanceof Y.Map && bookIdsMap.has(bookId)) {
+				bookIdsMap.delete(bookId);
+			}
+		});
 	});
 }
 

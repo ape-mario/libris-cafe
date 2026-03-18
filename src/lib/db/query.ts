@@ -164,6 +164,8 @@ export function createQueryHelpers(doc: Y.Doc) {
 						yarray.push(value);
 						entry.set(key, yarray);
 					}
+				} else if (value === undefined) {
+					entry.delete(key);
 				} else {
 					entry.set(key, value);
 				}

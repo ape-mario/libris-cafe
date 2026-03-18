@@ -7,6 +7,7 @@ export async function exportData(): Promise<string> {
 	const userBookData = q.getAll('userBookData') as unknown as UserBookData[];
 	const series = q.getAll('series') as unknown as Series[];
 	const shelves = q.getAll('shelves') as unknown as Shelf[];
+	const goals = q.getAll('goals');
 
 	// Attach cover base64 from coverCache
 	const booksWithCovers = await Promise.all(
@@ -27,7 +28,8 @@ export async function exportData(): Promise<string> {
 			books: booksWithCovers,
 			userBookData,
 			series,
-			shelves
+			shelves,
+			goals
 		},
 		null,
 		2
@@ -89,6 +91,15 @@ export async function importData(json: string): Promise<void> {
 					typeof s.dateCreated === 'string' ? s.dateCreated : new Date(s.dateCreated).toISOString()
 			};
 			q.setItem('shelves', shelfData.id, shelfData);
+		}
+	}
+
+	if (data.goals) {
+		for (const g of data.goals) {
+			const key = g.userId && g.year ? `${g.userId}:${g.year}` : null;
+			if (key) {
+				q.setItem('goals', key, g);
+			}
 		}
 	}
 }
