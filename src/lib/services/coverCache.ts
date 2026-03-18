@@ -1,9 +1,8 @@
 import { q, type Book } from '$lib/db';
 
-// Separate IndexedDB store for cover binary data (not synced via CRDT)
 const COVER_DB_NAME = 'libris-covers';
 const COVER_STORE = 'covers';
-const MAX_CACHE_SIZE_MB = 50; // Max cover cache size in MB
+const MAX_CACHE_SIZE_MB = 50;
 
 function openCoverDB(): Promise<IDBDatabase> {
 	return new Promise((resolve, reject) => {
@@ -20,7 +19,6 @@ function openCoverDB(): Promise<IDBDatabase> {
 }
 
 export async function setCoverBase64(bookId: string, base64: string): Promise<void> {
-	// Check size limit before storing
 	if (await isCacheOverLimit()) {
 		console.warn('[Libris] Cover cache size limit reached, skipping cache for', bookId);
 		return;
@@ -48,14 +46,10 @@ export async function getCoverBase64(bookId: string): Promise<string | null> {
 	}
 }
 
-/**
- * If a book has a coverUrl, fetch and cache it locally as base64.
- */
 export async function cacheCoverIfNeeded(bookId: string): Promise<void> {
-	const book = q.getItem('books', bookId) as Book | undefined;
+	const book = q.getItem<Book>('books', bookId);
 	if (!book || !book.coverUrl) return;
 
-	// Check if already cached
 	const existing = await getCoverBase64(bookId);
 	if (existing) return;
 
@@ -64,25 +58,20 @@ export async function cacheCoverIfNeeded(bookId: string): Promise<void> {
 		if (!res.ok) return;
 
 		const blob = await res.blob();
-		// Only cache if it's actually an image (Open Library returns 1x1 pixel for missing covers)
 		if (blob.size < 1000) return;
 
 		const base64 = await blobToBase64(blob);
 		await setCoverBase64(bookId, base64);
 	} catch {
-		// Network error — skip silently, will try again next view
+		// Network error — skip silently
 	}
 }
 
-/**
- * Cache all uncached covers in the background.
- */
 export async function cacheAllCovers(): Promise<void> {
-	const allBooks = q.getAll('books') as unknown as Book[];
+	const allBooks = q.getAll<Book>('books');
 	const uncached = allBooks.filter((b) => !!b.coverUrl);
 
 	for (const book of uncached) {
-		// Stop if cache is over limit
 		if (await isCacheOverLimit()) break;
 		const existing = await getCoverBase64(book.id);
 		if (existing) continue;
@@ -91,15 +80,11 @@ export async function cacheAllCovers(): Promise<void> {
 	}
 }
 
-/**
- * Check if cover cache exceeds the size limit.
- */
 async function isCacheOverLimit(): Promise<boolean> {
 	try {
 		if (!navigator.storage?.estimate) return false;
 		const estimate = await navigator.storage.estimate();
 		const usedMB = (estimate.usage || 0) / (1024 * 1024);
-		// Be conservative: stop caching covers if total IndexedDB usage > limit
 		return usedMB > MAX_CACHE_SIZE_MB;
 	} catch {
 		return false;

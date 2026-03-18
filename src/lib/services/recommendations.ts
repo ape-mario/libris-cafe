@@ -12,7 +12,7 @@ export interface Recommendation {
  * Uses Open Library's search by subject/author to find related books.
  */
 export async function getRecommendations(limit: number = 6): Promise<Recommendation[]> {
-	const books = q.getAll('books') as unknown as Book[];
+	const books = q.getAll<Book>('books');
 	if (books.length === 0) return [];
 
 	const existingTitles = new Set(books.map((b) => b.title.toLowerCase()));

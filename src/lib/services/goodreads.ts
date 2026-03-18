@@ -147,15 +147,12 @@ export function importGoodreadsCSV(csvText: string, userId: string): number {
 		// Check for duplicate by ISBN or title
 		let existing: Book | undefined;
 		if (parsed.isbn) {
-			const matches = q.filter('books', (b) => b.isbn === parsed.isbn) as unknown as Book[];
+			const matches = q.filter<Book>('books', (b) => b.isbn === parsed.isbn);
 			existing = matches[0];
 		}
 		if (!existing) {
 			const titleLower = parsed.title.toLowerCase();
-			const matches = q.filter(
-				'books',
-				(b) => (b.title as string).toLowerCase() === titleLower
-			) as unknown as Book[];
+			const matches = q.filter<Book>('books', (b) => b.title.toLowerCase() === titleLower);
 			existing = matches[0];
 		}
 

@@ -2,8 +2,7 @@ import { q, type UserBookData } from '$lib/db';
 
 export function getUserBookData(userId: string, bookId: string): UserBookData | null {
 	const key = `${userId}:${bookId}`;
-	const data = q.getItem('userBookData', key) as UserBookData | undefined;
-	return data || null;
+	return q.getItem<UserBookData>('userBookData', key) ?? null;
 }
 
 export function setUserBookData(
@@ -17,10 +16,10 @@ export function setUserBookData(
 	>
 ): UserBookData {
 	const key = `${userId}:${bookId}`;
-	const existing = q.getItem('userBookData', key) as UserBookData | undefined;
+	const existing = q.getItem<UserBookData>('userBookData', key);
 
 	if (existing) {
-		q.updateItem('userBookData', key, updates as Record<string, unknown>);
+		q.updateItem('userBookData', key, updates);
 		return { ...existing, ...updates };
 	}
 
@@ -31,7 +30,7 @@ export function setUserBookData(
 		isWishlist: false,
 		...updates
 	};
-	q.setItem('userBookData', key, data as unknown as Record<string, unknown>);
+	q.setItem('userBookData', key, data);
 	return data;
 }
 
@@ -39,10 +38,7 @@ export function getUserBooks(
 	userId: string,
 	filter?: { status?: string; isWishlist?: boolean }
 ): UserBookData[] {
-	let results = q.filter(
-		'userBookData',
-		(d) => d.userId === userId
-	) as unknown as UserBookData[];
+	let results = q.filter<UserBookData>('userBookData', (d) => d.userId === userId);
 
 	if (filter?.status) {
 		results = results.filter((d) => d.status === filter.status);
@@ -54,8 +50,5 @@ export function getUserBooks(
 }
 
 export function getLentBooks(userId: string): UserBookData[] {
-	return q.filter(
-		'userBookData',
-		(d) => d.userId === userId && !!d.lentTo
-	) as unknown as UserBookData[];
+	return q.filter<UserBookData>('userBookData', (d) => d.userId === userId && !!d.lentTo);
 }

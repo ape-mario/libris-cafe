@@ -5,7 +5,7 @@ type NewBook = Pick<Book, 'title' | 'authors' | 'categories'> &
 	Partial<Pick<Book, 'isbn' | 'coverUrl' | 'seriesId' | 'seriesOrder'>>;
 
 export function hasBookWithISBN(isbn: string): boolean {
-	return q.filter('books', (b) => b.isbn === isbn).length > 0;
+	return q.filter<Book>('books', (b) => b.isbn === isbn).length > 0;
 }
 
 export function addBook(data: NewBook, allowDuplicate = false): Book | null {
@@ -26,7 +26,7 @@ export function addBook(data: NewBook, allowDuplicate = false): Book | null {
 		dateModified: new Date().toISOString()
 	};
 
-	q.setItem('books', book.id, book as unknown as Record<string, unknown>);
+	q.setItem('books', book.id, book);
 	return book;
 }
 
@@ -34,57 +34,46 @@ export function updateBook(id: string, data: Partial<Omit<Book, 'id'>>): void {
 	q.updateItem('books', id, {
 		...data,
 		dateModified: new Date().toISOString()
-	} as Record<string, unknown>);
+	});
 }
 
 export function deleteBook(id: string): void {
-	// Cascade delete userBookData entries
-	const ubds = q.filter('userBookData', (d) => d.bookId === id);
+	const ubds = q.filter<{ userId: string; bookId: string }>('userBookData', (d) => d.bookId === id);
 	for (const ubd of ubds) {
 		q.deleteItem('userBookData', `${ubd.userId}:${ubd.bookId}`);
 	}
-
-	// Remove book from all shelves
 	removeBookFromAllShelves(id);
-
-	// Delete cover from cache (async, fire-and-forget)
 	deleteCoverFromCache(id);
-
 	q.deleteItem('books', id);
 }
 
 export function getBookById(id: string): Book | undefined {
-	return q.getItem('books', id) as Book | undefined;
+	return q.getItem<Book>('books', id);
 }
 
 export function getBooks(): Book[] {
-	const books = q.getAll('books') as unknown as Book[];
-	return books.sort(
+	return q.getAll<Book>('books').sort(
 		(a, b) => new Date(b.dateAdded).getTime() - new Date(a.dateAdded).getTime()
 	);
 }
 
 export function searchBooks(query: string): Book[] {
 	const lower = query.toLowerCase();
-	return q.filter('books', (book) => {
-		const b = book as unknown as Book;
-		return (
-			b.title.toLowerCase().includes(lower) ||
-			(b.authors as string[]).some((a: string) => a.toLowerCase().includes(lower))
-		);
-	}) as unknown as Book[];
+	return q.filter<Book>('books', (b) =>
+		b.title.toLowerCase().includes(lower) ||
+		b.authors.some((a) => a.toLowerCase().includes(lower))
+	);
 }
 
 export function getBooksByCategory(category: string): Book[] {
-	return q.filter('books', (b) => {
-		const cats = b.categories as string[];
-		return Array.isArray(cats) && cats.includes(category);
-	}) as unknown as Book[];
+	return q.filter<Book>('books', (b) =>
+		Array.isArray(b.categories) && b.categories.includes(category)
+	);
 }
 
 export function getBooksBySeries(seriesId: string): Book[] {
-	const books = q.filter('books', (b) => b.seriesId === seriesId) as unknown as Book[];
-	return books.sort((a, b) => (a.seriesOrder ?? 0) - (b.seriesOrder ?? 0));
+	return q.filter<Book>('books', (b) => b.seriesId === seriesId)
+		.sort((a, b) => (a.seriesOrder ?? 0) - (b.seriesOrder ?? 0));
 }
 
 async function deleteCoverFromCache(bookId: string) {

@@ -9,12 +9,12 @@ export function createShelf(userId: string, name: string): Shelf {
 		bookIds: [],
 		dateCreated: new Date().toISOString()
 	};
-	q.setItem('shelves', shelf.id, shelf as unknown as Record<string, unknown>);
+	q.setItem('shelves', shelf.id, shelf);
 	return shelf;
 }
 
 export function getUserShelves(userId: string): Shelf[] {
-	const shelves = q.filter('shelves', (s) => s.userId === userId) as unknown as Shelf[];
+	const shelves = q.filter<Shelf>('shelves', (s) => s.userId === userId);
 	return shelves.sort((a, b) => a.name.localeCompare(b.name));
 }
 

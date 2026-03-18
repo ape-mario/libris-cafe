@@ -2,7 +2,7 @@ import * as Y from 'yjs';
 
 /**
  * Fields that should be stored as Y.Map<string, true> for concurrent-safe set operations.
- * When read back, these Y.Maps (where all values are `true`) are converted to string[].
+ * When read back, these Y.Maps are converted to string[].
  */
 const SET_FIELDS: Record<string, string[]> = {
 	shelves: ['bookIds']
@@ -10,26 +10,25 @@ const SET_FIELDS: Record<string, string[]> = {
 
 /**
  * Convert a nested Y.Map entry back to a plain JS object.
- * Detects "set" Y.Maps (all values === true) and converts them to string[].
+ * Uses SET_FIELDS registry to determine which nested Y.Maps are sets.
  */
-export function yMapToObject(ymap: Y.Map<unknown>): Record<string, unknown> {
+export function yMapToObject<T = Record<string, unknown>>(
+	ymap: Y.Map<unknown>,
+	mapName?: string,
+	fieldKey?: string
+): T {
 	const obj: Record<string, unknown> = {};
+	const setFields = mapName ? (SET_FIELDS[mapName] ?? []) : [];
+
 	ymap.forEach((value, key) => {
 		if (value instanceof Y.Map) {
-			// Check if this is a "set" map (all values are true)
-			let isSet = true;
-			const entries: string[] = [];
-			value.forEach((v, k) => {
-				if (v !== true) isSet = false;
-				entries.push(k);
-			});
-			if (isSet && entries.length > 0) {
-				obj[key] = entries;
-			} else if (isSet && entries.length === 0) {
-				// Empty set → empty array
-				obj[key] = [];
+			if (setFields.includes(key)) {
+				// Registered set field → convert to string[]
+				const keys: string[] = [];
+				value.forEach((_v, k) => keys.push(k));
+				obj[key] = keys;
 			} else {
-				// Nested object (not a set)
+				// Nested object
 				obj[key] = yMapToObject(value as Y.Map<unknown>);
 			}
 		} else if (value instanceof Y.Array) {
@@ -38,7 +37,7 @@ export function yMapToObject(ymap: Y.Map<unknown>): Record<string, unknown> {
 			obj[key] = value;
 		}
 	});
-	return obj;
+	return obj as T;
 }
 
 /**
@@ -53,8 +52,8 @@ export function objectToYMap(
 	const setFields = SET_FIELDS[mapName] ?? [];
 
 	for (const [key, value] of Object.entries(data)) {
+		if (value === undefined) continue;
 		if (setFields.includes(key) && Array.isArray(value)) {
-			// Store as Y.Map set
 			const setMap = new Y.Map<true>();
 			for (const item of value) {
 				setMap.set(String(item), true);
@@ -65,7 +64,6 @@ export function objectToYMap(
 			yarray.push(value);
 			ymap.set(key, yarray);
 		} else if (value !== null && typeof value === 'object' && !(value instanceof Date)) {
-			// Nested object → nested Y.Map
 			const nested = new Y.Map<unknown>();
 			for (const [nk, nv] of Object.entries(value as Record<string, unknown>)) {
 				nested.set(nk, nv);
@@ -80,39 +78,38 @@ export function objectToYMap(
 }
 
 export function createQueryHelpers(doc: Y.Doc) {
-	function getItem(mapName: string, id: string): Record<string, unknown> | undefined {
+	function getItem<T = Record<string, unknown>>(mapName: string, id: string): T | undefined {
 		const map = doc.getMap(mapName);
 		const entry = map.get(id);
 		if (!entry || !(entry instanceof Y.Map)) return undefined;
-		return yMapToObject(entry as Y.Map<unknown>);
+		return yMapToObject<T>(entry as Y.Map<unknown>, mapName);
 	}
 
-	function getAll(mapName: string): Record<string, unknown>[] {
+	function getAll<T = Record<string, unknown>>(mapName: string): T[] {
 		const map = doc.getMap(mapName);
-		const results: Record<string, unknown>[] = [];
+		const results: T[] = [];
 		map.forEach((value) => {
 			if (value instanceof Y.Map) {
-				results.push(yMapToObject(value as Y.Map<unknown>));
+				results.push(yMapToObject<T>(value as Y.Map<unknown>, mapName));
 			}
 		});
 		return results;
 	}
 
-	function filter(
+	function filter<T = Record<string, unknown>>(
 		mapName: string,
-		predicate: (item: Record<string, unknown>) => boolean
-	): Record<string, unknown>[] {
-		return getAll(mapName).filter(predicate);
+		predicate: (item: T) => boolean
+	): T[] {
+		return getAll<T>(mapName).filter(predicate);
 	}
 
-	function search(mapName: string, query: string): Record<string, unknown>[] {
+	function search<T = Record<string, unknown>>(mapName: string, query: string): T[] {
 		const words = query.toLowerCase().split(/\s+/).filter(Boolean);
-		if (words.length === 0) return getAll(mapName);
+		if (words.length === 0) return getAll<T>(mapName);
 
-		return filter(mapName, (item) => {
-			// Build searchable text from all string/array fields
+		return filter<T>(mapName, (item) => {
 			const parts: string[] = [];
-			for (const value of Object.values(item)) {
+			for (const value of Object.values(item as Record<string, unknown>)) {
 				if (typeof value === 'string') {
 					parts.push(value);
 				} else if (Array.isArray(value)) {
@@ -120,12 +117,15 @@ export function createQueryHelpers(doc: Y.Doc) {
 				}
 			}
 			const text = parts.join(' ').toLowerCase();
-			// AND logic: every word must match
 			return words.every((word) => text.includes(word));
 		});
 	}
 
-	function setItem(mapName: string, id: string, data: Record<string, unknown>): void {
+	function setItem(
+		mapName: string,
+		id: string,
+		data: Record<string, any>
+	): void {
 		doc.transact(() => {
 			const map = doc.getMap(mapName);
 			const ymap = objectToYMap(mapName, data);
@@ -154,7 +154,6 @@ export function createQueryHelpers(doc: Y.Doc) {
 					}
 					entry.set(key, setMap);
 				} else if (Array.isArray(value)) {
-					// Replace Y.Array contents in-place for field-level CRDT merge
 					const existing = entry.get(key);
 					if (existing instanceof Y.Array) {
 						existing.delete(0, existing.length);
@@ -190,7 +189,6 @@ export function createQueryHelpers(doc: Y.Doc) {
 			const seen = new Set<string>();
 			for (const event of events) {
 				if (event.target === map && event instanceof Y.YMapEvent) {
-					// Direct child add/update/delete
 					event.changes.keys.forEach((change, key) => {
 						if (!seen.has(key)) {
 							seen.add(key);
@@ -198,12 +196,10 @@ export function createQueryHelpers(doc: Y.Doc) {
 						}
 					});
 				} else {
-					// Nested change — walk up to find the top-level key
 					let target: Y.AbstractType<any> | null = event.target as Y.AbstractType<any>;
 					while (target && target !== map) {
 						const parent = target.parent;
 						if (parent === map && parent instanceof Y.Map) {
-							// Find the key for this target in the parent map
 							(parent as Y.Map<unknown>).forEach((value, key) => {
 								if (value === target && !seen.has(key)) {
 									seen.add(key);

@@ -2,11 +2,11 @@ import { q, type Book, type UserBookData, type User, type Series, type Shelf } f
 import { getCoverBase64, setCoverBase64 } from './coverCache';
 
 export async function exportData(): Promise<string> {
-	const users = q.getAll('users') as unknown as User[];
-	const books = q.getAll('books') as unknown as Book[];
-	const userBookData = q.getAll('userBookData') as unknown as UserBookData[];
-	const series = q.getAll('series') as unknown as Series[];
-	const shelves = q.getAll('shelves') as unknown as Shelf[];
+	const users = q.getAll<User>('users');
+	const books = q.getAll<Book>('books');
+	const userBookData = q.getAll<UserBookData>('userBookData');
+	const series = q.getAll<Series>('series');
+	const shelves = q.getAll<Shelf>('shelves');
 	const goals = q.getAll('goals');
 
 	// Attach cover base64 from coverCache

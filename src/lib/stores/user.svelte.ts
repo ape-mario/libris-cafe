@@ -18,7 +18,7 @@ export function setCurrentUser(user: User | null) {
 export function restoreUser(): User | null {
 	const id = localStorage.getItem('currentUserId');
 	if (id) {
-		const user = q.getItem('users', id) as User | undefined;
+		const user = q.getItem<User>('users', id);
 		if (user) {
 			currentUser = user;
 			return user;
@@ -29,13 +29,12 @@ export function restoreUser(): User | null {
 
 export function createUser(name: string, avatar?: string): User {
 	const user: User = { id: crypto.randomUUID(), name, avatar };
-	q.setItem('users', user.id, user as unknown as Record<string, unknown>);
+	q.setItem('users', user.id, user);
 	return user;
 }
 
 export function deleteUser(id: string): void {
-	// Cascade delete userBookData
-	const ubds = q.filter('userBookData', (d) => d.userId === id);
+	const ubds = q.filter<{ userId: string; bookId: string }>('userBookData', (d) => d.userId === id);
 	for (const ubd of ubds) {
 		q.deleteItem('userBookData', `${ubd.userId}:${ubd.bookId}`);
 	}
@@ -46,5 +45,5 @@ export function deleteUser(id: string): void {
 }
 
 export function getAllUsers(): User[] {
-	return q.getAll('users') as unknown as User[];
+	return q.getAll<User>('users');
 }
