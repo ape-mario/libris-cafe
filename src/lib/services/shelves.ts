@@ -1,42 +1,61 @@
-import { db, type Shelf } from '$lib/db';
+import { doc, q, type Shelf } from '$lib/db';
+import * as Y from 'yjs';
 
-export async function createShelf(userId: string, name: string): Promise<Shelf> {
-  const shelf: Shelf = {
-    id: crypto.randomUUID(),
-    userId,
-    name,
-    bookIds: [],
-    dateCreated: new Date()
-  };
-  await db.shelves.add(shelf);
-  return shelf;
+export function createShelf(userId: string, name: string): Shelf {
+	const shelf: Shelf = {
+		id: crypto.randomUUID(),
+		userId,
+		name,
+		bookIds: [],
+		dateCreated: new Date().toISOString()
+	};
+	q.setItem('shelves', shelf.id, shelf as unknown as Record<string, unknown>);
+	return shelf;
 }
 
-export async function getUserShelves(userId: string): Promise<Shelf[]> {
-  return db.shelves.where('userId').equals(userId).sortBy('name');
+export function getUserShelves(userId: string): Shelf[] {
+	const shelves = q.filter('shelves', (s) => s.userId === userId) as unknown as Shelf[];
+	return shelves.sort((a, b) => a.name.localeCompare(b.name));
 }
 
-export async function addBookToShelf(shelfId: string, bookId: string): Promise<void> {
-  const shelf = await db.shelves.get(shelfId);
-  if (!shelf || shelf.bookIds.includes(bookId)) return;
-  await db.shelves.update(shelfId, { bookIds: [...shelf.bookIds, bookId] });
+export function addBookToShelf(shelfId: string, bookId: string): void {
+	const entry = q.getRawEntry('shelves', shelfId);
+	if (!entry) return;
+
+	let bookIdsMap = entry.get('bookIds') as Y.Map<true> | undefined;
+	if (!bookIdsMap || !(bookIdsMap instanceof Y.Map)) {
+		doc.transact(() => {
+			bookIdsMap = new Y.Map<true>();
+			entry.set('bookIds', bookIdsMap);
+		});
+	}
+	if (bookIdsMap!.has(bookId)) return;
+	doc.transact(() => {
+		bookIdsMap!.set(bookId, true);
+	});
 }
 
-export async function removeBookFromShelf(shelfId: string, bookId: string): Promise<void> {
-  const shelf = await db.shelves.get(shelfId);
-  if (!shelf) return;
-  await db.shelves.update(shelfId, { bookIds: shelf.bookIds.filter(id => id !== bookId) });
+export function removeBookFromShelf(shelfId: string, bookId: string): void {
+	const entry = q.getRawEntry('shelves', shelfId);
+	if (!entry) return;
+
+	const bookIdsMap = entry.get('bookIds') as Y.Map<true> | undefined;
+	if (!bookIdsMap || !(bookIdsMap instanceof Y.Map)) return;
+
+	doc.transact(() => {
+		bookIdsMap.delete(bookId);
+	});
 }
 
-export async function deleteShelf(id: string): Promise<void> {
-  await db.shelves.delete(id);
+export function deleteShelf(id: string): void {
+	q.deleteItem('shelves', id);
 }
 
-export async function renameShelf(id: string, name: string): Promise<void> {
-  await db.shelves.update(id, { name });
+export function renameShelf(id: string, name: string): void {
+	q.updateItem('shelves', id, { name });
 }
 
-export async function getShelvesForBook(userId: string, bookId: string): Promise<Shelf[]> {
-  const shelves = await getUserShelves(userId);
-  return shelves.filter(s => s.bookIds.includes(bookId));
+export function getShelvesForBook(userId: string, bookId: string): Shelf[] {
+	const shelves = getUserShelves(userId);
+	return shelves.filter((s) => s.bookIds.includes(bookId));
 }

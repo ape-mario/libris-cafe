@@ -1,29 +1,46 @@
-import 'fake-indexeddb/auto';
 import { describe, it, expect, beforeEach } from 'vitest';
-import { db } from '$lib/db';
+import * as Y from 'yjs';
+import { createQueryHelpers } from '$lib/db/query';
+
+let doc: Y.Doc;
+let q: ReturnType<typeof createQueryHelpers>;
+
+import { vi } from 'vitest';
+vi.mock('$lib/db', () => {
+	return {
+		get q() {
+			return q;
+		},
+		get doc() {
+			return doc;
+		}
+	};
+});
+
 import { getUserBookData, setUserBookData } from './userbooks';
 
-beforeEach(async () => {
-  await db.userBookData.clear();
+beforeEach(() => {
+	doc = new Y.Doc();
+	q = createQueryHelpers(doc);
 });
 
 describe('UserBookData service', () => {
-  it('should create user book data if none exists', async () => {
-    const data = await setUserBookData('u1', 'b1', { status: 'reading' });
-    expect(data.status).toBe('reading');
-    expect(data.isWishlist).toBe(false);
-  });
+	it('should create user book data if none exists', () => {
+		const data = setUserBookData('u1', 'b1', { status: 'reading' });
+		expect(data.status).toBe('reading');
+		expect(data.isWishlist).toBe(false);
+	});
 
-  it('should update existing user book data', async () => {
-    await setUserBookData('u1', 'b1', { status: 'reading' });
-    await setUserBookData('u1', 'b1', { status: 'read', rating: 5 });
-    const data = await getUserBookData('u1', 'b1');
-    expect(data?.status).toBe('read');
-    expect(data?.rating).toBe(5);
-  });
+	it('should update existing user book data', () => {
+		setUserBookData('u1', 'b1', { status: 'reading' });
+		setUserBookData('u1', 'b1', { status: 'read', rating: 5 });
+		const data = getUserBookData('u1', 'b1');
+		expect(data?.status).toBe('read');
+		expect(data?.rating).toBe(5);
+	});
 
-  it('should return null for non-existent data', async () => {
-    const data = await getUserBookData('u1', 'b1');
-    expect(data).toBeNull();
-  });
+	it('should return null for non-existent data', () => {
+		const data = getUserBookData('u1', 'b1');
+		expect(data).toBeNull();
+	});
 });

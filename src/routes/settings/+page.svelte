@@ -1,8 +1,6 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
   import { exportData, importData } from '$lib/services/backup';
   import { importGoodreadsCSV } from '$lib/services/goodreads';
-  import { getSyncConfig, saveSyncConfig, fullSync } from '$lib/services/sync';
   import { showToast } from '$lib/stores/toast.svelte';
   import { getCurrentUser } from '$lib/stores/user.svelte';
   import { t } from '$lib/i18n/index.svelte';
@@ -12,46 +10,11 @@
   let importing = $state(false);
   let currentTheme = $derived(getTheme());
   let importingGoodreads = $state(false);
-  let syncing = $state(false);
   let locale = $derived(getLocale());
   let user = $derived(getCurrentUser());
 
-  // Sync config
-  let syncUrl = $state('');
-  let autoSync = $state(false);
-  let lastSynced = $state<Date | undefined>();
-  let syncConfigured = $state(false);
-
-  onMount(async () => {
-    const config = await getSyncConfig();
-    syncUrl = config.serverUrl;
-    autoSync = config.autoSync;
-    lastSynced = config.lastSyncedAt;
-    syncConfigured = config.configured;
-  });
-
   function handleLocale(newLocale: Locale) {
     setLocale(newLocale);
-  }
-
-  async function handleSaveSync() {
-    await saveSyncConfig(syncUrl.trim(), autoSync);
-    syncConfigured = !!syncUrl.trim();
-    showToast(t('settings.sync_save'), 'success');
-  }
-
-  async function handleSync() {
-    syncing = true;
-    try {
-      const result = await fullSync();
-      const config = await getSyncConfig();
-      lastSynced = config.lastSyncedAt;
-      if (result === 'pushed') showToast(t('toast.sync_pushed'), 'success');
-      else if (result === 'pulled') showToast(t('toast.sync_pulled'), 'success');
-    } catch (e) {
-      showToast(t('toast.sync_failed'), 'error');
-    }
-    syncing = false;
   }
 
   async function handleExport() {
@@ -88,7 +51,7 @@
     importingGoodreads = true;
     try {
       const csv = await file.text();
-      const count = await importGoodreadsCSV(csv, user.id);
+      const count = importGoodreadsCSV(csv, user.id);
       showToast(t('toast.goodreads_imported', { count: count.toString() }), 'success');
     } catch {
       showToast(t('toast.goodreads_failed'), 'error');
@@ -136,41 +99,6 @@
             onclick={() => setTheme(opt.key as Theme)}
           >{opt.label}</button>
         {/each}
-      </div>
-    </div>
-
-    <!-- Cloud Sync -->
-    <div class="card p-5">
-      <h2 class="font-display font-semibold text-ink mb-1">{t('settings.sync_title')}</h2>
-      <p class="text-sm text-ink-muted mb-4">{t('settings.sync_desc')}</p>
-
-      <div class="flex flex-col gap-3">
-        <label class="flex flex-col gap-1.5">
-          <span class="text-xs font-semibold text-ink-muted uppercase tracking-wider">{t('settings.sync_url')}</span>
-          <input type="url" bind:value={syncUrl} placeholder={t('settings.sync_url_placeholder')} class="input-field font-mono text-xs" />
-        </label>
-
-        <label class="flex items-center gap-2.5 cursor-pointer">
-          <input type="checkbox" bind:checked={autoSync} class="w-4 h-4 rounded accent-accent" />
-          <span class="text-sm text-ink">{t('settings.sync_auto')}</span>
-        </label>
-
-        <div class="flex gap-2">
-          <button class="btn-secondary flex-1" onclick={handleSaveSync}>{t('settings.sync_save')}</button>
-          {#if syncConfigured}
-            <button class="btn-primary flex-1" onclick={handleSync} disabled={syncing}>
-              {syncing ? '...' : t('settings.sync_now')}
-            </button>
-          {/if}
-        </div>
-
-        {#if lastSynced}
-          <p class="text-[11px] text-ink-muted">
-            {t('settings.sync_last', { time: lastSynced.toLocaleString() })}
-          </p>
-        {:else if syncConfigured}
-          <p class="text-[11px] text-ink-muted">{t('settings.sync_never')}</p>
-        {/if}
       </div>
     </div>
 

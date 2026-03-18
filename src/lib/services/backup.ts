@@ -1,73 +1,94 @@
-import { db } from '$lib/db';
-
-function blobToBase64(blob: Blob): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onloadend = () => resolve(reader.result as string);
-    reader.onerror = reject;
-    reader.readAsDataURL(blob);
-  });
-}
-
-function base64ToBlob(dataUrl: string): Blob {
-  const [header, data] = dataUrl.split(',');
-  const mime = header.match(/:(.*?);/)?.[1] || 'image/jpeg';
-  const bytes = atob(data);
-  const arr = new Uint8Array(bytes.length);
-  for (let i = 0; i < bytes.length; i++) arr[i] = bytes.charCodeAt(i);
-  return new Blob([arr], { type: mime });
-}
+import { q, type Book, type UserBookData, type User, type Series, type Shelf } from '$lib/db';
+import { getCoverBase64, setCoverBase64 } from './coverCache';
 
 export async function exportData(): Promise<string> {
-  const [users, rawBooks, userBookData, series, categories, shelves] = await Promise.all([
-    db.users.toArray(),
-    db.books.toArray(),
-    db.userBookData.toArray(),
-    db.series.toArray(),
-    db.categories.toArray(),
-    db.shelves.toArray()
-  ]);
+	const users = q.getAll('users') as unknown as User[];
+	const books = q.getAll('books') as unknown as Book[];
+	const userBookData = q.getAll('userBookData') as unknown as UserBookData[];
+	const series = q.getAll('series') as unknown as Series[];
+	const shelves = q.getAll('shelves') as unknown as Shelf[];
 
-  const books = await Promise.all(
-    rawBooks.map(async ({ coverBlob, ...rest }) => ({
-      ...rest,
-      coverBase64: coverBlob ? await blobToBase64(coverBlob) : undefined
-    }))
-  );
+	// Attach cover base64 from coverCache
+	const booksWithCovers = await Promise.all(
+		books.map(async (book) => {
+			const coverBase64 = await getCoverBase64(book.id);
+			return {
+				...book,
+				coverBase64: coverBase64 || undefined
+			};
+		})
+	);
 
-  return JSON.stringify({ version: 3, exportedAt: new Date().toISOString(), users, books, userBookData, series, categories, shelves }, null, 2);
+	return JSON.stringify(
+		{
+			version: 4,
+			exportedAt: new Date().toISOString(),
+			users,
+			books: booksWithCovers,
+			userBookData,
+			series,
+			shelves
+		},
+		null,
+		2
+	);
 }
 
 export async function importData(json: string): Promise<void> {
-  const data = JSON.parse(json);
+	const data = JSON.parse(json);
 
-  if (!data.version || !data.books) {
-    throw new Error('Invalid backup file');
-  }
+	if (!data.version || !data.books) {
+		throw new Error('Invalid backup file');
+	}
 
-  await db.transaction('rw', [db.users, db.books, db.userBookData, db.series, db.categories, db.shelves], async () => {
-    if (data.users) await db.users.bulkPut(data.users);
-    if (data.books) {
-      const books = data.books.map((b: any) => {
-        const { coverBase64, ...rest } = b;
-        return {
-          ...rest,
-          coverBlob: coverBase64 ? base64ToBlob(coverBase64) : undefined,
-          dateAdded: new Date(b.dateAdded),
-          dateModified: new Date(b.dateModified)
-        };
-      });
-      await db.books.bulkPut(books);
-    }
-    if (data.userBookData) await db.userBookData.bulkPut(data.userBookData);
-    if (data.series) await db.series.bulkPut(data.series);
-    if (data.categories) await db.categories.bulkPut(data.categories);
-    if (data.shelves) {
-      const shelves = data.shelves.map((s: any) => ({
-        ...s,
-        dateCreated: new Date(s.dateCreated)
-      }));
-      await db.shelves.bulkPut(shelves);
-    }
-  });
+	if (data.users) {
+		for (const user of data.users) {
+			q.setItem('users', user.id, user);
+		}
+	}
+
+	if (data.books) {
+		for (const b of data.books) {
+			const { coverBase64, coverBlob, ...bookData } = b;
+			// Normalize dates to ISO strings (old backups may have Date objects serialized)
+			if (bookData.dateAdded && typeof bookData.dateAdded !== 'string') {
+				bookData.dateAdded = new Date(bookData.dateAdded).toISOString();
+			}
+			if (bookData.dateModified && typeof bookData.dateModified !== 'string') {
+				bookData.dateModified = new Date(bookData.dateModified).toISOString();
+			}
+			q.setItem('books', bookData.id, bookData);
+
+			// Store cover in coverCache if present
+			if (coverBase64) {
+				await setCoverBase64(bookData.id, coverBase64);
+			}
+		}
+	}
+
+	if (data.userBookData) {
+		for (const ubd of data.userBookData) {
+			// Support old format with standalone id, or new compound key
+			const key = `${ubd.userId}:${ubd.bookId}`;
+			const { id: _id, ...rest } = ubd;
+			q.setItem('userBookData', key, { userId: ubd.userId, bookId: ubd.bookId, ...rest });
+		}
+	}
+
+	if (data.series) {
+		for (const s of data.series) {
+			q.setItem('series', s.id, s);
+		}
+	}
+
+	if (data.shelves) {
+		for (const s of data.shelves) {
+			const shelfData = {
+				...s,
+				dateCreated:
+					typeof s.dateCreated === 'string' ? s.dateCreated : new Date(s.dateCreated).toISOString()
+			};
+			q.setItem('shelves', shelfData.id, shelfData);
+		}
+	}
 }

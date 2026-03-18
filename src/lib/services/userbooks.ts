@@ -1,48 +1,61 @@
-import { db, type UserBookData } from '$lib/db';
+import { q, type UserBookData } from '$lib/db';
 
-export async function getUserBookData(userId: string, bookId: string): Promise<UserBookData | null> {
-  const data = await db.userBookData.where({ userId, bookId }).first();
-  return data || null;
+export function getUserBookData(userId: string, bookId: string): UserBookData | null {
+	const key = `${userId}:${bookId}`;
+	const data = q.getItem('userBookData', key) as UserBookData | undefined;
+	return data || null;
 }
 
-export async function setUserBookData(
-  userId: string,
-  bookId: string,
-  updates: Partial<Pick<UserBookData, 'status' | 'rating' | 'notes' | 'lentTo' | 'lentDate' | 'isWishlist' | 'currentPage' | 'totalPages'>>
-): Promise<UserBookData> {
-  const existing = await db.userBookData.where({ userId, bookId }).first();
+export function setUserBookData(
+	userId: string,
+	bookId: string,
+	updates: Partial<
+		Pick<
+			UserBookData,
+			'status' | 'rating' | 'notes' | 'lentTo' | 'lentDate' | 'isWishlist' | 'currentPage' | 'totalPages'
+		>
+	>
+): UserBookData {
+	const key = `${userId}:${bookId}`;
+	const existing = q.getItem('userBookData', key) as UserBookData | undefined;
 
-  if (existing) {
-    await db.userBookData.update(existing.id, updates);
-    return { ...existing, ...updates };
-  }
+	if (existing) {
+		q.updateItem('userBookData', key, updates as Record<string, unknown>);
+		return { ...existing, ...updates };
+	}
 
-  const data: UserBookData = {
-    id: crypto.randomUUID(),
-    userId,
-    bookId,
-    status: 'unread',
-    isWishlist: false,
-    ...updates
-  };
-  await db.userBookData.add(data);
-  return data;
+	const data: UserBookData = {
+		userId,
+		bookId,
+		status: 'unread',
+		isWishlist: false,
+		...updates
+	};
+	q.setItem('userBookData', key, data as unknown as Record<string, unknown>);
+	return data;
 }
 
-export async function getUserBooks(userId: string, filter?: { status?: string; isWishlist?: boolean }): Promise<UserBookData[]> {
-  let collection = db.userBookData.where('userId').equals(userId);
-  let results = await collection.toArray();
+export function getUserBooks(
+	userId: string,
+	filter?: { status?: string; isWishlist?: boolean }
+): UserBookData[] {
+	let results = q.filter(
+		'userBookData',
+		(d) => d.userId === userId
+	) as unknown as UserBookData[];
 
-  if (filter?.status) {
-    results = results.filter((d) => d.status === filter.status);
-  }
-  if (filter?.isWishlist !== undefined) {
-    results = results.filter((d) => d.isWishlist === filter.isWishlist);
-  }
-  return results;
+	if (filter?.status) {
+		results = results.filter((d) => d.status === filter.status);
+	}
+	if (filter?.isWishlist !== undefined) {
+		results = results.filter((d) => d.isWishlist === filter.isWishlist);
+	}
+	return results;
 }
 
-export async function getLentBooks(userId: string): Promise<UserBookData[]> {
-  const all = await db.userBookData.where('userId').equals(userId).toArray();
-  return all.filter((d) => d.lentTo);
+export function getLentBooks(userId: string): UserBookData[] {
+	return q.filter(
+		'userBookData',
+		(d) => d.userId === userId && !!d.lentTo
+	) as unknown as UserBookData[];
 }

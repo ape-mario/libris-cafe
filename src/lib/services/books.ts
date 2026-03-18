@@ -1,66 +1,80 @@
-import { db, type Book } from '$lib/db';
+import { q, type Book } from '$lib/db';
 
 type NewBook = Pick<Book, 'title' | 'authors' | 'categories'> &
-  Partial<Pick<Book, 'isbn' | 'coverUrl' | 'coverBlob' | 'seriesId' | 'seriesOrder'>>;
+	Partial<Pick<Book, 'isbn' | 'coverUrl' | 'seriesId' | 'seriesOrder'>>;
 
-export async function hasBookWithISBN(isbn: string): Promise<boolean> {
-  const existing = await db.books.where('isbn').equals(isbn).first();
-  return !!existing;
+export function hasBookWithISBN(isbn: string): boolean {
+	return q.filter('books', (b) => b.isbn === isbn).length > 0;
 }
 
-export async function addBook(data: NewBook, allowDuplicate = false): Promise<Book | null> {
-  if (data.isbn && !allowDuplicate) {
-    if (await hasBookWithISBN(data.isbn)) return null;
-  }
+export function addBook(data: NewBook, allowDuplicate = false): Book | null {
+	if (data.isbn && !allowDuplicate) {
+		if (hasBookWithISBN(data.isbn)) return null;
+	}
 
-  const book: Book = {
-    id: crypto.randomUUID(),
-    title: data.title,
-    authors: data.authors,
-    isbn: data.isbn,
-    coverUrl: data.coverUrl,
-    coverBlob: data.coverBlob,
-    categories: data.categories,
-    seriesId: data.seriesId,
-    seriesOrder: data.seriesOrder,
-    dateAdded: new Date(),
-    dateModified: new Date()
-  };
+	const book: Book = {
+		id: crypto.randomUUID(),
+		title: data.title,
+		authors: data.authors,
+		isbn: data.isbn,
+		coverUrl: data.coverUrl,
+		categories: data.categories,
+		seriesId: data.seriesId,
+		seriesOrder: data.seriesOrder,
+		dateAdded: new Date().toISOString(),
+		dateModified: new Date().toISOString()
+	};
 
-  await db.books.add(book);
-  return book;
+	q.setItem('books', book.id, book as unknown as Record<string, unknown>);
+	return book;
 }
 
-export async function updateBook(id: string, data: Partial<Omit<Book, 'id'>>): Promise<void> {
-  await db.books.update(id, { ...data, dateModified: new Date() });
+export function updateBook(id: string, data: Partial<Omit<Book, 'id'>>): void {
+	q.updateItem('books', id, {
+		...data,
+		dateModified: new Date().toISOString()
+	} as Record<string, unknown>);
 }
 
-export async function deleteBook(id: string): Promise<void> {
-  await db.userBookData.where('bookId').equals(id).delete();
-  await db.books.delete(id);
+export function deleteBook(id: string): void {
+	// Cascade delete userBookData entries for this book
+	const ubds = q.filter('userBookData', (d) => d.bookId === id);
+	for (const ubd of ubds) {
+		q.deleteItem('userBookData', `${ubd.userId}:${ubd.bookId}`);
+	}
+	q.deleteItem('books', id);
 }
 
-export async function getBookById(id: string): Promise<Book | undefined> {
-  return db.books.get(id);
+export function getBookById(id: string): Book | undefined {
+	return q.getItem('books', id) as Book | undefined;
 }
 
-export async function getBooks(): Promise<Book[]> {
-  return db.books.orderBy('dateAdded').reverse().toArray();
+export function getBooks(): Book[] {
+	const books = q.getAll('books') as unknown as Book[];
+	return books.sort(
+		(a, b) => new Date(b.dateAdded).getTime() - new Date(a.dateAdded).getTime()
+	);
 }
 
-export async function searchBooks(query: string): Promise<Book[]> {
-  const lower = query.toLowerCase();
-  return db.books.filter(
-    (book) =>
-      book.title.toLowerCase().includes(lower) ||
-      book.authors.some((a) => a.toLowerCase().includes(lower))
-  ).toArray();
+export function searchBooks(query: string): Book[] {
+	const lower = query.toLowerCase();
+	return q.filter('books', (book) => {
+		const b = book as unknown as Book;
+		return (
+			b.title.toLowerCase().includes(lower) ||
+			(b.authors as string[]).some((a: string) => a.toLowerCase().includes(lower))
+		);
+	}) as unknown as Book[];
 }
 
-export async function getBooksByCategory(category: string): Promise<Book[]> {
-  return db.books.where('categories').equals(category).toArray();
+export function getBooksByCategory(category: string): Book[] {
+	return q.filter('books', (b) => {
+		const cats = b.categories as string[];
+		return Array.isArray(cats) && cats.includes(category);
+	}) as unknown as Book[];
 }
 
-export async function getBooksBySeries(seriesId: string): Promise<Book[]> {
-  return db.books.where('seriesId').equals(seriesId).sortBy('seriesOrder');
+export function getBooksBySeries(seriesId: string): Book[] {
+	const books = q.filter('books', (b) => b.seriesId === seriesId) as unknown as Book[];
+	return books.sort((a, b) => (a.seriesOrder ?? 0) - (b.seriesOrder ?? 0));
 }
