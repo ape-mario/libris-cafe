@@ -111,6 +111,25 @@
     }
 
     restoreUser();
+
+    // Restore staff session from Supabase (if previously logged in)
+    try {
+      const { restoreSession } = await import('$lib/modules/auth/service');
+      const { setCurrentStaff } = await import('$lib/modules/auth/stores.svelte');
+      const session = await restoreSession();
+      if (session) {
+        setCurrentStaff(session.staff);
+      }
+    } catch {
+      // Supabase not configured or session expired — continue as guest
+    }
+
+    // Init sync manager for offline queue
+    try {
+      const { initSyncManager } = await import('$lib/modules/sync/manager');
+      initSyncManager();
+    } catch {}
+
     loaded = true;
     setTimeout(() => cacheAllCovers(), 3000);
   });
