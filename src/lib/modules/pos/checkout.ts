@@ -1,6 +1,8 @@
 import { getSupabase } from '$lib/supabase/client';
 import { getQueue, getIsOnline } from '../sync/manager';
-import type { CheckoutRequest } from './types';
+import type { CheckoutRequest, Cart } from './types';
+import { getPrinterStatus, printReceipt } from '$lib/modules/printer/service';
+import type { ReceiptData } from '$lib/modules/printer/types';
 
 export interface CheckoutResult {
   transactionId: string | null;
@@ -104,4 +106,52 @@ export async function checkout(request: CheckoutRequest): Promise<CheckoutResult
   });
 
   return { transactionId: null, offlineId, synced: false, requiresPayment: false };
+}
+
+/**
+ * Build receipt data from a completed transaction.
+ * Called after successful checkout to prepare for thermal printing.
+ */
+export function buildReceiptFromTransaction(
+  transactionId: string,
+  cart: Cart,
+  cafeInfo: { name: string; address: string; phone: string },
+  staffName: string,
+  paymentMethod: string
+): ReceiptData {
+  return {
+    cafe_name: cafeInfo.name,
+    cafe_address: cafeInfo.address,
+    cafe_phone: cafeInfo.phone,
+    transaction_id: transactionId,
+    date: new Date().toLocaleString('id-ID'),
+    staff_name: staffName,
+    items: cart.items.map(item => ({
+      title: item.book.title,
+      quantity: item.quantity,
+      unit_price: item.unitPrice,
+      total: item.total,
+    })),
+    subtotal: cart.subtotal,
+    discount: cart.discount,
+    tax: cart.tax,
+    total: cart.total,
+    payment_method: paymentMethod,
+    footer_message: 'Terima kasih telah berkunjung!',
+  };
+}
+
+/**
+ * Attempt to print receipt on thermal printer if connected.
+ * Non-blocking — failures are logged but don't affect the transaction.
+ */
+export async function tryPrintReceipt(receiptData: ReceiptData): Promise<void> {
+  const status = getPrinterStatus();
+  if (!status.connected) return;
+
+  try {
+    await printReceipt(receiptData, { openDrawer: true });
+  } catch (err) {
+    console.warn('Thermal print failed (non-critical):', err);
+  }
 }

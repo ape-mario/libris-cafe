@@ -13,6 +13,9 @@
   import { getCart, setCart, resetCart } from '$lib/modules/pos/stores.svelte';
   import { checkout } from '$lib/modules/pos/checkout';
   import { getIsOnline } from '$lib/modules/sync/manager';
+  import PrintButton from '$lib/components/printer/PrintButton.svelte';
+  import { buildReceiptFromTransaction, tryPrintReceipt } from '$lib/modules/pos/checkout';
+  import type { ReceiptData as PrinterReceiptData } from '$lib/modules/printer/types';
   import type { Book } from '$lib/db';
   import type { PaymentMethodType } from '$lib/modules/pos/types';
   import type { ReceiptData } from '$lib/modules/receipt/types';
@@ -33,6 +36,9 @@
   // Receipt state
   let showReceipt = $state(false);
   let receiptData = $state<ReceiptData | null>(null);
+
+  // Printer receipt state
+  let printerReceiptData = $state<PrinterReceiptData | null>(null);
 
   let searchTimeout: ReturnType<typeof setTimeout>;
 
@@ -187,12 +193,24 @@
       cafeAddress: 'Alamat cafe di sini',
       staffName: staff.name,
     };
+
+    // Build printer receipt and attempt auto-print
+    printerReceiptData = buildReceiptFromTransaction(
+      transactionId,
+      cart,
+      { name: 'Libris Cafe', address: 'Alamat cafe di sini', phone: '' },
+      staff.name,
+      selectedPayment
+    );
+    tryPrintReceipt(printerReceiptData);
+
     showReceipt = true;
   }
 
   function handleReceiptDone() {
     showReceipt = false;
     receiptData = null;
+    printerReceiptData = null;
     pendingTransactionId = null;
     resetCart();
   }
@@ -343,6 +361,11 @@
       {receiptData}
       onDone={handleReceiptDone}
     />
+
+    <!-- Print Receipt button (appears after checkout if printer is connected) -->
+    {#if printerReceiptData}
+      <PrintButton receiptData={printerReceiptData} />
+    {/if}
   {/if}
 </div>
 
