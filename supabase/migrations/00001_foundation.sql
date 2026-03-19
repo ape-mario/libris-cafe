@@ -11,8 +11,9 @@ CREATE TABLE outlet (
 );
 
 -- Staff & Auth
+-- staff.id = Supabase Auth user UUID (set explicitly when creating staff, not auto-generated)
 CREATE TABLE staff (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  id uuid PRIMARY KEY,
   name text NOT NULL,
   email text UNIQUE,
   role text NOT NULL CHECK (role IN ('owner', 'staff')),

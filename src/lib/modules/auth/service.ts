@@ -1,5 +1,8 @@
 import { getSupabase } from '$lib/supabase/client';
+import { setCurrentStaff } from './stores.svelte';
 import type { Staff, AuthSession } from './types';
+
+const STAFF_COLUMNS = 'id, name, email, role, outlet_id, is_active, created_at';
 
 /**
  * Login with email + PIN (PIN is used as password in Supabase Auth).
@@ -26,12 +29,16 @@ export async function loginWithPin(email: string, pin: string): Promise<AuthSess
   };
 }
 
+/**
+ * Fetch staff record by Supabase Auth UID.
+ * staff.id IS the Supabase Auth UID (set explicitly when creating staff accounts).
+ */
 export async function getStaffByAuthId(authId: string): Promise<Staff | null> {
   const supabase = getSupabase();
 
   const { data, error } = await supabase
     .from('staff')
-    .select('*')
+    .select(STAFF_COLUMNS)
     .eq('id', authId)
     .single();
 
@@ -42,6 +49,7 @@ export async function getStaffByAuthId(authId: string): Promise<Staff | null> {
 export async function logout(): Promise<void> {
   const supabase = getSupabase();
   await supabase.auth.signOut();
+  setCurrentStaff(null);
 }
 
 export async function restoreSession(): Promise<AuthSession | null> {
