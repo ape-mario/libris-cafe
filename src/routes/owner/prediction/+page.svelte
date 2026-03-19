@@ -9,8 +9,8 @@
 
   const prediction = getPredictionStore();
 
-  const staff = getCurrentStaff();
-  const outletId = staff?.outlet_id ?? '';
+  let staff = $derived(getCurrentStaff());
+  let outletId = $derived(staff?.outlet_id ?? '');
   let leadTimeDays = $state(7);
 
   onMount(() => {

@@ -18,7 +18,7 @@
     { _key: crypto.randomUUID(), title: '', quantity: 1, unit_price: 0, isbn: '' },
   ]);
 
-  const staff = getCurrentStaff();
+  let staff = $derived(getCurrentStaff());
 
   onMount(async () => {
     suppliers = await getSuppliers();

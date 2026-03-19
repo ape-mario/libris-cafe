@@ -186,6 +186,12 @@
         outletId: staff.outlet_id,
       });
 
+      // Refresh public availability after successful checkout
+      try {
+        const { refreshAvailability } = await import('$lib/modules/inventory/public-availability');
+        refreshAvailability();
+      } catch {}
+
       if (result.requiresPayment && result.transactionId) {
         // Digital payment — show Snap modal
         pendingTransactionId = result.transactionId;

@@ -8,6 +8,7 @@
 
   let items = $state<EnrichedInventory[]>([]);
   let loading = $state(true);
+  let error = $state('');
   let filter = $state<'all' | 'low_stock' | 'out_of_stock'>('all');
   let staff = $derived(getCurrentStaff());
 
@@ -17,6 +18,7 @@
       const raw = await getInventoryByOutlet(staff.outlet_id);
       items = enrichInventory(raw);
     } catch (err) {
+      error = err instanceof Error ? err.message : 'Failed to load inventory';
       console.error('Failed to load inventory:', err);
     } finally {
       loading = false;
@@ -72,6 +74,8 @@
   <!-- List -->
   {#if loading}
     <div class="py-8 text-center text-sm text-ink-muted">{t('common.loading')}</div>
+  {:else if error}
+    <div class="py-8 text-center text-sm text-berry">{error}</div>
   {:else if filtered.length === 0}
     <div class="py-8 text-center text-sm text-ink-muted">{t('inventory.empty')}</div>
   {:else}

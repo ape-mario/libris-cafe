@@ -14,7 +14,7 @@
     onclose: () => void;
   } = $props();
 
-  const staff = getCurrentStaff();
+  let staff = $derived(getCurrentStaff());
 
   let level = $state<LendingLevel>('semi_formal');
   let bookSearch = $state('');

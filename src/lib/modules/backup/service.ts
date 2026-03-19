@@ -11,22 +11,25 @@ export async function exportFullBackup(outletId: string, outletName: string): Pr
   const supabase = getSupabase();
 
   // Pre-fetch foreign key IDs once to avoid duplicate subqueries
-  const [inventoryRes, transactionRes, poRes, consignorRes] = await Promise.all([
+  const [inventoryRes, transactionRes, poRes, consignorRes, transferRes] = await Promise.all([
     supabase.from('inventory').select('id').eq('outlet_id', outletId),
     supabase.from('transaction').select('id').eq('outlet_id', outletId),
     supabase.from('purchase_order').select('id').eq('outlet_id', outletId),
     supabase.from('consignor').select('id'),
+    supabase.from('outlet_transfer').select('id').or(`from_outlet_id.eq.${outletId},to_outlet_id.eq.${outletId}`),
   ]);
 
   if (inventoryRes.error) throw new Error(`Failed to fetch inventory IDs: ${inventoryRes.error.message}`);
   if (transactionRes.error) throw new Error(`Failed to fetch transaction IDs: ${transactionRes.error.message}`);
   if (poRes.error) throw new Error(`Failed to fetch purchase order IDs: ${poRes.error.message}`);
   if (consignorRes.error) throw new Error(`Failed to fetch consignor IDs: ${consignorRes.error.message}`);
+  if (transferRes.error) throw new Error(`Failed to fetch transfer IDs: ${transferRes.error.message}`);
 
   const inventoryIds = (inventoryRes.data ?? []).map(i => i.id);
   const transactionIds = (transactionRes.data ?? []).map(t => t.id);
   const poIds = (poRes.data ?? []).map(p => p.id);
   const consignorIds = (consignorRes.data ?? []).map(c => c.id);
+  const transferIds = (transferRes.data ?? []).map(t => t.id);
 
   // Fetch all tables in parallel
   const [
@@ -64,7 +67,7 @@ export async function exportFullBackup(outletId: string, outletName: string): Pr
     supabase.from('notification').select('*').eq('outlet_id', outletId).order('created_at', { ascending: false }).limit(1000),
     supabase.from('reading_session').select('*').in('inventory_id', inventoryIds),
     supabase.from('outlet_transfer').select('*').or(`from_outlet_id.eq.${outletId},to_outlet_id.eq.${outletId}`),
-    supabase.from('outlet_transfer_item').select('*'),
+    supabase.from('outlet_transfer_item').select('*').in('transfer_id', transferIds),
   ]);
 
   // Get Yjs catalog data

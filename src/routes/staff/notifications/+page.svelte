@@ -19,7 +19,7 @@
   let notifications = $derived(getNotifications());
   let unreadCount = $derived(getUnreadCount());
 
-  const staff = getCurrentStaff();
+  let staff = $derived(getCurrentStaff());
 
   onMount(async () => {
     if (!staff) return;

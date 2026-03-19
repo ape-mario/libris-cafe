@@ -33,6 +33,7 @@
 
   let transactions = $state<Transaction[]>([]);
   let loading = $state(true);
+  let error = $state('');
   let filterDate = $state(new Date().toISOString().slice(0, 10));
   let expandedId = $state<string | null>(null);
   let staff = $derived(getCurrentStaff());
@@ -61,6 +62,7 @@
       if (error) throw error;
       transactions = (data ?? []) as Transaction[];
     } catch (err) {
+      error = err instanceof Error ? err.message : 'Failed to load transactions';
       console.error('Failed to load transactions:', err);
     } finally {
       loading = false;
@@ -121,6 +123,8 @@
 
   {#if loading}
     <div class="py-8 text-center text-sm text-ink-muted">{t('common.loading')}</div>
+  {:else if error}
+    <div class="py-8 text-center text-sm text-berry">{error}</div>
   {:else if transactions.length === 0}
     <div class="py-8 text-center text-sm text-ink-muted">No transactions for this date</div>
   {:else}

@@ -53,6 +53,16 @@ export async function logout(): Promise<void> {
   const supabase = getSupabase();
   await supabase.auth.signOut();
   setCurrentStaff(null);
+
+  // Clear all session-scoped stores
+  try {
+    const { clearNotifications } = await import('$lib/modules/notification/stores.svelte');
+    clearNotifications();
+  } catch {}
+  try {
+    const { resetCart } = await import('$lib/modules/pos/stores.svelte');
+    resetCart();
+  } catch {}
 }
 
 export async function restoreSession(): Promise<AuthSession | null> {

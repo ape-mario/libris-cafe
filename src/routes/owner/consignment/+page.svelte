@@ -8,6 +8,7 @@
   let consignors = $state<Consignor[]>([]);
   let unsettledTotal = $state(0);
   let loading = $state(true);
+  let error = $state('');
 
   onMount(async () => {
     try {
@@ -15,6 +16,8 @@
         getConsignors(),
         getUnsettledTotal(),
       ]);
+    } catch (err) {
+      error = err instanceof Error ? err.message : 'Failed to load consignment data';
     } finally {
       loading = false;
     }
@@ -44,6 +47,8 @@
 
   {#if loading}
     <div class="py-8 text-center text-sm text-ink-muted">{t('common.loading')}</div>
+  {:else if error}
+    <div class="py-8 text-center text-sm text-berry">{error}</div>
   {:else if consignors.length === 0}
     <div class="py-8 text-center text-sm text-ink-muted">{t('consignment.no_consignors')}</div>
   {:else}

@@ -78,7 +78,7 @@
       session_id: lastCheckOutResult.session.id,
     });
     lastCheckOutResult = null;
-    goto(`/staff/pos?${params.toString()}`);
+    goto(`${base}/staff/pos?${params.toString()}`);
   }
 
   function waiveFee() {

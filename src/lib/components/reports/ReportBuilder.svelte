@@ -11,8 +11,8 @@
   let dateFrom = $state(new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]);
   let dateTo = $state(new Date().toISOString().split('T')[0]);
 
-  const staff = getCurrentStaff();
-  const outletId = staff?.outlet_id ?? '';
+  let staff = $derived(getCurrentStaff());
+  let outletId = $derived(staff?.outlet_id ?? '');
 
   const reportTypes = Object.entries(REPORT_SCHEMAS).map(([key, schema]) => ({
     value: key as ReportType,

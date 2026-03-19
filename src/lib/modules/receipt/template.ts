@@ -1,5 +1,9 @@
 import type { ReceiptData } from './types';
 
+function escapeHtml(str: string): string {
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
 /**
  * Format receipt as plain text (for WhatsApp).
  */
@@ -53,7 +57,7 @@ export function formatReceiptHtml(data: ReceiptData): string {
   const itemRows = data.items.map(item => `
     <tr>
       <td style="padding: 8px 0; border-bottom: 1px solid #f0ebe4;">
-        <div style="font-weight: 500; color: #2d2a26;">${item.title}</div>
+        <div style="font-weight: 500; color: #2d2a26;">${escapeHtml(item.title)}</div>
         <div style="font-size: 12px; color: #8a857e;">${item.quantity}x ${formatRp(item.unitPrice)}</div>
       </td>
       <td style="padding: 8px 0; text-align: right; border-bottom: 1px solid #f0ebe4; color: #2d2a26;">
@@ -74,10 +78,10 @@ export function formatReceiptHtml(data: ReceiptData): string {
     <!-- Header -->
     <div style="background: #d4763c; padding: 24px; text-align: center;">
       <h1 style="margin: 0; color: #faf8f5; font-family: 'Playfair Display', Georgia, serif; font-size: 24px;">
-        ${data.cafeName}
+        ${escapeHtml(data.cafeName)}
       </h1>
       <p style="margin: 4px 0 0; color: #faf8f5; opacity: 0.8; font-size: 13px;">
-        ${data.cafeAddress}
+        ${escapeHtml(data.cafeAddress)}
       </p>
     </div>
 
@@ -90,11 +94,11 @@ export function formatReceiptHtml(data: ReceiptData): string {
         </tr>
         <tr>
           <td>Kasir</td>
-          <td style="text-align: right;">${data.staffName}</td>
+          <td style="text-align: right;">${escapeHtml(data.staffName)}</td>
         </tr>
         <tr>
           <td>No. Transaksi</td>
-          <td style="text-align: right; font-family: monospace; font-size: 11px;">${data.orderId}</td>
+          <td style="text-align: right; font-family: monospace; font-size: 11px;">${escapeHtml(data.orderId)}</td>
         </tr>
       </table>
     </div>
@@ -136,13 +140,13 @@ export function formatReceiptHtml(data: ReceiptData): string {
     <div style="padding: 16px 24px; background: #f8f5f0; border-top: 1px solid #f0ebe4;">
       <p style="margin: 0; font-size: 13px; color: #8a857e;">
         Pembayaran: <strong style="color: #2d2a26;">${formatPaymentMethod(data.paymentMethod)}</strong>
-        ${data.paymentReference ? `<br>Ref: <code style="font-size: 11px;">${data.paymentReference}</code>` : ''}
+        ${data.paymentReference ? `<br>Ref: <code style="font-size: 11px;">${escapeHtml(data.paymentReference)}</code>` : ''}
       </p>
     </div>
 
     <!-- Footer -->
     <div style="padding: 20px 24px; text-align: center;">
-      <p style="margin: 0; font-size: 13px; color: #8a857e;">Terima kasih telah berbelanja di ${data.cafeName}!</p>
+      <p style="margin: 0; font-size: 13px; color: #8a857e;">Terima kasih telah berbelanja di ${escapeHtml(data.cafeName)}!</p>
     </div>
   </div>
 </body>

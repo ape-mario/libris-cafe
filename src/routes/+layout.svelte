@@ -160,6 +160,13 @@
             import('$lib/modules/auth/stores.svelte').then(({ setCurrentStaff }) => {
               setCurrentStaff(null);
             });
+            // Clear all session-scoped stores
+            import('$lib/modules/notification/stores.svelte').then(({ clearNotifications }) => {
+              clearNotifications();
+            }).catch(() => {});
+            import('$lib/modules/pos/stores.svelte').then(({ resetCart }) => {
+              resetCart();
+            }).catch(() => {});
           }
         });
       }

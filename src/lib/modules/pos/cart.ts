@@ -46,15 +46,18 @@ export function updateQuantity(cart: Cart, inventoryId: string, quantity: number
 }
 
 export function setCartDiscount(cart: Cart, amount: number): Cart {
-  return recalculate({ ...cart, discount: Math.max(0, amount) });
+  const subtotal = cart.items.reduce((sum, item) => sum + item.total, 0);
+  const capped = Math.min(Math.max(0, amount), subtotal);
+  return recalculate({ ...cart, discount: capped });
 }
 
 export function setItemDiscount(cart: Cart, inventoryId: string, discount: number): Cart {
-  const items = cart.items.map(item =>
-    item.inventory.id === inventoryId
-      ? { ...item, discount: Math.max(0, discount), total: item.quantity * item.unitPrice - Math.max(0, discount) }
-      : item
-  );
+  const items = cart.items.map(item => {
+    if (item.inventory.id !== inventoryId) return item;
+    const maxDiscount = item.quantity * item.unitPrice;
+    const actual = Math.min(Math.max(0, discount), maxDiscount);
+    return { ...item, discount: actual, total: item.quantity * item.unitPrice - actual };
+  });
   return recalculate({ ...cart, items });
 }
 

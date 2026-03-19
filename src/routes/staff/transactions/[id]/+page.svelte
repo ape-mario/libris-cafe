@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { page } from '$app/stores';
+  import { page } from '$app/state';
   import { base } from '$app/paths';
   import { goto } from '$app/navigation';
   import { t } from '$lib/i18n/index.svelte';
@@ -44,7 +44,7 @@
   let staff = $derived(getCurrentStaff());
   let ownerRole = $derived(isOwner());
 
-  const txId = $derived($page.params.id);
+  const txId = $derived(page.params.id);
 
   onMount(() => {
     loadTransaction();

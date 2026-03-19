@@ -98,12 +98,14 @@ export class EscPosBuilder {
 
   /** Print two columns (left-aligned text, right-aligned value). */
   columns(left: string, right: string): this {
-    const gap = this.charWidth - left.length - right.length;
+    const leftLen = Array.from(left).length;
+    const rightLen = Array.from(right).length;
+    const gap = this.charWidth - leftLen - rightLen;
     if (gap > 0) {
       this.text(left + ' '.repeat(gap) + right);
     } else {
       // Truncate left text if too long
-      const truncatedLeft = left.substring(0, this.charWidth - right.length - 1);
+      const truncatedLeft = Array.from(left).slice(0, this.charWidth - rightLen - 1).join('');
       this.text(truncatedLeft + ' ' + right);
     }
     return this;

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
   import { t } from '$lib/i18n/index.svelte';
   import { loadSnapJs, openSnapPayment, isSnapReady } from '$lib/modules/payment/snap';
   import { createSnapPayment, generateOrderId } from '$lib/modules/payment/service';
@@ -80,7 +81,7 @@
   }
 
   // Auto-start on mount
-  $effect(() => {
+  onMount(() => {
     initPayment();
   });
 </script>

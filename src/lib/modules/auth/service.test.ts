@@ -23,6 +23,14 @@ vi.mock('./stores.svelte', () => ({
   initOutletContext: vi.fn().mockResolvedValue(undefined),
 }));
 
+// Mock session-scoped stores cleared on logout
+vi.mock('$lib/modules/notification/stores.svelte', () => ({
+  clearNotifications: vi.fn(),
+}));
+vi.mock('$lib/modules/pos/stores.svelte', () => ({
+  resetCart: vi.fn(),
+}));
+
 import { loginWithPin, logout, getStaffByAuthId, restoreSession } from './service';
 
 const mockStaffData = {
