@@ -5,6 +5,7 @@
   import { getCurrentUser } from '$lib/stores/user.svelte';
   import { getUserBookData, setUserBookData } from '$lib/services/userbooks';
   import { t } from '$lib/i18n/index.svelte';
+  import AvailabilityBadge from '$lib/components/AvailabilityBadge.svelte';
 
   let { book, onclick }: { book: Book; onclick?: () => void } = $props();
 
@@ -99,6 +100,7 @@
   <div class="w-full px-0.5">
     <h3 class="font-display text-[11px] font-semibold text-ink leading-tight truncate">{book.title}</h3>
     <p class="text-[10px] text-ink-muted truncate mt-0.5">{(book.authors || []).join(', ')}</p>
+    <AvailabilityBadge bookId={book.id} compact />
   </div>
 
   {#if showQuickMenu}

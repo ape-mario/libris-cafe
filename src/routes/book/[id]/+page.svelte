@@ -16,6 +16,7 @@
   import { cacheCoverIfNeeded, getCoverBase64, setCoverBase64 } from '$lib/services/coverCache';
   import { getUserShelves, addBookToShelf, removeBookFromShelf } from '$lib/services/shelves';
   import BookCard from '$lib/components/BookCard.svelte';
+  import AvailabilityBadge from '$lib/components/AvailabilityBadge.svelte';
 
   let book = $state<Book | null>(null);
   let userData = $state<UserBookData | null>(null);
@@ -412,6 +413,10 @@
               {seriesName}{#if book.seriesOrder} &middot; {t('book.book_number', { n: book.seriesOrder })}{/if}
             </p>
           {/if}
+
+          <div class="mt-2">
+            <AvailabilityBadge bookId={book.id} />
+          </div>
 
           <div class="flex gap-0.5 mt-3" role="radiogroup" aria-label="Rating">
             {#each [1, 2, 3, 4, 5] as star}

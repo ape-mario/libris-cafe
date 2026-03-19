@@ -19,12 +19,22 @@ export interface Cart {
   total: number;
 }
 
+export type PaymentMethodType = 'cash' | 'qris' | 'ewallet' | 'bank_transfer' | 'card';
+
 export interface CheckoutRequest {
   cart: Cart;
-  paymentMethod: 'cash';
+  paymentMethod: PaymentMethodType;
   staffId: string;
   outletId: string;
   customerName?: string;
   customerContact?: string;
   notes?: string;
+}
+
+export interface CheckoutResult {
+  transactionId: string | null;
+  offlineId: string;
+  synced: boolean;
+  requiresPayment: boolean;  // true for digital methods
+  orderId?: string;
 }

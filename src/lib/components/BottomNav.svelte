@@ -5,7 +5,7 @@
   import { t } from '$lib/i18n/index.svelte';
   import { getBooks } from '$lib/services/books';
   import { q } from '$lib/db';
-  import { isStaff } from '$lib/modules/auth/stores.svelte';
+  import { isStaff, isOwner } from '$lib/modules/auth/stores.svelte';
 
   let bookCount = $state(0);
   let unsubBooks: (() => void) | null = null;
@@ -39,15 +39,25 @@
     { href: `${base}/stats`, label: t('nav.stats'), icon: icons.chart },
   ]);
 
+  // Staff tabs (includes dashboard)
   let staffTabs = $derived([
-    { href: `${base}/`, label: t('nav.library'), icon: icons.book },
     { href: `${base}/staff/pos`, label: t('nav.pos'), icon: icons.pos },
     { href: `${base}/staff/inventory`, label: t('nav.inventory'), icon: icons.inventory },
+    { href: `${base}/staff/dashboard`, label: t('nav.dashboard'), icon: icons.chart },
+    { href: `${base}/`, label: t('nav.library'), icon: icons.book },
     { href: `${base}/browse`, label: t('nav.browse'), icon: icons.grid },
-    { href: `${base}/stats`, label: t('nav.stats'), icon: icons.chart },
   ]);
 
-  let tabs = $derived(isStaff() ? staffTabs : guestTabs);
+  // Owner tabs (full dashboard)
+  let ownerTabs = $derived([
+    { href: `${base}/staff/pos`, label: t('nav.pos'), icon: icons.pos },
+    { href: `${base}/staff/inventory`, label: t('nav.inventory'), icon: icons.inventory },
+    { href: `${base}/owner/dashboard`, label: t('nav.dashboard'), icon: icons.chart },
+    { href: `${base}/`, label: t('nav.library'), icon: icons.book },
+    { href: `${base}/browse`, label: t('nav.browse'), icon: icons.grid },
+  ]);
+
+  let tabs = $derived(isOwner() ? ownerTabs : isStaff() ? staffTabs : guestTabs);
 
   function isActive(href: string) {
     const path = href.replace(base, '') || '/';

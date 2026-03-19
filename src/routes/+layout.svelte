@@ -130,6 +130,21 @@
       initSyncManager();
     } catch {}
 
+    // Load public availability for guest browse (anonymous Supabase call)
+    try {
+      const { setAvailabilityOutlet, fetchAvailability } = await import('$lib/modules/inventory/public-availability');
+      const { supabase } = await import('$lib/supabase/client');
+      if (supabase) {
+        const { data } = await supabase.from('outlet').select('id').limit(1).single();
+        if (data?.id) {
+          setAvailabilityOutlet(data.id);
+          fetchAvailability();
+        }
+      }
+    } catch {
+      // Supabase not configured — browse works without availability
+    }
+
     loaded = true;
     setTimeout(() => cacheAllCovers(), 3000);
   });
