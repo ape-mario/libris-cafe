@@ -77,8 +77,8 @@
           type="password"
           inputmode="numeric"
           pattern="[0-9]*"
-          minlength="4"
-          maxlength="6"
+          minlength="6"
+          maxlength="20"
           bind:value={pin}
           placeholder={t('auth.pin_placeholder')}
           class="w-full px-4 py-3 rounded-xl bg-surface border border-warm-100 text-ink text-sm tracking-[0.5em] text-center focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent transition-all"

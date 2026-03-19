@@ -21,7 +21,7 @@
   let pinError = $state('');
 
   function validatePin(value: string): boolean {
-    if (!/^\d{4,6}$/.test(value)) {
+    if (!/^\d{6,}$/.test(value)) {
       pinError = t('staff.pin_invalid');
       return false;
     }
@@ -113,8 +113,9 @@
           bind:value={pin}
           required
           inputmode="numeric"
-          pattern="[0-9]{4,6}"
-          maxlength="6"
+          pattern="[0-9]{6,}"
+          minlength="6"
+          maxlength="20"
           class="w-full px-3 py-2 rounded-lg border border-warm-200 focus:border-sage
                  focus:ring-1 focus:ring-sage outline-none
                  {pinError ? 'border-red-400' : ''}"
