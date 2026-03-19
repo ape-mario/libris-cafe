@@ -5,6 +5,8 @@
   import { t } from '$lib/i18n/index.svelte';
   import { getSyncStatus, getRoomCode, onSyncStatusChange } from '$lib/sync/manager';
   import type { SyncStatus } from '$lib/sync/provider';
+  import { getCurrentStaff, isStaff } from '$lib/modules/auth/stores.svelte';
+  import { getIsOnline } from '$lib/modules/sync/manager';
 
   let user = $derived(getCurrentUser());
   let online = $state(true);
@@ -51,7 +53,19 @@
     </button>
 
     <div class="flex items-center gap-2">
-      <!-- Offline / Sync indicator -->
+      <!-- Staff badge -->
+      {#if isStaff()}
+        <span class="text-xs bg-accent/10 text-accent px-2 py-0.5 rounded-full font-medium">
+          {getCurrentStaff()?.name} · {getCurrentStaff()?.role}
+        </span>
+      {/if}
+      <!-- Offline queue indicator -->
+      {#if !getIsOnline()}
+        <span class="text-xs bg-berry/10 text-berry px-2 py-0.5 rounded-full font-medium">
+          Offline
+        </span>
+      {/if}
+      <!-- Sync indicator -->
       {#if !online}
         <span class="text-[10px] text-warm-400 font-medium uppercase tracking-wider">Offline</span>
       {:else if roomCode}
