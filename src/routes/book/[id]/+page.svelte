@@ -367,11 +367,18 @@
             </p>
           {/if}
 
-          <div class="flex gap-0.5 mt-3">
+          <div class="flex gap-0.5 mt-3" role="radiogroup" aria-label="Rating">
             {#each [1, 2, 3, 4, 5] as star}
               <button
                 class="star-btn {(userData?.rating || 0) >= star ? 'star-active' : 'star-inactive'}"
                 onclick={() => updateRating(star)}
+                onkeydown={(e) => {
+                  if (e.key === 'ArrowRight' && star < 5) updateRating(star + 1);
+                  if (e.key === 'ArrowLeft' && star > 1) updateRating(star - 1);
+                }}
+                role="radio"
+                aria-checked={(userData?.rating || 0) === star}
+                aria-label="{star} star{star > 1 ? 's' : ''}"
               >&#9733;</button>
             {/each}
           </div>

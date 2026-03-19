@@ -2,15 +2,20 @@ import { q, type Book } from '$lib/db';
 
 const COVER_DB_NAME = 'libris-covers';
 const COVER_STORE = 'covers';
+const META_STORE = 'meta';
 const MAX_CACHE_SIZE_MB = 50;
+const EVICT_BATCH = 20;
 
 function openCoverDB(): Promise<IDBDatabase> {
 	return new Promise((resolve, reject) => {
-		const request = indexedDB.open(COVER_DB_NAME, 1);
+		const request = indexedDB.open(COVER_DB_NAME, 2);
 		request.onupgradeneeded = () => {
 			const db = request.result;
 			if (!db.objectStoreNames.contains(COVER_STORE)) {
 				db.createObjectStore(COVER_STORE);
+			}
+			if (!db.objectStoreNames.contains(META_STORE)) {
+				db.createObjectStore(META_STORE);
 			}
 		};
 		request.onsuccess = () => resolve(request.result);
@@ -18,15 +23,62 @@ function openCoverDB(): Promise<IDBDatabase> {
 	});
 }
 
-export async function setCoverBase64(bookId: string, base64: string): Promise<void> {
-	if (await isCacheOverLimit()) {
-		console.warn('[Libris] Cover cache size limit reached, skipping cache for', bookId);
-		return;
-	}
-	const db = await openCoverDB();
+async function touchAccess(db: IDBDatabase, bookId: string): Promise<void> {
 	return new Promise((resolve, reject) => {
-		const tx = db.transaction(COVER_STORE, 'readwrite');
+		const tx = db.transaction(META_STORE, 'readwrite');
+		tx.objectStore(META_STORE).put(Date.now(), bookId);
+		tx.oncomplete = () => resolve();
+		tx.onerror = () => reject(tx.error);
+	});
+}
+
+async function evictOldest(db: IDBDatabase): Promise<void> {
+	// Get all access timestamps
+	const entries: { id: string; time: number }[] = await new Promise((resolve, reject) => {
+		const tx = db.transaction(META_STORE, 'readonly');
+		const store = tx.objectStore(META_STORE);
+		const request = store.openCursor();
+		const results: { id: string; time: number }[] = [];
+		request.onsuccess = () => {
+			const cursor = request.result;
+			if (cursor) {
+				results.push({ id: cursor.key as string, time: cursor.value as number });
+				cursor.continue();
+			} else {
+				resolve(results);
+			}
+		};
+		request.onerror = () => reject(request.error);
+	});
+
+	// Sort by oldest access time, take EVICT_BATCH
+	entries.sort((a, b) => a.time - b.time);
+	const toEvict = entries.slice(0, EVICT_BATCH);
+
+	if (toEvict.length === 0) return;
+
+	const tx = db.transaction([COVER_STORE, META_STORE], 'readwrite');
+	for (const entry of toEvict) {
+		tx.objectStore(COVER_STORE).delete(entry.id);
+		tx.objectStore(META_STORE).delete(entry.id);
+	}
+	await new Promise<void>((resolve, reject) => {
+		tx.oncomplete = () => resolve();
+		tx.onerror = () => reject(tx.error);
+	});
+}
+
+export async function setCoverBase64(bookId: string, base64: string): Promise<void> {
+	const db = await openCoverDB();
+
+	if (await isCacheOverLimit()) {
+		await evictOldest(db);
+	}
+
+	return new Promise((resolve, reject) => {
+		const tx = db.transaction([COVER_STORE, META_STORE], 'readwrite');
 		tx.objectStore(COVER_STORE).put(base64, bookId);
+		tx.objectStore(META_STORE).put(Date.now(), bookId);
 		tx.oncomplete = () => resolve();
 		tx.onerror = () => reject(tx.error);
 	});
@@ -35,12 +87,15 @@ export async function setCoverBase64(bookId: string, base64: string): Promise<vo
 export async function getCoverBase64(bookId: string): Promise<string | null> {
 	try {
 		const db = await openCoverDB();
-		return new Promise((resolve, reject) => {
+		const result: string | null = await new Promise((resolve, reject) => {
 			const tx = db.transaction(COVER_STORE, 'readonly');
 			const request = tx.objectStore(COVER_STORE).get(bookId);
 			request.onsuccess = () => resolve(request.result || null);
 			request.onerror = () => reject(request.error);
 		});
+		// Update access time in background
+		if (result) touchAccess(db, bookId).catch(() => {});
+		return result;
 	} catch {
 		return null;
 	}
@@ -72,12 +127,23 @@ export async function cacheAllCovers(): Promise<void> {
 	const uncached = allBooks.filter((b) => !!b.coverUrl);
 
 	for (const book of uncached) {
-		if (await isCacheOverLimit()) break;
 		const existing = await getCoverBase64(book.id);
 		if (existing) continue;
 		await cacheCoverIfNeeded(book.id);
 		await new Promise((r) => setTimeout(r, 200));
 	}
+}
+
+export async function clearCoverCache(): Promise<void> {
+	const db = await openCoverDB();
+	await Promise.all([COVER_STORE, META_STORE].map(store =>
+		new Promise<void>((resolve, reject) => {
+			const tx = db.transaction(store, 'readwrite');
+			tx.objectStore(store).clear();
+			tx.oncomplete = () => resolve();
+			tx.onerror = () => reject(tx.error);
+		})
+	));
 }
 
 async function isCacheOverLimit(): Promise<boolean> {

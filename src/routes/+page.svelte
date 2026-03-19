@@ -192,6 +192,7 @@
         bind:value={query}
         oninput={handleSearch}
         placeholder={t('library.search')}
+        aria-label={t('library.search')}
         class="input-field !pl-10"
       />
     </div>

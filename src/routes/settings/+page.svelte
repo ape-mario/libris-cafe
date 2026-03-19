@@ -3,6 +3,7 @@
   import { exportData, importData } from '$lib/services/backup';
   import { importGoodreadsCSV } from '$lib/services/goodreads';
   import { showToast } from '$lib/stores/toast.svelte';
+  import { clearCoverCache } from '$lib/services/coverCache';
   import { getCurrentUser } from '$lib/stores/user.svelte';
   import { t } from '$lib/i18n/index.svelte';
   import { getLocale, setLocale, type Locale } from '$lib/i18n/index.svelte';
@@ -118,6 +119,11 @@
       // Fallback
       showToast(getRoomLink(roomCode, base), 'info');
     }
+  }
+
+  async function handleClearCache() {
+    await clearCoverCache();
+    showToast(t('toast.cache_cleared'), 'success');
   }
 
   async function handleExport() {
@@ -333,6 +339,15 @@
       <p class="text-[11px] text-warm-400 mb-4 font-mono">{t('settings.goodreads_help')}</p>
       <input type="file" accept=".csv" onchange={handleGoodreads} disabled={importingGoodreads}
         class="text-sm text-ink-muted file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-warm-100 file:text-ink-light file:font-medium file:text-xs file:cursor-pointer" />
+    </div>
+
+    <!-- Cover Cache -->
+    <div class="card p-5">
+      <h2 class="font-display font-semibold text-ink mb-1">{t('settings.cache_title')}</h2>
+      <p class="text-sm text-ink-muted mb-4">{t('settings.cache_desc')}</p>
+      <button class="btn-secondary" onclick={handleClearCache}>
+        {t('settings.cache_clear')}
+      </button>
     </div>
 
     <!-- Export -->
