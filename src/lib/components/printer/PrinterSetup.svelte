@@ -3,12 +3,21 @@
   import { getPrinterStore } from '$lib/modules/printer/stores.svelte';
 
   const printer = getPrinterStore();
+
+  const hasBluetooth = typeof navigator !== 'undefined' && 'bluetooth' in navigator;
+  const hasUsb = typeof navigator !== 'undefined' && 'usb' in navigator;
+  const isSupported = hasBluetooth || hasUsb;
 </script>
 
 <div class="bg-base-200 rounded-xl p-4 space-y-3">
   <h3 class="font-semibold text-sm">{t('printer.setup')}</h3>
 
-  {#if printer.isConnected}
+  {#if !isSupported}
+    <div class="bg-gold/10 text-gold border border-gold/30 rounded-xl px-4 py-3 text-sm">
+      <p class="font-semibold">{t('printer.notSupported')}</p>
+      <p class="text-xs mt-1 opacity-80">Thermal printing requires Chrome on desktop or Android.</p>
+    </div>
+  {:else if printer.isConnected}
     <!-- Connected state -->
     <div class="flex items-center gap-2">
       <div class="w-2 h-2 rounded-full bg-success"></div>
@@ -24,27 +33,21 @@
   {:else}
     <!-- Disconnected state — show connection options -->
     <div class="flex gap-2">
-      {#if printer.bluetoothSupported}
-        <button
-          class="flex-1 py-2 rounded-lg bg-primary text-primary-content text-sm font-medium"
-          onclick={() => printer.connect('bluetooth')}
-        >
-          Bluetooth
-        </button>
-      {/if}
-      {#if printer.usbSupported}
-        <button
-          class="flex-1 py-2 rounded-lg bg-primary text-primary-content text-sm font-medium"
-          onclick={() => printer.connect('usb')}
-        >
-          USB
-        </button>
-      {/if}
+      <button
+        class="flex-1 py-2 rounded-lg bg-primary text-primary-content text-sm font-medium disabled:opacity-40"
+        onclick={() => printer.connect('bluetooth')}
+        disabled={!hasBluetooth}
+      >
+        Bluetooth
+      </button>
+      <button
+        class="flex-1 py-2 rounded-lg bg-primary text-primary-content text-sm font-medium disabled:opacity-40"
+        onclick={() => printer.connect('usb')}
+        disabled={!hasUsb}
+      >
+        USB
+      </button>
     </div>
-
-    {#if !printer.bluetoothSupported && !printer.usbSupported}
-      <p class="text-xs text-base-content/50">{t('printer.notSupported')}</p>
-    {/if}
 
     {#if printer.error}
       <p class="text-xs text-error">{printer.error}</p>

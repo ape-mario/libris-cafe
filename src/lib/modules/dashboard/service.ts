@@ -1,6 +1,7 @@
 import { getSupabase } from '$lib/supabase/client';
 import type { TodayMetrics, SalesTrendPoint, TopBook } from './types';
 
+// Always queries live data — today's metrics must be fresh
 export async function fetchTodayMetrics(outletId: string): Promise<TodayMetrics> {
   const supabase = getSupabase();
   const { data, error } = await supabase.rpc('get_today_metrics', {
@@ -10,13 +11,19 @@ export async function fetchTodayMetrics(outletId: string): Promise<TodayMetrics>
   return data as TodayMetrics;
 }
 
+// For small cafes (<100 tx/day): live queries are fast enough (<100ms)
+// For high-traffic: set useLiveQuery=false to use materialized views
+// (requires pg_cron to be enabled for periodic refresh)
+
 export async function fetchSalesTrend(
   outletId: string,
   startDate: string,
-  endDate: string
+  endDate: string,
+  useLiveQuery: boolean = true
 ): Promise<SalesTrendPoint[]> {
   const supabase = getSupabase();
-  const { data, error } = await supabase.rpc('get_sales_trend', {
+  const rpcName = useLiveQuery ? 'get_sales_trend' : 'get_sales_trend_mv';
+  const { data, error } = await supabase.rpc(rpcName, {
     p_outlet_id: outletId,
     p_start_date: startDate,
     p_end_date: endDate,
@@ -29,10 +36,12 @@ export async function fetchTopBooks(
   outletId: string,
   startDate: string,
   endDate: string,
-  limit: number = 10
+  limit: number = 10,
+  useLiveQuery: boolean = true
 ): Promise<TopBook[]> {
   const supabase = getSupabase();
-  const { data, error } = await supabase.rpc('get_top_books', {
+  const rpcName = useLiveQuery ? 'get_top_books' : 'get_top_books_mv';
+  const { data, error } = await supabase.rpc(rpcName, {
     p_outlet_id: outletId,
     p_start_date: startDate,
     p_end_date: endDate,
