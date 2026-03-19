@@ -29,6 +29,9 @@
   let editAuthors = $state('');
   let editIsbn = $state('');
   let editCategories = $state('');
+  let editPublisher = $state('');
+  let editPublishYear = $state('');
+  let editEdition = $state('');
   let editSeriesId = $state('');
   let editSeriesOrder = $state('');
   let seriesList = $state<Series[]>([]);
@@ -75,6 +78,9 @@
     editTitle = book.title;
     editAuthors = book.authors.join(', ');
     editIsbn = book.isbn || '';
+    editPublisher = book.publisher || '';
+    editPublishYear = book.publishYear?.toString() || '';
+    editEdition = book.edition || '';
     editCategories = book.categories.join(', ');
     editSeriesId = book.seriesId || '';
     editSeriesOrder = book.seriesOrder?.toString() || '';
@@ -89,6 +95,9 @@
       title: editTitle.trim(),
       authors: editAuthors.split(',').map(a => a.trim()).filter(Boolean),
       isbn: editIsbn.trim() || undefined,
+      publisher: editPublisher.trim() || undefined,
+      publishYear: editPublishYear ? parseInt(editPublishYear) : undefined,
+      edition: editEdition.trim() || undefined,
       categories: editCategories.split(',').map(c => c.trim().toLowerCase()).filter(Boolean),
       seriesId: editSeriesId || undefined,
       seriesOrder: editSeriesOrder ? parseInt(editSeriesOrder) : undefined
@@ -250,6 +259,23 @@
           </label>
 
           <label class="flex flex-col gap-1.5">
+            <span class="text-xs font-semibold text-ink-muted uppercase tracking-wider">{t('add.publisher')}</span>
+            <input type="text" bind:value={editPublisher} placeholder={t('add.publisher_placeholder')} class="input-field" />
+          </label>
+
+          <div class="grid grid-cols-2 gap-3">
+            <label class="flex flex-col gap-1.5">
+              <span class="text-xs font-semibold text-ink-muted uppercase tracking-wider">{t('add.publish_year')}</span>
+              <input type="number" bind:value={editPublishYear} placeholder="2024" class="input-field" />
+            </label>
+
+            <label class="flex flex-col gap-1.5">
+              <span class="text-xs font-semibold text-ink-muted uppercase tracking-wider">{t('add.edition')}</span>
+              <input type="text" bind:value={editEdition} placeholder={t('add.edition_placeholder')} class="input-field" />
+            </label>
+          </div>
+
+          <label class="flex flex-col gap-1.5">
             <span class="text-xs font-semibold text-ink-muted uppercase tracking-wider">{t('add.categories')}</span>
             <input type="text" bind:value={editCategories} placeholder={t('add.categories_placeholder')} class="input-field" />
           </label>
@@ -319,6 +345,12 @@
             </button>
           </div>
           <p class="text-sm text-ink-muted mt-1">{book.authors.join(', ')}</p>
+          {#if book.publisher || book.publishYear}
+            <p class="text-xs text-ink-muted mt-1">
+              {book.publisher || ''}{#if book.publisher && book.publishYear}, {/if}{book.publishYear || ''}
+              {#if book.edition}<span class="text-warm-400"> · {book.edition}</span>{/if}
+            </p>
+          {/if}
           {#if book.isbn}<p class="text-xs text-warm-400 mt-1 font-mono">ISBN {book.isbn}</p>{/if}
 
           {#if book.categories.length}

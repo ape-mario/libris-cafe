@@ -11,6 +11,9 @@ export interface Book {
   isbn?: string;
   coverUrl?: string;
   categories: string[];
+  publisher?: string;
+  publishYear?: number;
+  edition?: string;
   seriesId?: string;
   seriesOrder?: number;
   dateAdded: string;

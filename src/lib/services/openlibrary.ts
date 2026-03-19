@@ -4,10 +4,11 @@ export interface OpenLibraryResult {
   isbn: string | undefined;
   coverUrl: string | undefined;
   publishYear: number | undefined;
+  publisher: string | undefined;
 }
 
 export async function searchOpenLibrary(query: string): Promise<OpenLibraryResult[]> {
-  const url = `https://openlibrary.org/search.json?q=${encodeURIComponent(query)}&limit=10&fields=title,author_name,isbn,cover_i,first_publish_year`;
+  const url = `https://openlibrary.org/search.json?q=${encodeURIComponent(query)}&limit=10&fields=title,author_name,isbn,cover_i,first_publish_year,publisher`;
 
   try {
     const controller = new AbortController();
@@ -25,7 +26,8 @@ export async function searchOpenLibrary(query: string): Promise<OpenLibraryResul
       authors: doc.author_name || [],
       isbn: doc.isbn?.[0],
       coverUrl: doc.cover_i ? `https://covers.openlibrary.org/b/id/${doc.cover_i}-M.jpg` : undefined,
-      publishYear: doc.first_publish_year
+      publishYear: doc.first_publish_year,
+      publisher: doc.publisher?.[0]
     }));
   } catch {
     // Network error, timeout, or abort — return empty results
@@ -54,7 +56,8 @@ export async function lookupByISBN(isbn: string): Promise<OpenLibraryResult | nu
       authors: (entry.authors || []).map((a: any) => a.name),
       isbn,
       coverUrl: entry.cover?.medium,
-      publishYear: entry.publish_date ? parseInt(entry.publish_date) : undefined
+      publishYear: entry.publish_date ? parseInt(entry.publish_date) : undefined,
+      publisher: (entry.publishers || [])[0]?.name
     };
   } catch {
     return null;

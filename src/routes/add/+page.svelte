@@ -22,6 +22,9 @@
   let title = $state('');
   let authors = $state('');
   let isbn = $state('');
+  let publisher = $state('');
+  let publishYear = $state('');
+  let edition = $state('');
   let categories = $state('');
   let coverFile = $state<File | null>(null);
   let coverPreview = $state<string | null>(null);
@@ -47,6 +50,8 @@
       title = result.title;
       authors = result.authors.join(', ');
       coverPreview = result.coverUrl || null;
+      publisher = result.publisher || '';
+      publishYear = result.publishYear?.toString() || '';
     }
     mode = 'manual';
   }
@@ -63,6 +68,8 @@
     authors = result.authors.join(', ');
     isbn = result.isbn || '';
     coverPreview = result.coverUrl || null;
+    publisher = result.publisher || '';
+    publishYear = result.publishYear?.toString() || '';
     mode = 'manual';
   }
 
@@ -103,6 +110,9 @@
         authors: authors.split(',').map((a) => a.trim()).filter(Boolean),
         isbn: trimmedIsbn || undefined,
         coverUrl: !coverFile && coverPreview ? coverPreview : undefined,
+        publisher: publisher.trim() || undefined,
+        publishYear: publishYear ? parseInt(publishYear) : undefined,
+        edition: edition.trim() || undefined,
         categories: categories.split(',').map((c) => c.trim().toLowerCase()).filter(Boolean),
         seriesId: selectedSeriesId || undefined,
         seriesOrder: seriesOrder ? parseInt(seriesOrder) : undefined
@@ -235,6 +245,23 @@
           <span class="text-xs font-semibold text-ink-muted uppercase tracking-wider">{t('add.isbn')}</span>
           <input type="text" bind:value={isbn} class="input-field font-mono" />
         </label>
+
+        <label class="flex flex-col gap-1.5">
+          <span class="text-xs font-semibold text-ink-muted uppercase tracking-wider">{t('add.publisher')}</span>
+          <input type="text" bind:value={publisher} placeholder={t('add.publisher_placeholder')} class="input-field" />
+        </label>
+
+        <div class="grid grid-cols-2 gap-3">
+          <label class="flex flex-col gap-1.5">
+            <span class="text-xs font-semibold text-ink-muted uppercase tracking-wider">{t('add.publish_year')}</span>
+            <input type="number" bind:value={publishYear} placeholder="2024" class="input-field" />
+          </label>
+
+          <label class="flex flex-col gap-1.5">
+            <span class="text-xs font-semibold text-ink-muted uppercase tracking-wider">{t('add.edition')}</span>
+            <input type="text" bind:value={edition} placeholder={t('add.edition_placeholder')} class="input-field" />
+          </label>
+        </div>
 
         <label class="flex flex-col gap-1.5">
           <span class="text-xs font-semibold text-ink-muted uppercase tracking-wider">{t('add.categories')}</span>

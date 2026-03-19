@@ -2,7 +2,7 @@ import { q, type Book } from '$lib/db';
 import { removeBookFromAllShelves } from './shelves';
 
 type NewBook = Pick<Book, 'title' | 'authors' | 'categories'> &
-	Partial<Pick<Book, 'isbn' | 'coverUrl' | 'seriesId' | 'seriesOrder'>>;
+	Partial<Pick<Book, 'isbn' | 'coverUrl' | 'publisher' | 'publishYear' | 'edition' | 'seriesId' | 'seriesOrder'>>;
 
 export function hasBookWithISBN(isbn: string): boolean {
 	return q.filter<Book>('books', (b) => b.isbn === isbn).length > 0;
@@ -20,6 +20,9 @@ export function addBook(data: NewBook, allowDuplicate = false): Book | null {
 		isbn: data.isbn,
 		coverUrl: data.coverUrl,
 		categories: data.categories,
+		publisher: data.publisher,
+		publishYear: data.publishYear,
+		edition: data.edition,
 		seriesId: data.seriesId,
 		seriesOrder: data.seriesOrder,
 		dateAdded: new Date().toISOString(),
