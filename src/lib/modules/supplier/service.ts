@@ -194,6 +194,16 @@ export async function receivePurchaseOrder(
   staffId: string
 ): Promise<void> {
   const supabase = getSupabase();
+
+  // Fetch current PO status first
+  const { data: currentPO } = await supabase.from('purchase_order').select('status').eq('id', poId).single();
+  if (currentPO?.status === 'received') {
+    throw new Error('Purchase order already received');
+  }
+  if (currentPO?.status === 'cancelled') {
+    throw new Error('Cannot receive a cancelled purchase order');
+  }
+
   const succeededItems: string[] = [];
 
   for (const item of receivedItems) {

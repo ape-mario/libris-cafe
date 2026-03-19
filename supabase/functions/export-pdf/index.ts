@@ -3,6 +3,7 @@
 
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
 import { corsHeaders } from '../_shared/cors.ts';
+import { getAuthenticatedUser, unauthorizedResponse } from '../_shared/auth.ts';
 
 // jsPDF ESM import for Deno
 // @ts-ignore: Deno-style import
@@ -45,6 +46,9 @@ serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
   }
+
+  const user = await getAuthenticatedUser(req);
+  if (!user) return unauthorizedResponse(corsHeaders);
 
   try {
     const { report, lang = 'en' }: { report: ReportData; lang: 'en' | 'id' } = await req.json();

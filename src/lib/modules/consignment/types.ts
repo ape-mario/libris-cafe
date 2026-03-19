@@ -45,7 +45,8 @@ export interface CreateSettlementInput {
   periodStart: string;
   periodEnd: string;
   totalSales: number;
-  commissionRate: number;
+  commission: number;
+  payout: number;
   staffId: string;
   notes?: string;
 }

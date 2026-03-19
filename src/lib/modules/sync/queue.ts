@@ -53,7 +53,15 @@ export class OfflineQueue {
     return new Promise((resolve, reject) => {
       const tx = db.transaction(OfflineQueue.STORE, 'readwrite');
       tx.objectStore(OfflineQueue.STORE).put(entry);
-      tx.oncomplete = () => resolve(entry.id);
+      tx.oncomplete = () => {
+        // Track in localStorage as backup manifest
+        try {
+          const manifest = JSON.parse(localStorage.getItem('libris_queue_manifest') ?? '[]');
+          manifest.push(entry.id);
+          localStorage.setItem('libris_queue_manifest', JSON.stringify(manifest));
+        } catch {}
+        resolve(entry.id);
+      };
       tx.onerror = () => reject(tx.error);
     });
   }
@@ -79,7 +87,14 @@ export class OfflineQueue {
       req.onsuccess = () => {
         const entry = req.result as QueueEntry;
         if (entry) { entry.status = 'synced'; entry.synced_at = new Date().toISOString(); store.put(entry); }
-        tx.oncomplete = () => resolve();
+        tx.oncomplete = () => {
+          // Remove from localStorage backup manifest
+          try {
+            const manifest = JSON.parse(localStorage.getItem('libris_queue_manifest') ?? '[]');
+            localStorage.setItem('libris_queue_manifest', JSON.stringify(manifest.filter((mid: string) => mid !== id)));
+          } catch {}
+          resolve();
+        };
       };
       tx.onerror = () => reject(tx.error);
     });
@@ -146,6 +161,18 @@ export class OfflineQueue {
       tx.oncomplete = () => resolve(purged);
       tx.onerror = () => reject(tx.error);
     });
+  }
+
+  async detectLostEntries(): Promise<string[]> {
+    try {
+      const manifest = JSON.parse(localStorage.getItem('libris_queue_manifest') ?? '[]') as string[];
+      if (manifest.length === 0) return [];
+      const pending = await this.getPending();
+      const pendingIds = new Set(pending.map(e => e.id));
+      return manifest.filter(id => !pendingIds.has(id));
+    } catch {
+      return [];
+    }
   }
 
   static readonly MAX_QUEUE_SIZE = 500;
