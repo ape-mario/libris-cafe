@@ -34,12 +34,13 @@ CREATE TABLE inventory (
   is_preloved boolean DEFAULT false,
   price decimal(12,2),
   cost_price decimal(12,2),
-  stock integer DEFAULT 0,
+  stock integer DEFAULT 0 CHECK (stock >= 0),
   min_stock integer DEFAULT 1,
   location text,
   condition text CHECK (condition IN ('new', 'good', 'fair')) DEFAULT 'new',
   created_at timestamptz DEFAULT now(),
-  updated_at timestamptz DEFAULT now()
+  updated_at timestamptz DEFAULT now(),
+  UNIQUE (book_id, outlet_id)
 );
 
 CREATE INDEX idx_inventory_book_id ON inventory(book_id);
@@ -54,7 +55,7 @@ CREATE TABLE stock_movement (
     'adjustment', 'void_restore', 'consignment_in',
     'consignment_return', 'buyback_in'
   )),
-  quantity integer NOT NULL,
+  quantity integer NOT NULL CHECK (quantity != 0),
   reference_id text,
   reason text,
   staff_id uuid REFERENCES staff(id),
