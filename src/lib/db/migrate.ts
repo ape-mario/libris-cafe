@@ -90,10 +90,14 @@ export async function migrateFromDexie(
 				const ymap = new Y.Map<any>();
 				ymap.set('id', book.id);
 				ymap.set('title', book.title);
-				ymap.set('authors', book.authors || []);
+				const authorsArr = new Y.Array<string>();
+				authorsArr.push(book.authors || []);
+				ymap.set('authors', authorsArr);
 				if (book.isbn) ymap.set('isbn', book.isbn);
 				if (book.coverUrl) ymap.set('coverUrl', book.coverUrl);
-				ymap.set('categories', book.categories || []);
+				const catsArr = new Y.Array<string>();
+				catsArr.push(book.categories || []);
+				ymap.set('categories', catsArr);
 				if (book.seriesId) ymap.set('seriesId', book.seriesId);
 				if (book.seriesOrder) ymap.set('seriesOrder', book.seriesOrder);
 				ymap.set(

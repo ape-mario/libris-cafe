@@ -97,6 +97,7 @@
     unsubBooks?.();
     observer?.disconnect();
     if (syncTimer) clearTimeout(syncTimer);
+    if (debounceTimer) clearTimeout(debounceTimer);
   });
 
   $effect(() => {

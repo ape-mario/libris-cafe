@@ -31,12 +31,13 @@ export function applyTheme() {
   }
 }
 
+let themeMediaHandler: (() => void) | null = null;
+
 export function initTheme() {
   applyTheme();
   // Listen for system theme changes
-  if (typeof window !== 'undefined') {
-    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
-      if (theme === 'system') applyTheme();
-    });
+  if (typeof window !== 'undefined' && !themeMediaHandler) {
+    themeMediaHandler = () => { if (theme === 'system') applyTheme(); };
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', themeMediaHandler);
   }
 }

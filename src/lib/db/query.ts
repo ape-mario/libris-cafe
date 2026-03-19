@@ -32,7 +32,9 @@ export function yMapToObject<T = Record<string, unknown>>(
 				obj[key] = yMapToObject(value as Y.Map<unknown>);
 			}
 		} else if (value instanceof Y.Array) {
-			obj[key] = value.toArray();
+			obj[key] = value.toArray().map(item =>
+				item instanceof Y.Map ? yMapToObject(item as Y.Map<unknown>) : item
+			);
 		} else {
 			obj[key] = value;
 		}
@@ -61,7 +63,12 @@ export function objectToYMap(
 			ymap.set(key, setMap);
 		} else if (Array.isArray(value)) {
 			const yarray = new Y.Array<unknown>();
-			yarray.push(value);
+			const items = value.map(item =>
+				item !== null && typeof item === 'object' && !(item instanceof Date)
+					? objectToYMap('', item as Record<string, unknown>)
+					: item
+			);
+			yarray.push(items);
 			ymap.set(key, yarray);
 		} else if (value !== null && typeof value === 'object' && !(value instanceof Date)) {
 			const nested = new Y.Map<unknown>();

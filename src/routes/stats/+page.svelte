@@ -87,6 +87,7 @@
   }
 
   let unsubStats: (() => void)[] = [];
+  let statsSyncTimer: ReturnType<typeof setTimeout> | null = null;
 
   onMount(() => {
     document.addEventListener('click', handleClickOutside);
@@ -113,8 +114,6 @@
     }
     loading = false;
   });
-
-  let statsSyncTimer: ReturnType<typeof setTimeout> | null = null;
 
   onDestroy(() => {
     if (typeof document !== 'undefined') {

@@ -20,9 +20,7 @@ function getReadDate(ud: UserBookData, userBooks: Book[]): Date | null {
 	return book ? new Date(book.dateAdded) : null;
 }
 
-function matchesYear(ud: UserBookData, userBooks: Book[], year?: number): boolean {
-	if (!year) return true;
-	if (ud.status !== 'read') return true; // non-read items don't have a read date to filter
+function matchesYear(ud: UserBookData, userBooks: Book[], year: number): boolean {
 	const readDate = getReadDate(ud, userBooks);
 	return readDate ? readDate.getFullYear() === year : false;
 }
