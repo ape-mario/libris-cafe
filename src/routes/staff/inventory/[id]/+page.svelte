@@ -17,6 +17,7 @@
   let book = $state<Book | null>(null);
   let movements = $state<any[]>([]);
   let loading = $state(true);
+  let error = $state('');
   let staff = $derived(getCurrentStaff());
 
   const inventoryId = page.params.id;
@@ -24,13 +25,15 @@
   onMount(async () => {
     try {
       const supabase = getSupabase();
-      const { data } = await supabase
+      const { data, error: queryError } = await supabase
         .from('inventory')
         .select()
         .eq('id', inventoryId)
         .single();
 
-      if (data) {
+      if (queryError) {
+        error = queryError.message;
+      } else if (data) {
         item = data as Inventory;
         book = getBookById(item.book_id) ?? null;
         movements = await getStockMovements(inventoryId);
@@ -88,7 +91,9 @@
 </script>
 
 {#if loading}
-  <div class="py-8 text-center text-sm text-ink-muted">Loading...</div>
+  <div class="py-8 text-center text-sm text-ink-muted">{t('common.loading')}</div>
+{:else if error}
+  <div class="py-8 text-center text-sm text-berry">{error}</div>
 {:else if !item}
   <div class="py-8 text-center text-sm text-ink-muted">Item not found</div>
 {:else}

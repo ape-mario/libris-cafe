@@ -103,7 +103,11 @@ export async function createPurchaseOrder(input: NewPurchaseOrder): Promise<Purc
     .from('purchase_order_item')
     .insert(items);
 
-  if (itemsError) throw new Error(`Failed to create PO items: ${itemsError.message}`);
+  if (itemsError) {
+    // Rollback: delete the orphaned PO header
+    await supabase.from('purchase_order').delete().eq('id', po.id);
+    throw new Error(`Failed to create PO items: ${itemsError.message}`);
+  }
 
   return po as PurchaseOrder;
 }
@@ -178,6 +182,11 @@ export async function receivePOItem(
 /**
  * Receive a complete PO: update all item received quantities,
  * create stock movements, and set PO status to 'received'.
+ *
+ * ATOMICITY LIMITATION: This function is NOT atomic. Each item is processed
+ * sequentially via individual Supabase calls. If a stock_movement insert fails
+ * mid-loop, earlier items will already be committed. Manual intervention may be
+ * needed to reconcile partial receives.
  */
 export async function receivePurchaseOrder(
   poId: string,
@@ -185,6 +194,7 @@ export async function receivePurchaseOrder(
   staffId: string
 ): Promise<void> {
   const supabase = getSupabase();
+  const succeededItems: string[] = [];
 
   for (const item of receivedItems) {
     // Update received quantity on PO item
@@ -203,8 +213,16 @@ export async function receivePurchaseOrder(
           reason: `PO received: ${item.receivedQty} units`,
         });
 
-      if (error) throw new Error(`Failed to record stock movement: ${error.message}`);
+      if (error) {
+        const failedId = item.itemId;
+        const msg = `Failed to record stock movement for item ${failedId}. ` +
+          `Succeeded items: [${succeededItems.join(', ')}]. ` +
+          `Failed at item: ${failedId}. Error: ${error.message}`;
+        throw new Error(msg);
+      }
     }
+
+    succeededItems.push(item.itemId);
   }
 
   // Mark PO as received

@@ -34,6 +34,8 @@
       <div style="animation-delay: {i * 40}ms" class="animate-fade-up">
         <BookCard {book} onclick={() => goto(`${base}/book/${book.id}`)} />
       </div>
+    {:else}
+      <p class="text-sm text-ink-muted py-8 text-center">No books found</p>
     {/each}
   </div>
 </div>

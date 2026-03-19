@@ -50,7 +50,7 @@
   </div>
 
   {#if dashboard.loading && !dashboard.metrics}
-    <div class="py-8 text-center text-sm text-ink-muted">Loading...</div>
+    <div class="py-8 text-center text-sm text-ink-muted">{t('common.loading')}</div>
   {:else if dashboard.error}
     <div class="py-8 text-center text-sm text-berry">{dashboard.error}</div>
   {:else if dashboard.metrics}
@@ -89,7 +89,7 @@
         <div class="space-y-2">
           {#each dashboard.metrics.payment_breakdown as pb}
             <div class="flex items-center justify-between text-sm">
-              <span class="text-ink-muted capitalize">{pb.method === 'cash' ? 'Tunai' : pb.method.toUpperCase()}</span>
+              <span class="text-ink-muted capitalize">{pb.method === 'cash' ? t('payment.cash') : pb.method.toUpperCase()}</span>
               <div class="text-right">
                 <span class="font-semibold text-ink">{formatRp(pb.total)}</span>
                 <span class="text-xs text-ink-muted ml-1">({pb.count}x)</span>

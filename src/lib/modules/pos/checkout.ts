@@ -1,16 +1,8 @@
 import { getSupabase } from '$lib/supabase/client';
 import { getQueue, getIsOnline } from '../sync/manager';
-import type { CheckoutRequest, Cart } from './types';
+import type { CheckoutRequest, CheckoutResult, Cart } from './types';
 import { getPrinterStatus, printReceipt } from '$lib/modules/printer/service';
 import type { ReceiptData } from '$lib/modules/printer/types';
-
-export interface CheckoutResult {
-  transactionId: string | null;
-  offlineId: string;
-  synced: boolean;
-  requiresPayment: boolean;
-  orderId?: string;
-}
 
 export async function checkout(request: CheckoutRequest): Promise<CheckoutResult> {
   const offlineId = crypto.randomUUID();
@@ -153,6 +145,7 @@ export function buildReceiptFromTransaction(
     tax: cart.tax,
     total: cart.total,
     payment_method: paymentMethod,
+    // TODO: i18n — pass translated string from caller once i18n is available in non-Svelte code
     footer_message: 'Terima kasih telah berkunjung!',
   };
 }

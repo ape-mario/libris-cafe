@@ -10,7 +10,7 @@
   let loading = $state(true);
   let filterUrgency = $state<RestockUrgency | 'all'>('all');
 
-  const staff = getCurrentStaff();
+  let staff = $derived(getCurrentStaff());
 
   onMount(async () => {
     if (!staff) return;

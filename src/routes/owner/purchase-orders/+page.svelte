@@ -8,14 +8,17 @@
 
   let orders = $state<PurchaseOrder[]>([]);
   let loading = $state(true);
+  let error = $state('');
   let filterStatus = $state<PurchaseOrderStatus | 'all'>('all');
 
-  const staff = getCurrentStaff();
+  let staff = $derived(getCurrentStaff());
 
   onMount(async () => {
     if (!staff) return;
     try {
       orders = await getPurchaseOrders(staff.outlet_id);
+    } catch (err) {
+      error = err instanceof Error ? err.message : 'Load failed';
     } finally {
       loading = false;
     }
@@ -70,7 +73,9 @@
   </div>
 
   {#if loading}
-    <div class="py-8 text-center text-sm text-ink-muted">Loading...</div>
+    <div class="py-8 text-center text-sm text-ink-muted">{t('common.loading')}</div>
+  {:else if error}
+    <div class="py-8 text-center text-sm text-berry">{error}</div>
   {:else if filtered.length === 0}
     <div class="py-8 text-center text-sm text-ink-muted">{t('po.no_orders')}</div>
   {:else}

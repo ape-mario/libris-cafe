@@ -40,6 +40,16 @@ export interface NewConsignor {
   notes?: string;
 }
 
+export interface CreateSettlementInput {
+  consignorId: string;
+  periodStart: string;
+  periodEnd: string;
+  totalSales: number;
+  commissionRate: number;
+  staffId: string;
+  notes?: string;
+}
+
 export interface ConsignmentSaleRecord {
   transaction_id: string;
   transaction_date: string;

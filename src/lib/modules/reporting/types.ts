@@ -35,13 +35,13 @@ export interface TopBookRow {
 
 // ── Filters & dashboard aggregate ────────────────────────────
 
-export interface DateRange {
+export interface ReportDateRange {
   from: string;  // ISO date string (YYYY-MM-DD)
   to: string;
 }
 
 export interface ConsolidatedReportFilters {
-  dateRange: DateRange;
+  dateRange: ReportDateRange;
   outletIds?: string[];  // null = all outlets
 }
 

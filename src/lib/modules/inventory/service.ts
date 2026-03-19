@@ -78,7 +78,8 @@ export async function getStockMovements(inventoryId: string): Promise<StockMovem
     .from('stock_movement')
     .select()
     .eq('inventory_id', inventoryId)
-    .order('created_at', { ascending: false });
+    .order('created_at', { ascending: false })
+    .limit(500);
 
   if (error) throw new Error(`Failed to fetch movements: ${error.message}`);
   return data ?? [];

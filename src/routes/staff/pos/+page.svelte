@@ -9,7 +9,7 @@
   import { showConfirm } from '$lib/stores/dialog.svelte';
   import { getCurrentStaff } from '$lib/modules/auth/stores.svelte';
   import { getInventoryByBookId } from '$lib/modules/inventory/service';
-  import { addToCart, removeFromCart, updateQuantity, clearCart } from '$lib/modules/pos/cart';
+  import { addToCart, removeFromCart, updateQuantity } from '$lib/modules/pos/cart';
   import { getCart, setCart, resetCart } from '$lib/modules/pos/stores.svelte';
   import { checkout } from '$lib/modules/pos/checkout';
   import { getIsOnline } from '$lib/modules/sync/manager';
@@ -17,7 +17,7 @@
   import { buildReceiptFromTransaction, tryPrintReceipt } from '$lib/modules/pos/checkout';
   import type { ReceiptData as PrinterReceiptData } from '$lib/modules/printer/types';
   import type { Book } from '$lib/db';
-  import type { PaymentMethodType } from '$lib/modules/pos/types';
+  import type { PaymentMethod } from '$lib/modules/payment/types';
   import type { ReceiptData } from '$lib/modules/receipt/types';
 
   let searchQuery = $state('');
@@ -29,7 +29,7 @@
   let online = $derived(getIsOnline());
 
   // Payment method selection
-  let selectedPayment = $state<PaymentMethodType>('cash');
+  let selectedPayment = $state<PaymentMethod>('cash');
   let showPaymentModal = $state(false);
   let pendingTransactionId = $state<string | null>(null);
 
@@ -42,7 +42,7 @@
 
   let searchTimeout: ReturnType<typeof setTimeout>;
 
-  const paymentMethods: { value: PaymentMethodType; label: string; icon: string; digitalOnly: boolean }[] = [
+  const paymentMethods: { value: PaymentMethod; label: string; icon: string; digitalOnly: boolean }[] = [
     { value: 'cash', label: 'payment.cash', icon: '\u{1F4B5}', digitalOnly: false },
     { value: 'qris', label: 'payment.qris', icon: '\u{1F4F1}', digitalOnly: true },
     { value: 'ewallet', label: 'payment.ewallet', icon: '\u{1F4F2}', digitalOnly: true },

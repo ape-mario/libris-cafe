@@ -11,9 +11,11 @@
     getNotifications, setNotifications, getUnreadCount,
     setUnreadCount, markNotificationRead,
   } from '$lib/modules/notification/stores.svelte';
+  import { showToast } from '$lib/stores/toast.svelte';
   import type { Notification } from '$lib/modules/notification/types';
 
   let loading = $state(true);
+  let error = $state('');
   let notifications = $derived(getNotifications());
   let unreadCount = $derived(getUnreadCount());
 
@@ -25,6 +27,8 @@
       const list = await fetchNotifications(staff.id);
       setNotifications(list);
       setUnreadCount(list.filter(n => !n.read).length);
+    } catch (err) {
+      error = err instanceof Error ? err.message : 'Load failed';
     } finally {
       loading = false;
     }
@@ -35,7 +39,7 @@
     try {
       await markAsRead(notif.id);
       markNotificationRead(notif.id);
-    } catch {}
+    } catch { showToast('Failed', 'error'); }
   }
 
   async function handleMarkAllRead() {
@@ -44,7 +48,7 @@
       await markAllAsRead(staff.id);
       setNotifications(notifications.map(n => ({ ...n, read: true })));
       setUnreadCount(0);
-    } catch {}
+    } catch { showToast('Failed', 'error'); }
   }
 
   function typeIcon(type: string): string {
@@ -85,7 +89,9 @@
   </div>
 
   {#if loading}
-    <div class="py-8 text-center text-sm text-ink-muted">Loading...</div>
+    <div class="py-8 text-center text-sm text-ink-muted">{t('common.loading')}</div>
+  {:else if error}
+    <div class="py-8 text-center text-sm text-berry">{error}</div>
   {:else if notifications.length === 0}
     <div class="py-12 text-center text-sm text-ink-muted">{t('notification.empty')}</div>
   {:else}

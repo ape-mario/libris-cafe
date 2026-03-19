@@ -174,11 +174,12 @@ export async function triggerOverdueCheck(): Promise<number> {
  */
 export async function hasActiveSession(inventoryId: string): Promise<boolean> {
   const supabase = getSupabase();
-  const { count } = await supabase
+  const { count, error } = await supabase
     .from('reading_session')
     .select('*', { count: 'exact', head: true })
     .eq('inventory_id', inventoryId)
     .in('status', ['active', 'overdue']);
 
+  if (error) throw new Error(`Failed to check active session: ${error.message}`);
   return (count ?? 0) > 0;
 }

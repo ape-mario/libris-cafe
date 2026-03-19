@@ -43,7 +43,7 @@
   {/if}
 
   {#if loading}
-    <div class="py-8 text-center text-sm text-ink-muted">Loading...</div>
+    <div class="py-8 text-center text-sm text-ink-muted">{t('common.loading')}</div>
   {:else if consignors.length === 0}
     <div class="py-8 text-center text-sm text-ink-muted">{t('consignment.no_consignors')}</div>
   {:else}

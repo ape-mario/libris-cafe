@@ -10,6 +10,24 @@ import type { BackupData } from './types';
 export async function exportFullBackup(outletId: string, outletName: string): Promise<BackupData> {
   const supabase = getSupabase();
 
+  // Pre-fetch foreign key IDs once to avoid duplicate subqueries
+  const [inventoryRes, transactionRes, poRes, consignorRes] = await Promise.all([
+    supabase.from('inventory').select('id').eq('outlet_id', outletId),
+    supabase.from('transaction').select('id').eq('outlet_id', outletId),
+    supabase.from('purchase_order').select('id').eq('outlet_id', outletId),
+    supabase.from('consignor').select('id'),
+  ]);
+
+  if (inventoryRes.error) throw new Error(`Failed to fetch inventory IDs: ${inventoryRes.error.message}`);
+  if (transactionRes.error) throw new Error(`Failed to fetch transaction IDs: ${transactionRes.error.message}`);
+  if (poRes.error) throw new Error(`Failed to fetch purchase order IDs: ${poRes.error.message}`);
+  if (consignorRes.error) throw new Error(`Failed to fetch consignor IDs: ${consignorRes.error.message}`);
+
+  const inventoryIds = (inventoryRes.data ?? []).map(i => i.id);
+  const transactionIds = (transactionRes.data ?? []).map(t => t.id);
+  const poIds = (poRes.data ?? []).map(p => p.id);
+  const consignorIds = (consignorRes.data ?? []).map(c => c.id);
+
   // Fetch all tables in parallel
   const [
     { data: outlet },
@@ -33,33 +51,18 @@ export async function exportFullBackup(outletId: string, outletName: string): Pr
     supabase.from('outlet').select('*').eq('id', outletId),
     supabase.from('staff').select('id, name, email, role, outlet_id, is_active, created_at').eq('outlet_id', outletId),
     supabase.from('inventory').select('*').eq('outlet_id', outletId),
-    supabase.from('stock_movement').select('*').in('inventory_id',
-      // subquery: get inventory IDs for this outlet
-      (await supabase.from('inventory').select('id').eq('outlet_id', outletId)).data?.map(i => i.id) ?? []
-    ),
+    supabase.from('stock_movement').select('*').in('inventory_id', inventoryIds),
     supabase.from('transaction').select('*').eq('outlet_id', outletId).order('created_at', { ascending: false }),
-    supabase.from('transaction_item').select('*').in('transaction_id',
-      (await supabase.from('transaction').select('id').eq('outlet_id', outletId)).data?.map(t => t.id) ?? []
-    ),
-    supabase.from('payment').select('*').in('transaction_id',
-      (await supabase.from('transaction').select('id').eq('outlet_id', outletId)).data?.map(t => t.id) ?? []
-    ),
-    supabase.from('receipt').select('*').in('transaction_id',
-      (await supabase.from('transaction').select('id').eq('outlet_id', outletId)).data?.map(t => t.id) ?? []
-    ),
+    supabase.from('transaction_item').select('*').in('transaction_id', transactionIds),
+    supabase.from('payment').select('*').in('transaction_id', transactionIds),
+    supabase.from('receipt').select('*').in('transaction_id', transactionIds),
     supabase.from('supplier').select('*'),
     supabase.from('purchase_order').select('*').eq('outlet_id', outletId),
-    supabase.from('purchase_order_item').select('*').in('purchase_order_id',
-      (await supabase.from('purchase_order').select('id').eq('outlet_id', outletId)).data?.map(p => p.id) ?? []
-    ),
+    supabase.from('purchase_order_item').select('*').in('purchase_order_id', poIds),
     supabase.from('consignor').select('*'),
-    supabase.from('consignment_settlement').select('*').in('consignor_id',
-      (await supabase.from('consignor').select('id')).data?.map(c => c.id) ?? []
-    ),
+    supabase.from('consignment_settlement').select('*').in('consignor_id', consignorIds),
     supabase.from('notification').select('*').eq('outlet_id', outletId).order('created_at', { ascending: false }).limit(1000),
-    supabase.from('reading_session').select('*').in('inventory_id',
-      (await supabase.from('inventory').select('id').eq('outlet_id', outletId)).data?.map(i => i.id) ?? []
-    ),
+    supabase.from('reading_session').select('*').in('inventory_id', inventoryIds),
     supabase.from('outlet_transfer').select('*').or(`from_outlet_id.eq.${outletId},to_outlet_id.eq.${outletId}`),
     supabase.from('outlet_transfer_item').select('*'),
   ]);

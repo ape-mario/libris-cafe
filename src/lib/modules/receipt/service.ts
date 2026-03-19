@@ -50,19 +50,27 @@ export async function sendReceipt(
 
   if (error) {
     // Update receipt as failed
-    await supabase
+    const { error: failedUpdateError } = await supabase
       .from('receipt')
       .update({ status: 'failed', error_message: error.message })
       .eq('id', receiptId);
+
+    if (failedUpdateError) {
+      console.error('Failed to update receipt status to failed:', failedUpdateError.message);
+    }
 
     return { success: false, error: error.message };
   }
 
   // Update receipt as sent
-  await supabase
+  const { error: sentUpdateError } = await supabase
     .from('receipt')
     .update({ status: 'sent', sent_at: new Date().toISOString() })
     .eq('id', receiptId);
+
+  if (sentUpdateError) {
+    console.error('Failed to update receipt status to sent:', sentUpdateError.message);
+  }
 
   return { success: true };
 }

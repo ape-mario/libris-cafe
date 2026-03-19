@@ -175,24 +175,24 @@ export async function shipTransfer(
 
   // Create stock_movement entries (transfer_out from source outlet)
   // Stock trigger uses SELECT FOR UPDATE, so concurrent decrements are safe
-  const transfer = await fetchTransfer(transferId);
-  if (!transfer?.items) return;
+  // Re-use preTransfer (already fetched) with shippedQuantities to avoid a redundant DB round-trip
+  for (const sq of shippedQuantities) {
+    if (sq.quantity <= 0) continue;
+    const item = preTransfer.items.find((i: any) => i.id === sq.itemId);
+    if (!item) continue;
 
-  for (const item of transfer.items) {
-    if (item.quantity_shipped > 0) {
-      const { error } = await supabase
-        .from('stock_movement')
-        .insert({
-          inventory_id: item.inventory_id,
-          type: 'transfer_out',
-          quantity: -item.quantity_shipped,
-          reference_id: transferId,
-          reason: `Transfer to ${transfer.to_outlet?.name ?? transfer.to_outlet_id}`,
-          staff_id: staffId,
-        });
+    const { error } = await supabase
+      .from('stock_movement')
+      .insert({
+        inventory_id: item.inventory_id,
+        type: 'transfer_out',
+        quantity: -sq.quantity,
+        reference_id: transferId,
+        reason: `Transfer to ${preTransfer.to_outlet?.name ?? preTransfer.to_outlet_id}`,
+        staff_id: staffId,
+      });
 
-      if (error) throw new Error(`Failed to create transfer_out movement: ${error.message}`);
-    }
+    if (error) throw new Error(`Failed to create transfer_out movement: ${error.message}`);
   }
 }
 
