@@ -22,6 +22,12 @@
       ],
     },
     {
+      title: 'Staff',
+      items: [
+        { href: `${base}/owner/staff`, label: t('staff.title'), desc: t('staff.manage_desc'), icon: '👥' },
+      ],
+    },
+    {
       title: 'Operations',
       items: [
         { href: `${base}/staff/transactions`, label: 'Transactions', desc: 'Transaction history', icon: '💳' },
