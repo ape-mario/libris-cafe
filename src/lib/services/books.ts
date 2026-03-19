@@ -60,12 +60,74 @@ export function getBooks(): Book[] {
 	);
 }
 
+// Search cache: invalidated when books map changes
+let searchCache: { books: Book[]; index: Map<string, Set<string>> } | null = null;
+
+function getSearchIndex(): { books: Book[]; index: Map<string, Set<string>> } {
+	const allBooks = q.getAll<Book>('books');
+	// Simple cache: reuse if book count hasn't changed (cheap check)
+	if (searchCache && searchCache.books.length === allBooks.length) {
+		return searchCache;
+	}
+
+	// Build index: map of lowercase tokens → set of book IDs
+	const index = new Map<string, Set<string>>();
+	for (const book of allBooks) {
+		const tokens = [
+			...book.title.toLowerCase().split(/\s+/),
+			...book.authors.flatMap((a) => a.toLowerCase().split(/\s+/)),
+			...(book.publisher?.toLowerCase().split(/\s+/) || []),
+			...(book.isbn ? [book.isbn.toLowerCase()] : [])
+		].filter(Boolean);
+
+		for (const token of tokens) {
+			// Index all prefixes (min 2 chars) for prefix matching
+			for (let len = 2; len <= token.length; len++) {
+				const prefix = token.slice(0, len);
+				if (!index.has(prefix)) index.set(prefix, new Set());
+				index.get(prefix)!.add(book.id);
+			}
+		}
+	}
+
+	searchCache = { books: allBooks, index };
+	return searchCache;
+}
+
+// Invalidate on Y.Doc changes
+q.observe('books', () => { searchCache = null; });
+
 export function searchBooks(query: string): Book[] {
-	const lower = query.toLowerCase();
-	return q.filter<Book>('books', (b) =>
-		b.title.toLowerCase().includes(lower) ||
-		b.authors.some((a) => a.toLowerCase().includes(lower))
-	);
+	const lower = query.toLowerCase().trim();
+	if (!lower) return getBooks();
+
+	const words = lower.split(/\s+/).filter((w) => w.length >= 2);
+	if (words.length === 0) {
+		// Single char: fall back to simple includes
+		return q.filter<Book>('books', (b) =>
+			b.title.toLowerCase().includes(lower) ||
+			b.authors.some((a) => a.toLowerCase().includes(lower))
+		);
+	}
+
+	const { books, index } = getSearchIndex();
+	const bookMap = new Map(books.map((b) => [b.id, b]));
+
+	// Intersect: all words must match
+	let resultIds: Set<string> | null = null;
+	for (const word of words) {
+		const matches = index.get(word);
+		if (!matches) return [];
+		if (resultIds === null) {
+			resultIds = new Set(matches);
+		} else {
+			for (const id of resultIds) {
+				if (!matches.has(id)) resultIds.delete(id);
+			}
+		}
+	}
+
+	return resultIds ? [...resultIds].map((id) => bookMap.get(id)!).filter(Boolean) : [];
 }
 
 export function getBooksByCategory(category: string): Book[] {

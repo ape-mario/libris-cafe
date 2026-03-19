@@ -41,6 +41,10 @@ export default {
   'library.filter.all': 'Semua',
   'library.filter.status': 'Status',
   'library.showing': '{count} dari {total} buku',
+  'library.select': 'Pilih',
+  'library.bulk.selected': 'dipilih',
+  'library.bulk.select_all': 'Semua',
+  'library.bulk.done': '{count} buku diperbarui',
 
   // Browse page
   'browse.title': 'Jelajahi',

@@ -41,6 +41,10 @@ export default {
   'library.filter.all': 'All',
   'library.filter.status': 'Status',
   'library.showing': '{count} of {total} books',
+  'library.select': 'Select',
+  'library.bulk.selected': 'selected',
+  'library.bulk.select_all': 'All',
+  'library.bulk.done': '{count} books updated',
 
   // Browse page
   'browse.title': 'Browse',
