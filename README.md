@@ -1,6 +1,6 @@
 # Libris Cafe
 
-> **Status: Work In Progress** — Transformasi dari Libris (personal book tracker) menjadi sistem manajemen toko buku kafe.
+> **Status: All 5 Phases Complete** — Sistem manajemen toko buku kafe yang lengkap.
 
 Sistem manajemen toko buku kafe — kelola inventori buku (dijual, baca di tempat, preloved, konsinyasi), POS dengan pembayaran digital, dan dashboard analitik. Offline-first PWA yang bisa jalan di tablet kasir tanpa internet stabil.
 
@@ -35,10 +35,10 @@ Sistem manajemen toko buku kafe — kelola inventori buku (dijual, baca di tempa
 - [x] Export laporan (CSV/PDF/Excel)
 - [x] Prediction engine (demand forecast)
 
-### Phase 5: Scale — Planned
-- [ ] Multi-outlet
-- [ ] Transfer antar outlet
-- [ ] Consolidated reporting
+### Phase 5: Scale — Done
+- [x] Multi-outlet
+- [x] Transfer antar outlet
+- [x] Consolidated reporting
 
 ## Arsitektur
 
