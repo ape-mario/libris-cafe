@@ -3,6 +3,8 @@
   import { t } from '$lib/i18n/index.svelte';
   import { searchBooks, getBookById } from '$lib/services/books';
   import BarcodeScanner from '$lib/components/BarcodeScanner.svelte';
+  import PaymentModal from '$lib/components/PaymentModal.svelte';
+  import ReceiptSender from '$lib/components/ReceiptSender.svelte';
   import { showToast } from '$lib/stores/toast.svelte';
   import { showConfirm } from '$lib/stores/dialog.svelte';
   import { getCurrentStaff } from '$lib/modules/auth/stores.svelte';
@@ -10,7 +12,10 @@
   import { addToCart, removeFromCart, updateQuantity, clearCart } from '$lib/modules/pos/cart';
   import { getCart, setCart, resetCart } from '$lib/modules/pos/stores.svelte';
   import { checkout } from '$lib/modules/pos/checkout';
+  import { getIsOnline } from '$lib/modules/sync/manager';
   import type { Book } from '$lib/db';
+  import type { PaymentMethodType } from '$lib/modules/pos/types';
+  import type { ReceiptData } from '$lib/modules/receipt/types';
 
   let searchQuery = $state('');
   let searchResults = $state<Book[]>([]);
@@ -18,8 +23,26 @@
   let processing = $state(false);
   let cart = $derived(getCart());
   let staff = $derived(getCurrentStaff());
+  let online = $derived(getIsOnline());
+
+  // Payment method selection
+  let selectedPayment = $state<PaymentMethodType>('cash');
+  let showPaymentModal = $state(false);
+  let pendingTransactionId = $state<string | null>(null);
+
+  // Receipt state
+  let showReceipt = $state(false);
+  let receiptData = $state<ReceiptData | null>(null);
 
   let searchTimeout: ReturnType<typeof setTimeout>;
+
+  const paymentMethods: { value: PaymentMethodType; label: string; icon: string; digitalOnly: boolean }[] = [
+    { value: 'cash', label: 'payment.cash', icon: '\u{1F4B5}', digitalOnly: false },
+    { value: 'qris', label: 'payment.qris', icon: '\u{1F4F1}', digitalOnly: true },
+    { value: 'ewallet', label: 'payment.ewallet', icon: '\u{1F4F2}', digitalOnly: true },
+    { value: 'bank_transfer', label: 'payment.bank_transfer', icon: '\u{1F3E6}', digitalOnly: true },
+    { value: 'card', label: 'payment.card', icon: '\u{1F4B3}', digitalOnly: true },
+  ];
 
   function handleSearch() {
     clearTimeout(searchTimeout);
@@ -74,8 +97,14 @@
   async function handleCheckout() {
     if (!staff || cart.items.length === 0 || processing) return;
 
+    // Check if digital payment is available
+    if (selectedPayment !== 'cash' && !online) {
+      showToast(t('payment.digital_disabled_offline'), 'error');
+      return;
+    }
+
     const confirmed = await showConfirm({
-      title: `${t('pos.pay_cash')} — Rp ${cart.total.toLocaleString('id-ID')}`,
+      title: `${t(`payment.${selectedPayment}`)} — Rp ${cart.total.toLocaleString('id-ID')}`,
       message: `${cart.items.length} item(s)`,
     });
 
@@ -85,23 +114,87 @@
     try {
       const result = await checkout({
         cart,
-        paymentMethod: 'cash',
+        paymentMethod: selectedPayment,
         staffId: staff.id,
         outletId: staff.outlet_id,
       });
 
-      if (result.synced) {
+      if (result.requiresPayment && result.transactionId) {
+        // Digital payment — show Snap modal
+        pendingTransactionId = result.transactionId;
+        showPaymentModal = true;
+      } else if (result.synced) {
+        // Cash payment — success
         showToast(t('pos.checkout_success'), 'success');
+        prepareReceipt(result.transactionId, result.offlineId);
       } else {
+        // Offline queued
         showToast(t('pos.checkout_offline'), 'info');
+        resetCart();
       }
-
-      resetCart();
     } catch (err) {
       showToast(err instanceof Error ? err.message : 'Checkout failed', 'error');
     } finally {
       processing = false;
     }
+  }
+
+  function handlePaymentSuccess(result: Record<string, string>) {
+    showPaymentModal = false;
+    showToast(t('payment.success'), 'success');
+    prepareReceipt(pendingTransactionId, null);
+  }
+
+  function handlePaymentPending() {
+    showPaymentModal = false;
+    showToast(t('payment.pending'), 'info');
+    prepareReceipt(pendingTransactionId, null);
+  }
+
+  function handlePaymentClose() {
+    showPaymentModal = false;
+    pendingTransactionId = null;
+    showToast(t('payment.cancelled'), 'info');
+  }
+
+  function prepareReceipt(transactionId: string | null, offlineId: string | null) {
+    if (!staff || !transactionId) {
+      resetCart();
+      return;
+    }
+
+    const now = new Date();
+    receiptData = {
+      transactionId,
+      orderId: offlineId ?? transactionId.slice(0, 8),
+      date: now.toLocaleDateString('id-ID', {
+        day: 'numeric', month: 'long', year: 'numeric',
+        hour: '2-digit', minute: '2-digit',
+      }),
+      items: cart.items.map(item => ({
+        title: item.book.title,
+        quantity: item.quantity,
+        unitPrice: item.unitPrice,
+        total: item.total,
+      })),
+      subtotal: cart.subtotal,
+      tax: cart.tax,
+      discount: cart.discount,
+      total: cart.total,
+      paymentMethod: selectedPayment,
+      paymentReference: null,
+      cafeName: 'Libris Cafe',
+      cafeAddress: 'Alamat cafe di sini',
+      staffName: staff.name,
+    };
+    showReceipt = true;
+  }
+
+  function handleReceiptDone() {
+    showReceipt = false;
+    receiptData = null;
+    pendingTransactionId = null;
+    resetCart();
   }
 
   function formatPrice(amount: number): string {
@@ -211,6 +304,26 @@
         </div>
       </div>
 
+      <!-- Payment Method Selection -->
+      <div class="px-4 py-3 border-t border-warm-100">
+        <p class="text-xs font-semibold text-ink-muted uppercase tracking-wide mb-2">{t('payment.select_method')}</p>
+        <div class="grid grid-cols-3 gap-2">
+          {#each paymentMethods as method}
+            <button
+              class="py-2 px-2 rounded-xl text-xs font-medium transition-all {selectedPayment === method.value ? 'bg-accent text-cream shadow-sm' : 'bg-warm-50 text-ink-muted'} {method.digitalOnly && !online ? 'opacity-40 cursor-not-allowed' : ''}"
+              onclick={() => { if (!method.digitalOnly || online) selectedPayment = method.value; }}
+              disabled={method.digitalOnly && !online}
+            >
+              <span class="block text-base mb-0.5">{method.icon}</span>
+              {t(method.label)}
+            </button>
+          {/each}
+        </div>
+        {#if !online}
+          <p class="text-[11px] text-gold mt-1.5">{t('payment.digital_disabled_offline')}</p>
+        {/if}
+      </div>
+
       <!-- Checkout Button -->
       <div class="px-4 py-3 border-t border-warm-100">
         <button
@@ -218,9 +331,28 @@
           onclick={handleCheckout}
           disabled={processing}
         >
-          {processing ? '...' : `${t('pos.pay_cash')} — ${formatPrice(cart.total)}`}
+          {processing ? '...' : `${t(`payment.${selectedPayment}`)} — ${formatPrice(cart.total)}`}
         </button>
       </div>
     {/if}
   </div>
+
+  <!-- Receipt Sender (after checkout) -->
+  {#if showReceipt && receiptData}
+    <ReceiptSender
+      {receiptData}
+      onDone={handleReceiptDone}
+    />
+  {/if}
 </div>
+
+<!-- Payment Modal (digital payments) -->
+{#if showPaymentModal && pendingTransactionId}
+  <PaymentModal
+    transactionId={pendingTransactionId}
+    {cart}
+    onSuccess={handlePaymentSuccess}
+    onPending={handlePaymentPending}
+    onClose={handlePaymentClose}
+  />
+{/if}
