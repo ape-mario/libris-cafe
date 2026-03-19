@@ -666,4 +666,17 @@ export default {
   // Nav (Phase 5)
   'nav.outlets': 'Outlets',
   'nav.transfers': 'Transfers',
+
+  // Backup
+  'backup.title': 'Data Backup',
+  'backup.description': 'Export all business data for this outlet. Includes transactions, inventory, suppliers, consignment, and catalog.',
+  'backup.export_json': 'Export JSON Backup',
+  'backup.export_sql': 'Export SQL Backup',
+  'backup.json_desc': 'Full data backup in JSON format. Use for archiving or restoring.',
+  'backup.sql_desc': 'SQL INSERT statements. Use for migrating to self-hosted PostgreSQL.',
+  'backup.exporting': 'Exporting...',
+  'backup.success': 'Backup downloaded!',
+  'backup.error': 'Backup failed',
+  'backup.records': '{count} records',
+  'backup.tables': 'Data Summary',
 } as const;

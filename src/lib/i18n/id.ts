@@ -666,4 +666,17 @@ export default {
   // Nav (Phase 5)
   'nav.outlets': 'Outlet',
   'nav.transfers': 'Transfer',
+
+  // Backup
+  'backup.title': 'Backup Data',
+  'backup.description': 'Ekspor semua data bisnis untuk outlet ini. Termasuk transaksi, inventori, supplier, konsinyasi, dan katalog.',
+  'backup.export_json': 'Ekspor Backup JSON',
+  'backup.export_sql': 'Ekspor Backup SQL',
+  'backup.json_desc': 'Backup data lengkap dalam format JSON. Untuk arsip atau restore.',
+  'backup.sql_desc': 'SQL INSERT statements. Untuk migrasi ke PostgreSQL self-hosted.',
+  'backup.exporting': 'Mengekspor...',
+  'backup.success': 'Backup berhasil diunduh!',
+  'backup.error': 'Backup gagal',
+  'backup.records': '{count} data',
+  'backup.tables': 'Ringkasan Data',
 } as const;
