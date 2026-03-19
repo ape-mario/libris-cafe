@@ -8,21 +8,30 @@ A personal book collection manager built as a Progressive Web App. Track your re
 
 - **Multi-profil** — Satu katalog buku bersama, tracking bacaan per orang ("Siapa yang membaca hari ini?")
 - **Kelola koleksi** — Tambah buku manual, cari via Open Library API, atau scan barcode pakai kamera
+- **Bulk import ISBN** — Paste daftar ISBN, auto-fetch metadata dari Open Library sekaligus
+- **Metadata lengkap** — Penerbit, tahun terbit, cetakan, kategori, seri — otomatis terisi dari Open Library
+- **Deteksi duplikat** — Cek ISBN dan fuzzy matching judul saat tambah buku
 - **Banyak kopi** — Simpan buku duplikat (edisi berbeda atau kopi tambahan) dengan tracking terpisah
 - **Status bacaan** — Tandai buku sebagai sedang dibaca, selesai, DNF, atau wishlist per profil
+- **Quick status** — Long-press cover buku untuk ubah status langsung tanpa buka detail
+- **Bulk actions** — Pilih banyak buku sekaligus, ubah status atau tambah ke rak secara batch
 - **Rak buku** — Buat rak kustom untuk mengatur buku sesukamu
 - **Seri buku** — Kelompokkan buku berdasarkan seri dengan urutan baca
 - **Jelajahi** — Telusuri koleksi berdasarkan kategori, seri, atau penulis
+- **Filter & sort lanjutan** — Filter by status, rating minimum, kategori. Sort by judul, penulis, rating, tahun terbit, penerbit
+- **Pencarian cepat** — Cari by judul, penulis, penerbit, atau ISBN dengan prefix index
+- **Buku terkait** — Lihat rekomendasi buku terkait berdasarkan seri, penulis, dan kategori yang sama
 - **Statistik** — Statistik per user dengan filter tahunan: buku selesai, halaman, rating, genre, progres bulanan, dan penulis favorit
-- **Target membaca** — Atur dan pantau target bacaan tahunan
+- **Target membaca** — Atur dan pantau target bacaan tahunan dengan confetti saat tercapai
 - **Rekomendasi** — Dapat saran buku berdasarkan riwayat bacaan (via Open Library)
 - **Peminjaman** — Catat siapa yang meminjam bukumu
 - **Catatan & rating** — Tambah catatan pribadi dan beri rating
-- **Progres baca** — Tandai halaman terakhir untuk buku yang sedang dibaca
-- **Ekspor/Impor** — Backup dan restore koleksi sebagai JSON
-- **Impor Goodreads** — Migrasi koleksi dari file CSV ekspor Goodreads
+- **Progres baca** — Tandai halaman, lihat grafik riwayat progres harian
+- **Ekspor/Impor** — Backup dan restore koleksi sebagai JSON atau CSV
+- **Impor Goodreads** — Migrasi koleksi dari file CSV ekspor Goodreads (termasuk penerbit, tahun, cetakan)
 - **Sync antar perangkat** — Sync real-time via room code menggunakan Yjs CRDTs
-- **Offline-first** — Berfungsi penuh tanpa internet, data di IndexedDB dengan cache sampul
+- **Offline-first** — Berfungsi penuh tanpa internet, data di IndexedDB dengan cache sampul (LRU eviction)
+- **PWA** — Installable sebagai app di HP dan desktop
 - **Bilingual** — English dan Bahasa Indonesia
 
 ## Tech Stack
