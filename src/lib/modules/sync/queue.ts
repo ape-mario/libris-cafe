@@ -112,4 +112,37 @@ export class OfflineQueue {
       r1.onerror = () => reject(r1.error);
     });
   }
+
+  /**
+   * Purge synced entries older than the given age (default: 24 hours).
+   * Call periodically to prevent IndexedDB growth.
+   */
+  async purgeSynced(maxAgeMs: number = 24 * 60 * 60 * 1000): Promise<number> {
+    const db = await this.open();
+    const cutoff = new Date(Date.now() - maxAgeMs).toISOString();
+    let purged = 0;
+
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(OfflineQueue.STORE, 'readwrite');
+      const store = tx.objectStore(OfflineQueue.STORE);
+      const req = store.openCursor();
+
+      req.onsuccess = () => {
+        const cursor = req.result;
+        if (cursor) {
+          const entry = cursor.value as QueueEntry;
+          if (entry.status === 'synced' && entry.synced_at && entry.synced_at < cutoff) {
+            cursor.delete();
+            purged++;
+          }
+          cursor.continue();
+        }
+      };
+
+      tx.oncomplete = () => resolve(purged);
+      tx.onerror = () => reject(tx.error);
+    });
+  }
+
+  static readonly MAX_QUEUE_SIZE = 500;
 }

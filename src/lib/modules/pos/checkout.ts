@@ -50,47 +50,63 @@ export async function checkout(request: CheckoutRequest): Promise<CheckoutResult
     throw new Error('Digital payment requires internet connection');
   }
 
-  // Try online first
+  // Try online first — use atomic RPC for cash, multi-step for digital
   if (getIsOnline()) {
     try {
       const supabase = getSupabase();
 
-      const { data: txData, error: txError } = await supabase
-        .from('transaction')
-        .insert(transactionPayload)
-        .select()
-        .single();
-
-      if (txError) throw txError;
-
-      const itemsWithTxId = itemsPayload.map(item => ({
-        ...item,
-        transaction_id: txData.id,
-      }));
-
-      await supabase.from('transaction_item').insert(itemsWithTxId);
-
-      // For cash: immediately record stock movements
       if (isCashPayment) {
-        for (const item of cart.items) {
-          await supabase.from('stock_movement').insert({
-            inventory_id: item.inventory.id,
-            type: 'sale_out',
-            quantity: -item.quantity,
-            reference_id: txData.id,
-            staff_id: staffId,
-          });
-        }
-      }
-      // For digital: stock decrement happens in webhook after payment confirmed
+        // ATOMIC: single DB transaction via RPC — insert tx + items + stock movements
+        const { data, error } = await supabase.rpc('checkout_transaction', {
+          p_outlet_id: outletId,
+          p_staff_id: staffId,
+          p_type: 'sale',
+          p_subtotal: cart.subtotal,
+          p_discount: cart.discount,
+          p_tax: cart.tax,
+          p_total: cart.total,
+          p_payment_method: paymentMethod,
+          p_payment_status: 'paid',
+          p_customer_name: customerName ?? null,
+          p_customer_contact: customerContact ?? null,
+          p_notes: notes ?? null,
+          p_offline_id: offlineId,
+          p_items: JSON.stringify(itemsPayload),
+        });
 
-      return {
-        transactionId: txData.id,
-        offlineId,
-        synced: true,
-        requiresPayment: isDigital,
-        orderId: offlineId,  // used as Midtrans order_id base
-      };
+        if (error) throw new Error(error.message);
+
+        return {
+          transactionId: data.transaction_id,
+          offlineId,
+          synced: true,
+          requiresPayment: false,
+        };
+      } else {
+        // Digital: insert transaction as pending (stock decrement handled by webhook RPC)
+        const { data: txData, error: txError } = await supabase
+          .from('transaction')
+          .insert(transactionPayload)
+          .select()
+          .single();
+
+        if (txError) throw txError;
+
+        const itemsWithTxId = itemsPayload.map(item => ({
+          ...item,
+          transaction_id: txData.id,
+        }));
+
+        await supabase.from('transaction_item').insert(itemsWithTxId);
+
+        return {
+          transactionId: txData.id,
+          offlineId,
+          synced: true,
+          requiresPayment: true,
+          orderId: offlineId,
+        };
+      }
     } catch (err) {
       // For digital payments, don't fall back to offline — throw
       if (isDigital) throw err;

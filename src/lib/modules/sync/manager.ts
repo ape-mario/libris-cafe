@@ -43,6 +43,8 @@ async function processQueue(): Promise<void> {
         }
       }
     }
+    // Purge old synced entries to prevent IndexedDB growth
+    await queue.purgeSynced();
   } finally {
     processing = false;
   }
@@ -50,26 +52,26 @@ async function processQueue(): Promise<void> {
 
 async function syncTransaction(supabase: any, payload: any): Promise<void> {
   const { items, ...transaction } = payload;
-  const { data: txData, error: txError } = await supabase
-    .from('transaction')
-    .insert(transaction)
-    .select()
-    .single();
-  if (txError) throw new Error(txError.message);
 
-  const itemsWithTxId = items.map((item: any) => ({ ...item, transaction_id: txData.id }));
-  const { error: itemsError } = await supabase.from('transaction_item').insert(itemsWithTxId);
-  if (itemsError) throw new Error(itemsError.message);
+  // Use atomic checkout RPC — single DB transaction
+  const { error } = await supabase.rpc('checkout_transaction', {
+    p_outlet_id: transaction.outlet_id,
+    p_staff_id: transaction.staff_id,
+    p_type: transaction.type || 'sale',
+    p_subtotal: transaction.subtotal,
+    p_discount: transaction.discount || 0,
+    p_tax: transaction.tax || 0,
+    p_total: transaction.total,
+    p_payment_method: transaction.payment_method,
+    p_payment_status: transaction.payment_status || 'paid',
+    p_customer_name: transaction.customer_name,
+    p_customer_contact: transaction.customer_contact,
+    p_notes: transaction.notes,
+    p_offline_id: transaction.offline_id,
+    p_items: JSON.stringify(items),
+  });
 
-  for (const item of items) {
-    await supabase.from('stock_movement').insert({
-      inventory_id: item.inventory_id,
-      type: 'sale_out',
-      quantity: -item.quantity,
-      reference_id: txData.id,
-      staff_id: transaction.staff_id,
-    });
-  }
+  if (error) throw new Error(error.message);
 }
 
 async function syncStockAdjustment(supabase: any, payload: any): Promise<void> {

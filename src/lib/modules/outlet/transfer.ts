@@ -132,6 +132,31 @@ export async function shipTransfer(
 ): Promise<void> {
   const supabase = getSupabase();
 
+  // Pre-fetch transfer to validate stock availability before any mutations
+  const preTransfer = await fetchTransfer(transferId);
+  if (!preTransfer?.items) throw new Error('Transfer not found');
+
+  // Validate stock availability for all items BEFORE shipping
+  for (const sq of shippedQuantities) {
+    if (sq.quantity <= 0) continue;
+    const transferItem = preTransfer.items.find((i: any) => i.id === sq.itemId);
+    if (!transferItem) throw new Error(`Transfer item ${sq.itemId} not found`);
+
+    // Check current stock
+    const { data: inv } = await supabase
+      .from('inventory')
+      .select('stock')
+      .eq('id', transferItem.inventory_id)
+      .single();
+
+    if (!inv || inv.stock < sq.quantity) {
+      throw new Error(
+        `Insufficient stock for "${transferItem.title ?? transferItem.book_id}": ` +
+        `available=${inv?.stock ?? 0}, requested=${sq.quantity}`
+      );
+    }
+  }
+
   // Update shipped quantities on items
   for (const sq of shippedQuantities) {
     const { error } = await supabase
@@ -149,6 +174,7 @@ export async function shipTransfer(
   });
 
   // Create stock_movement entries (transfer_out from source outlet)
+  // Stock trigger uses SELECT FOR UPDATE, so concurrent decrements are safe
   const transfer = await fetchTransfer(transferId);
   if (!transfer?.items) return;
 
