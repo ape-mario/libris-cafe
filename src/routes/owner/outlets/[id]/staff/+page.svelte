@@ -62,13 +62,13 @@
 </script>
 
 <div class="p-4 max-w-2xl mx-auto">
-  <a href="{base}/owner/outlets/{outletId}" class="text-sm text-warm-400 hover:text-warm-600 mb-4 inline-block">
+  <a href="{base}/owner/outlets/{outletId}" class="text-sm text-warm-400 hover:text-ink-light mb-4 inline-block">
     &larr; {outlet?.name ?? t('outlet.title')}
   </a>
 
-  <h1 class="text-2xl font-bold text-warm-800 mb-2">{t('outlet.staff.title')}</h1>
+  <h1 class="text-2xl font-bold text-ink mb-2">{t('outlet.staff.title')}</h1>
   {#if outlet}
-    <p class="text-warm-500 mb-6">{outlet.name}</p>
+    <p class="text-ink-muted mb-6">{outlet.name}</p>
   {/if}
 
   {#if loading}
@@ -80,13 +80,13 @@
   {:else}
     <div class="space-y-3">
       {#each staffList as staff (staff.id)}
-        <div class="bg-white rounded-xl border border-warm-200 p-4
+        <div class="bg-surface rounded-xl border border-warm-200 p-4
                     flex items-center justify-between">
           <div>
-            <div class="font-medium text-warm-800">{staff.name}</div>
+            <div class="font-medium text-ink">{staff.name}</div>
             <div class="text-sm text-warm-400">{staff.email}</div>
             <span class="inline-flex items-center mt-1 px-2 py-0.5 rounded-full text-xs font-medium
-                         {staff.role === 'owner' ? 'bg-gold/20 text-gold-700' : 'bg-warm-100 text-warm-500'}">
+                         {staff.role === 'owner' ? 'bg-gold/20 text-gold-700' : 'bg-warm-100 text-ink-muted'}">
               {staff.role}
             </span>
           </div>

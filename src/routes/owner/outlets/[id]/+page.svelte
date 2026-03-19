@@ -55,7 +55,7 @@
 </script>
 
 <div class="p-4 max-w-2xl mx-auto">
-  <a href="{base}/owner/outlets" class="text-sm text-warm-400 hover:text-warm-600 mb-4 inline-block">
+  <a href="{base}/owner/outlets" class="text-sm text-warm-400 hover:text-ink-light mb-4 inline-block">
     &larr; {t('outlet.title')}
   </a>
 
@@ -64,14 +64,14 @@
   {:else if !outlet}
     <div class="text-center py-12 text-warm-400">Outlet not found</div>
   {:else}
-    <h1 class="text-2xl font-bold text-warm-800 mb-6">{t('outlet.edit')}</h1>
+    <h1 class="text-2xl font-bold text-ink mb-6">{t('outlet.edit')}</h1>
 
     <form
-      class="bg-white rounded-xl border border-warm-200 p-6 space-y-4"
+      class="bg-surface rounded-xl border border-warm-200 p-6 space-y-4"
       onsubmit={(e) => { e.preventDefault(); handleSave(); }}
     >
       <div>
-        <label class="block text-sm font-medium text-warm-600 mb-1">{t('outlet.name')}</label>
+        <label class="block text-sm font-medium text-ink-light mb-1">{t('outlet.name')}</label>
         <input
           type="text" bind:value={name} required
           class="w-full px-3 py-2 rounded-lg border border-warm-200
@@ -79,7 +79,7 @@
         />
       </div>
       <div>
-        <label class="block text-sm font-medium text-warm-600 mb-1">{t('outlet.address')}</label>
+        <label class="block text-sm font-medium text-ink-light mb-1">{t('outlet.address')}</label>
         <input
           type="text" bind:value={address}
           class="w-full px-3 py-2 rounded-lg border border-warm-200
@@ -88,7 +88,7 @@
       </div>
       <div class="grid grid-cols-2 gap-4">
         <div>
-          <label class="block text-sm font-medium text-warm-600 mb-1">{t('outlet.phone')}</label>
+          <label class="block text-sm font-medium text-ink-light mb-1">{t('outlet.phone')}</label>
           <input
             type="tel" bind:value={phone}
             class="w-full px-3 py-2 rounded-lg border border-warm-200
@@ -96,7 +96,7 @@
           />
         </div>
         <div>
-          <label class="block text-sm font-medium text-warm-600 mb-1">{t('outlet.tax_rate')}</label>
+          <label class="block text-sm font-medium text-ink-light mb-1">{t('outlet.tax_rate')}</label>
           <input
             type="number" bind:value={taxRate} min="0" max="100" step="0.01"
             class="w-full px-3 py-2 rounded-lg border border-warm-200
@@ -115,7 +115,7 @@
         </button>
         <a
           href="{base}/owner/outlets"
-          class="px-6 py-2 bg-warm-100 text-warm-600 rounded-lg font-medium
+          class="px-6 py-2 bg-warm-100 text-ink-light rounded-lg font-medium
                  hover:bg-warm-200 transition-colors"
         >
           Cancel

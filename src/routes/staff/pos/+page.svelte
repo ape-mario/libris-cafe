@@ -20,6 +20,8 @@
   import type { PaymentMethod } from '$lib/modules/payment/types';
   import type { ReceiptData } from '$lib/modules/receipt/types';
 
+  let outletInfo = $state({ name: 'Libris Cafe', address: '', phone: '' });
+
   let searchQuery = $state('');
   let searchResults = $state<Book[]>([]);
   let showScanner = $state(false);
@@ -41,6 +43,18 @@
   let printerReceiptData = $state<PrinterReceiptData | null>(null);
 
   let searchTimeout: ReturnType<typeof setTimeout>;
+
+  onMount(async () => {
+    const currentStaff = getCurrentStaff();
+    if (currentStaff) {
+      try {
+        const { getSupabase } = await import('$lib/supabase/client');
+        const supabase = getSupabase();
+        const { data } = await supabase.from('outlet').select('name, address, phone').eq('id', currentStaff.outlet_id).single();
+        if (data) outletInfo = data;
+      } catch {}
+    }
+  });
 
   const paymentMethods: { value: PaymentMethod; label: string; icon: string; digitalOnly: boolean }[] = [
     { value: 'cash', label: 'payment.cash', icon: '\u{1F4B5}', digitalOnly: false },
@@ -203,8 +217,8 @@
       total: cart.total,
       paymentMethod: selectedPayment,
       paymentReference: null,
-      cafeName: 'Libris Cafe',
-      cafeAddress: 'Alamat cafe di sini',
+      cafeName: outletInfo.name,
+      cafeAddress: outletInfo.address,
       staffName: staff.name,
     };
 
@@ -212,7 +226,7 @@
     printerReceiptData = buildReceiptFromTransaction(
       transactionId,
       cart,
-      { name: 'Libris Cafe', address: 'Alamat cafe di sini', phone: '' },
+      { name: outletInfo.name, address: outletInfo.address, phone: outletInfo.phone },
       staff.name,
       selectedPayment
     );

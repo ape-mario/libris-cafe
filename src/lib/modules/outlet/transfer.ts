@@ -139,7 +139,7 @@ export async function shipTransfer(
   // Validate stock availability for all items BEFORE shipping
   for (const sq of shippedQuantities) {
     if (sq.quantity <= 0) continue;
-    const transferItem = preTransfer.items.find((i: any) => i.id === sq.itemId);
+    const transferItem = preTransfer.items.find((i: OutletTransferItem) => i.id === sq.itemId);
     if (!transferItem) throw new Error(`Transfer item ${sq.itemId} not found`);
 
     // Check current stock
@@ -178,7 +178,7 @@ export async function shipTransfer(
   // Re-use preTransfer (already fetched) with shippedQuantities to avoid a redundant DB round-trip
   for (const sq of shippedQuantities) {
     if (sq.quantity <= 0) continue;
-    const item = preTransfer.items.find((i: any) => i.id === sq.itemId);
+    const item = preTransfer.items.find((i: OutletTransferItem) => i.id === sq.itemId);
     if (!item) continue;
 
     const { error } = await supabase

@@ -72,7 +72,7 @@
 
 <div class="p-4 max-w-2xl mx-auto">
   <div class="flex items-center justify-between mb-6">
-    <h1 class="text-2xl font-bold text-warm-800">{t('outlet.title')}</h1>
+    <h1 class="text-2xl font-bold text-ink">{t('outlet.title')}</h1>
     <button
       class="px-4 py-2 bg-sage text-white rounded-lg font-medium
              hover:bg-sage-600 transition-colors"
@@ -84,11 +84,11 @@
 
   {#if showForm}
     <form
-      class="bg-white rounded-xl border border-warm-200 p-4 mb-6 space-y-3"
+      class="bg-surface rounded-xl border border-warm-200 p-4 mb-6 space-y-3"
       onsubmit={(e) => { e.preventDefault(); handleCreate(); }}
     >
       <div>
-        <label class="block text-sm font-medium text-warm-600 mb-1">{t('outlet.name')}</label>
+        <label class="block text-sm font-medium text-ink-light mb-1">{t('outlet.name')}</label>
         <input
           type="text"
           bind:value={newName}
@@ -99,7 +99,7 @@
         />
       </div>
       <div>
-        <label class="block text-sm font-medium text-warm-600 mb-1">{t('outlet.address')}</label>
+        <label class="block text-sm font-medium text-ink-light mb-1">{t('outlet.address')}</label>
         <input
           type="text"
           bind:value={newAddress}
@@ -110,7 +110,7 @@
       </div>
       <div class="grid grid-cols-2 gap-3">
         <div>
-          <label class="block text-sm font-medium text-warm-600 mb-1">{t('outlet.phone')}</label>
+          <label class="block text-sm font-medium text-ink-light mb-1">{t('outlet.phone')}</label>
           <input
             type="tel"
             bind:value={newPhone}
@@ -120,7 +120,7 @@
           />
         </div>
         <div>
-          <label class="block text-sm font-medium text-warm-600 mb-1">{t('outlet.tax_rate')}</label>
+          <label class="block text-sm font-medium text-ink-light mb-1">{t('outlet.tax_rate')}</label>
           <input
             type="number"
             bind:value={newTaxRate}
@@ -142,7 +142,7 @@
         <button
           type="button"
           onclick={() => { showForm = false; }}
-          class="px-4 py-2 bg-warm-100 text-warm-600 rounded-lg font-medium
+          class="px-4 py-2 bg-warm-100 text-ink-light rounded-lg font-medium
                  hover:bg-warm-200 transition-colors"
         >
           Cancel
@@ -158,13 +158,13 @@
   {:else}
     <div class="space-y-3">
       {#each outlets as outlet (outlet.id)}
-        <div class="bg-white rounded-xl border border-warm-200 p-4
+        <div class="bg-surface rounded-xl border border-warm-200 p-4
                     hover:border-warm-300 transition-colors">
           <div class="flex items-start justify-between">
             <a href="{base}/owner/outlets/{outlet.id}" class="flex-1 min-w-0">
-              <h3 class="font-semibold text-warm-800 text-lg">{outlet.name}</h3>
+              <h3 class="font-semibold text-ink text-lg">{outlet.name}</h3>
               {#if outlet.address}
-                <p class="text-sm text-warm-500 mt-0.5">{outlet.address}</p>
+                <p class="text-sm text-ink-muted mt-0.5">{outlet.address}</p>
               {/if}
               <div class="flex items-center gap-3 mt-2 text-xs text-warm-400">
                 {#if outlet.phone}
@@ -177,7 +177,7 @@
               <a
                 href="{base}/owner/outlets/{outlet.id}/staff"
                 class="p-2 rounded-lg hover:bg-warm-100 text-warm-400
-                       hover:text-warm-600 transition-colors"
+                       hover:text-ink-light transition-colors"
                 title={t('outlet.staff')}
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
