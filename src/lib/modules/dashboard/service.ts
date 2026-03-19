@@ -11,6 +11,31 @@ export async function fetchTodayMetrics(outletId: string): Promise<TodayMetrics>
   return data as TodayMetrics;
 }
 
+export async function fetchYesterdayMetrics(outletId: string): Promise<TodayMetrics> {
+  const supabase = getSupabase();
+  // Use the sales trend RPC for yesterday's date to get comparable metrics
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  const yStr = yesterday.toISOString().slice(0, 10);
+
+  const { data, error } = await supabase.rpc('get_sales_trend', {
+    p_outlet_id: outletId,
+    p_start_date: yStr,
+    p_end_date: yStr,
+  });
+
+  if (error) throw new Error(`Failed to fetch yesterday metrics: ${error.message}`);
+  const point = (data ?? [])[0] as SalesTrendPoint | undefined;
+  return {
+    total_sales: point?.total_sales ?? 0,
+    transaction_count: point?.transaction_count ?? 0,
+    total_margin: 0,
+    low_stock_count: 0,
+    out_of_stock_count: 0,
+    payment_breakdown: null,
+  };
+}
+
 // For small cafes (<100 tx/day): live queries are fast enough (<100ms)
 // For high-traffic: set useLiveQuery=false to use materialized views
 // (requires pg_cron to be enabled for periodic refresh)

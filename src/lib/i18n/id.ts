@@ -307,6 +307,19 @@ export default {
   'pos.read_only': 'Buku ini hanya untuk baca di tempat',
   'pos.max_stock': 'Stok maks: {count}',
   'pos.item_added': '{title} ditambahkan',
+  'pos.cash_tendered': 'Uang Diterima',
+  'pos.change': 'Kembalian',
+  'pos.done': 'Selesai',
+  'pos.add_discount': 'Tambah Diskon',
+  'pos.discount_amount': 'Jumlah Diskon',
+  'pos.discount_percent': 'Persen Diskon',
+  'pos.remove_discount': 'Hapus Diskon',
+  'pos.void': 'Batalkan Transaksi',
+  'pos.void_confirm': 'Batalkan transaksi ini?',
+  'pos.void_reason': 'Alasan pembatalan',
+  'pos.void_reason_placeholder': 'cth. Pelanggan minta refund, salah item...',
+  'pos.voided': 'Dibatalkan',
+  'pos.void_success': 'Transaksi berhasil dibatalkan',
 
   // Inventory
   'inventory.title': 'Inventori',
@@ -341,6 +354,10 @@ export default {
   'inventory.adjusted': 'Stok disesuaikan',
   'inventory.adjust_failed': 'Gagal menyesuaikan stok',
   'inventory.no_movements': 'Belum ada riwayat',
+  'inventory.edit': 'Edit',
+  'inventory.save': 'Simpan',
+  'inventory.saved': 'Tersimpan',
+  'inventory.min_stock': 'Stok Minimum',
 
   // Navigation (staff)
   'nav.pos': 'Kasir',
@@ -367,6 +384,8 @@ export default {
   'payment.cancelled': 'Pembayaran dibatalkan',
   'payment.pending': 'Menunggu pembayaran',
   'payment.retry': 'Coba Lagi',
+  'payment.pending_banner': 'Pembayaran tertunda',
+  'payment.cancel_pending': 'Batalkan Pembayaran',
   'payment.digital_disabled_offline': 'Pembayaran digital tidak tersedia offline. Gunakan tunai.',
 
   // Receipt
@@ -398,6 +417,10 @@ export default {
   'dashboard.sold': 'terjual',
   'dashboard.payment_breakdown': 'Per Metode Pembayaran',
   'dashboard.refresh': 'Segarkan',
+  'dashboard.vs_yesterday': 'vs kemarin',
+  'dashboard.up': 'naik',
+  'dashboard.down': 'turun',
+  'dashboard.same': 'sama dengan kemarin',
 
   // Browse (pelanggan)
   'browse.available': 'Tersedia',
@@ -575,6 +598,11 @@ export default {
   'lending.overdueNotes': 'Alasan keterlambatan...',
   'lending.overdueCount': '{count} sesi terlambat',
   'lending.tapToReturn': 'Ketuk untuk mengembalikan',
+  'lending.fee': 'Biaya Baca',
+  'lending.fee_per_hour': 'Biaya per Jam',
+  'lending.charge_fee': 'Charge ke Kasir',
+  'lending.fee_waived': 'Biaya Dibebaskan',
+  'lending.fee_calculated': 'Biaya baca: {amount} ({hours}j \u00d7 {rate}/jam)',
 
   // Phase 4: Kiosk
   'kiosk.welcome': 'Sentuh untuk menjelajahi koleksi kami',
@@ -713,6 +741,49 @@ export default {
   // Nav (Phase 5)
   'nav.outlets': 'Outlet',
   'nav.transfers': 'Transfer',
+
+  // Staff Management
+  'staff.title': 'Staf',
+  'staff.create': 'Tambah Staf',
+  'staff.name': 'Nama',
+  'staff.email': 'Email',
+  'staff.pin': 'PIN',
+  'staff.pin_invalid': 'PIN harus 4-6 digit',
+  'staff.role': 'Peran',
+  'staff.role_staff': 'Staf',
+  'staff.role_owner': 'Pemilik',
+  'staff.outlet': 'Outlet',
+  'staff.deactivate': 'Nonaktifkan',
+  'staff.deactivate_confirm': 'Nonaktifkan {name}?',
+  'staff.deactivated': 'Staf dinonaktifkan',
+  'staff.reset_pin': 'Reset PIN',
+  'staff.created': 'Akun staf berhasil dibuat',
+  'staff.no_staff': 'Belum ada staf',
+  'staff.show_inactive': 'Tampilkan nonaktif',
+  'staff.inactive': 'Nonaktif',
+  'staff.manage_desc': 'Buat dan kelola akun staf',
+
+  // Setup Wizard
+  'setup.welcome': 'Selamat Datang di Libris Cafe',
+  'setup.welcome_desc': 'Mari siapkan toko buku cafe Anda dalam beberapa menit.',
+  'setup.choose_language': 'Pilih bahasa',
+  'setup.connect_db': 'Hubungkan Database',
+  'setup.connect_db_desc': 'Masukkan kredensial proyek Supabase Anda untuk menghubungkan database.',
+  'setup.supabase_url': 'URL Supabase',
+  'setup.anon_key': 'Kunci Anon',
+  'setup.test_connection': 'Tes Koneksi',
+  'setup.testing': 'Mengetes...',
+  'setup.connection_success': 'Koneksi berhasil!',
+  'setup.connection_failed': 'Tidak dapat terhubung ke database',
+  'setup.next': 'Lanjut',
+  'setup.create_owner': 'Buat Akun Pemilik',
+  'setup.create_owner_desc': 'Ini akan menjadi akun utama untuk mengelola cafe Anda.',
+  'setup.owner_name_placeholder': 'Nama Anda',
+  'setup.create_account': 'Buat Akun',
+  'setup.staff_exists': 'Akun staf sudah ada. Setup sudah pernah dilakukan.',
+  'setup.complete': 'Setup Selesai!',
+  'setup.complete_desc': 'Libris Cafe Anda siap. Masuk dengan akun yang baru saja dibuat.',
+  'setup.go_login': 'Ke Halaman Login',
 
   // Backup
   'backup.title': 'Backup Data',

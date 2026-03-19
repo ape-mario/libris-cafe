@@ -68,6 +68,17 @@
     const { installGlobalErrorHandler, logError } = await import('$lib/services/logger');
     installGlobalErrorHandler();
 
+    // First-time setup redirect: if Supabase is not configured and setup hasn't been done
+    try {
+      const { supabase: sb } = await import('$lib/supabase/client');
+      const setupDone = localStorage.getItem('libris_setup_done');
+      if (!sb && !setupDone && !page.url.pathname.startsWith('/setup')) {
+        const { goto: nav } = await import('$app/navigation');
+        nav((await import('$app/paths')).base + '/setup');
+        return;
+      }
+    } catch {}
+
     // Initialize Y.Doc with IndexedDB persistence
     try {
       await initDoc();

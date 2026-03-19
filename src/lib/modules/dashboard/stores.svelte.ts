@@ -1,8 +1,9 @@
 import type { DashboardState, DateRange } from './types';
-import { fetchTodayMetrics, fetchSalesTrend, fetchTopBooks, getDateRange } from './service';
+import { fetchTodayMetrics, fetchYesterdayMetrics, fetchSalesTrend, fetchTopBooks, getDateRange } from './service';
 
 let state = $state<DashboardState>({
   metrics: null,
+  yesterdayMetrics: null,
   salesTrend: [],
   topBooks: [],
   dateRange: '7d',
@@ -24,13 +25,14 @@ export async function loadDashboard(outletId: string): Promise<void> {
   try {
     const { start, end } = getDateRange(state.dateRange);
 
-    const [metrics, salesTrend, topBooks] = await Promise.all([
+    const [metrics, yesterdayMetrics, salesTrend, topBooks] = await Promise.all([
       fetchTodayMetrics(outletId),
+      fetchYesterdayMetrics(outletId),
       fetchSalesTrend(outletId, start, end),
       fetchTopBooks(outletId, start, end, 10),
     ]);
 
-    state = { ...state, metrics, salesTrend, topBooks, loading: false };
+    state = { ...state, metrics, yesterdayMetrics, salesTrend, topBooks, loading: false };
   } catch (err) {
     state = {
       ...state,

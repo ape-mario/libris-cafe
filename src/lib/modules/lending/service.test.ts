@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import type { CheckInParams, CheckOutParams } from './types';
+import type { CheckInParams, CheckOutParams, ReadingSession } from './types';
+import { calculateReadingFee } from './service';
 
 // Mock Supabase
 const mockSelect = vi.fn();
@@ -89,6 +90,47 @@ describe('Lending Service', () => {
     const diffMs = expectedReturn.getTime() - now;
     const diffMinutes = diffMs / (1000 * 60);
     expect(diffMinutes).toBeCloseTo(120, 0);
+  });
+
+  it('should calculate reading fee based on duration and hourly rate', () => {
+    // Session started 89 minutes ago (well within the 60-90 min range -> 1.5h)
+    const ago = new Date(Date.now() - 89 * 60 * 1000).toISOString();
+    const session = {
+      id: 'session-1',
+      checked_in_at: ago,
+    } as ReadingSession;
+
+    const result = calculateReadingFee(session, 10000);
+
+    expect(result.fee_rate).toBe(10000);
+    // 89min / 30min = 2.97, ceil = 3, /2 = 1.5h
+    expect(result.fee_hours).toBe(1.5);
+    expect(result.fee_amount).toBe(15000);
+  });
+
+  it('should round up reading fee to nearest half-hour', () => {
+    // Session started 31 minutes ago -> ceil(31/30)=ceil(1.03)=2 half-hours = 1 hour
+    const ago = new Date(Date.now() - (31 * 60 * 1000)).toISOString();
+    const session = {
+      id: 'session-2',
+      checked_in_at: ago,
+    } as ReadingSession;
+
+    const result = calculateReadingFee(session, 10000);
+
+    expect(result.fee_hours).toBe(1);
+    expect(result.fee_amount).toBe(10000);
+  });
+
+  it('should return zero fee when feePerHour is 0', () => {
+    const session = {
+      id: 'session-3',
+      checked_in_at: new Date(Date.now() - 60 * 60 * 1000).toISOString(),
+    } as ReadingSession;
+
+    const result = calculateReadingFee(session, 0);
+    expect(result.fee_amount).toBe(0);
+    expect(result.fee_hours).toBe(0);
   });
 
   it('should calculate average duration from completed sessions', () => {

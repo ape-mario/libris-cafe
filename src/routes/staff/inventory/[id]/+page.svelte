@@ -149,12 +149,20 @@
         </div>
       </div>
 
-      <button
-        class="w-full py-2.5 rounded-xl bg-accent/10 text-accent font-medium text-sm hover:bg-accent/20 transition-colors"
-        onclick={handleAdjustStock}
-      >
-        {t('inventory.adjust_stock')}
-      </button>
+      <div class="flex gap-2">
+        <button
+          class="flex-1 py-2.5 rounded-xl bg-accent/10 text-accent font-medium text-sm hover:bg-accent/20 transition-colors"
+          onclick={handleAdjustStock}
+        >
+          {t('inventory.adjust_stock')}
+        </button>
+        <button
+          class="flex-1 py-2.5 rounded-xl bg-warm-100 text-ink font-medium text-sm hover:bg-warm-200 transition-colors"
+          onclick={() => goto(`${base}/staff/inventory/${item.id}/edit`)}
+        >
+          {t('inventory.edit')}
+        </button>
+      </div>
     </div>
 
     <!-- Stock Movement History -->

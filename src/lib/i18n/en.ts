@@ -307,6 +307,19 @@ export default {
   'pos.read_only': 'This book is for reading in store only',
   'pos.max_stock': 'Max stock: {count}',
   'pos.item_added': '{title} added',
+  'pos.cash_tendered': 'Cash Tendered',
+  'pos.change': 'Change',
+  'pos.done': 'Done',
+  'pos.add_discount': 'Add Discount',
+  'pos.discount_amount': 'Discount Amount',
+  'pos.discount_percent': 'Discount Percent',
+  'pos.remove_discount': 'Remove',
+  'pos.void': 'Void Transaction',
+  'pos.void_confirm': 'Void this transaction?',
+  'pos.void_reason': 'Reason for voiding',
+  'pos.void_reason_placeholder': 'e.g. Customer requested refund, wrong item...',
+  'pos.voided': 'Voided',
+  'pos.void_success': 'Transaction voided successfully',
 
   // Inventory
   'inventory.title': 'Inventory',
@@ -341,6 +354,10 @@ export default {
   'inventory.adjusted': 'Stock adjusted',
   'inventory.adjust_failed': 'Failed to adjust stock',
   'inventory.no_movements': 'No movements yet',
+  'inventory.edit': 'Edit',
+  'inventory.save': 'Save',
+  'inventory.saved': 'Saved',
+  'inventory.min_stock': 'Min Stock',
 
   // Navigation (staff)
   'nav.pos': 'POS',
@@ -367,6 +384,8 @@ export default {
   'payment.cancelled': 'Payment cancelled',
   'payment.pending': 'Payment pending',
   'payment.retry': 'Retry Payment',
+  'payment.pending_banner': 'Payment pending',
+  'payment.cancel_pending': 'Cancel Payment',
   'payment.digital_disabled_offline': 'Digital payment unavailable offline. Use cash.',
 
   // Receipt
@@ -398,6 +417,10 @@ export default {
   'dashboard.sold': 'sold',
   'dashboard.payment_breakdown': 'By Payment Method',
   'dashboard.refresh': 'Refresh',
+  'dashboard.vs_yesterday': 'vs yesterday',
+  'dashboard.up': 'up',
+  'dashboard.down': 'down',
+  'dashboard.same': 'same as yesterday',
 
   // Browse (pelanggan)
   'browse.available': 'Available',
@@ -575,6 +598,11 @@ export default {
   'lending.overdueNotes': 'Reason for late return...',
   'lending.overdueCount': '{count} overdue session(s)',
   'lending.tapToReturn': 'Tap to return',
+  'lending.fee': 'Reading Fee',
+  'lending.fee_per_hour': 'Fee per Hour',
+  'lending.charge_fee': 'Charge to POS',
+  'lending.fee_waived': 'Fee Waived',
+  'lending.fee_calculated': 'Reading fee: {amount} ({hours}h \u00d7 {rate}/hr)',
 
   // Phase 4: Kiosk
   'kiosk.welcome': 'Touch to browse our collection',
@@ -713,6 +741,49 @@ export default {
   // Nav (Phase 5)
   'nav.outlets': 'Outlets',
   'nav.transfers': 'Transfers',
+
+  // Staff Management
+  'staff.title': 'Staff',
+  'staff.create': 'Add Staff',
+  'staff.name': 'Name',
+  'staff.email': 'Email',
+  'staff.pin': 'PIN',
+  'staff.pin_invalid': 'PIN must be 4-6 digits',
+  'staff.role': 'Role',
+  'staff.role_staff': 'Staff',
+  'staff.role_owner': 'Owner',
+  'staff.outlet': 'Outlet',
+  'staff.deactivate': 'Deactivate',
+  'staff.deactivate_confirm': 'Deactivate {name}?',
+  'staff.deactivated': 'Staff deactivated',
+  'staff.reset_pin': 'Reset PIN',
+  'staff.created': 'Staff account created',
+  'staff.no_staff': 'No staff yet',
+  'staff.show_inactive': 'Show inactive',
+  'staff.inactive': 'Inactive',
+  'staff.manage_desc': 'Create and manage staff accounts',
+
+  // Setup Wizard
+  'setup.welcome': 'Welcome to Libris Cafe',
+  'setup.welcome_desc': "Let's get your bookstore cafe set up in just a few minutes.",
+  'setup.choose_language': 'Choose your language',
+  'setup.connect_db': 'Connect Database',
+  'setup.connect_db_desc': 'Enter your Supabase project credentials to connect your database.',
+  'setup.supabase_url': 'Supabase URL',
+  'setup.anon_key': 'Anon Key',
+  'setup.test_connection': 'Test Connection',
+  'setup.testing': 'Testing...',
+  'setup.connection_success': 'Connection successful!',
+  'setup.connection_failed': 'Could not connect to database',
+  'setup.next': 'Next',
+  'setup.create_owner': 'Create Owner Account',
+  'setup.create_owner_desc': 'This will be the main account for managing your cafe.',
+  'setup.owner_name_placeholder': 'Your name',
+  'setup.create_account': 'Create Account',
+  'setup.staff_exists': 'Staff accounts already exist. Setup has been completed before.',
+  'setup.complete': 'Setup Complete!',
+  'setup.complete_desc': 'Your Libris Cafe is ready. Log in with the account you just created.',
+  'setup.go_login': 'Go to Login',
 
   // Backup
   'backup.title': 'Data Backup',

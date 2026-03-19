@@ -30,6 +30,7 @@ export type DateRange = '7d' | '30d' | '12m';
 
 export interface DashboardState {
   metrics: TodayMetrics | null;
+  yesterdayMetrics: TodayMetrics | null;
   salesTrend: SalesTrendPoint[];
   topBooks: TopBook[];
   dateRange: DateRange;
