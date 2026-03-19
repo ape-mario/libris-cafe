@@ -15,11 +15,11 @@ Sistem manajemen toko buku kafe — kelola inventori buku (dijual, baca di tempa
 - [x] Login page, staff layout, conditional navigation
 - [x] i18n bilingual (EN/ID)
 
-### Phase 2: Payments & Visibility — Planned
-- [ ] Integrasi Midtrans (QRIS, eWallet, kartu, VA)
-- [ ] Digital receipt (WhatsApp + email)
-- [ ] Dashboard owner + staff
-- [ ] Pelanggan browse (availability badges, harga)
+### Phase 2: Payments & Visibility — Done
+- [x] Integrasi Midtrans (QRIS, eWallet, kartu, VA)
+- [x] Digital receipt (WhatsApp + email)
+- [x] Dashboard owner + staff
+- [x] Pelanggan browse (availability badges, harga)
 
 ### Phase 3: Supply Chain & Consignment — Planned
 - [ ] Manajemen supplier + purchase orders
