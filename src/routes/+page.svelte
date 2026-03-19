@@ -288,7 +288,10 @@
     {/if}
     <div class="flex flex-wrap gap-x-4 gap-y-6">
       {#each visibleBooks as book, i}
-        <div style="animation-delay: {Math.min(i * 40, 400)}ms" class="animate-fade-up">
+        <div
+          style={i < 20 ? `animation-delay: ${Math.min(i * 40, 400)}ms` : ''}
+          class={i < 20 ? 'animate-fade-up' : ''}
+        >
           <BookCard {book} onclick={() => goto(`${base}/book/${book.id}`)} />
         </div>
       {/each}

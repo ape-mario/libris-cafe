@@ -18,7 +18,7 @@
 </script>
 
 <button
-  class="group flex flex-col gap-2.5 w-[7.5rem] text-left"
+  class="book-card group flex flex-col gap-2.5 w-[7.5rem] text-left"
   {onclick}
 >
   <div class="relative w-[7.5rem] h-[10.5rem] rounded-lg overflow-hidden book-cover-shadow transition-all duration-300 flex-shrink-0 bg-warm-100">
@@ -41,3 +41,10 @@
     <p class="text-[10px] text-ink-muted truncate mt-0.5">{book.authors.join(', ')}</p>
   </div>
 </button>
+
+<style>
+  .book-card {
+    content-visibility: auto;
+    contain-intrinsic-size: 7.5rem 13rem;
+  }
+</style>

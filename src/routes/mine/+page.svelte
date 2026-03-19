@@ -109,7 +109,7 @@
     {:else}
       <div class="flex flex-wrap gap-x-4 gap-y-6">
         {#each books as item, i}
-          <div style="animation-delay: {i * 40}ms" class="animate-fade-up">
+          <div style={i < 20 ? `animation-delay: ${i * 40}ms` : ''} class={i < 20 ? 'animate-fade-up' : ''}>
             <BookCard book={item.book} onclick={() => goto(`${base}/book/${item.bookId}`)} />
           </div>
         {/each}
