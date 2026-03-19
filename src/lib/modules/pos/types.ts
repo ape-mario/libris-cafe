@@ -1,5 +1,6 @@
 import type { Inventory } from '../inventory/types';
 import type { Book } from '$lib/db';
+import type { PaymentMethod } from '$lib/modules/payment/types';
 
 export interface CartItem {
   inventory: Inventory;
@@ -19,11 +20,9 @@ export interface Cart {
   total: number;
 }
 
-export type PaymentMethodType = 'cash' | 'qris' | 'ewallet' | 'bank_transfer' | 'card';
-
 export interface CheckoutRequest {
   cart: Cart;
-  paymentMethod: PaymentMethodType;
+  paymentMethod: PaymentMethod;
   staffId: string;
   outletId: string;
   customerName?: string;

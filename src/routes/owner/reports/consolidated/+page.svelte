@@ -145,6 +145,8 @@
                 <td class="py-2 px-2 text-right">{row.total_items_sold}</td>
                 <td class="py-2 px-2 text-right">{formatRupiah(row.avg_transaction_value)}</td>
               </tr>
+            {:else}
+              <tr><td colspan="5" class="py-6 text-center text-sm text-warm-400">No sales data</td></tr>
             {/each}
           </tbody>
         </table>
@@ -172,6 +174,8 @@
                 <td class="py-2 px-2 text-right">{row.total_stock}</td>
                 <td class="py-2 px-2 text-right">{formatRupiah(row.total_stock_value)}</td>
               </tr>
+            {:else}
+              <tr><td colspan="4" class="py-6 text-center text-sm text-warm-400">No inventory data</td></tr>
             {/each}
           </tbody>
         </table>

@@ -1,6 +1,7 @@
 import { getSupabase } from '$lib/supabase/client';
 import type {
   Consignor, NewConsignor, ConsignmentSettlement, SettlementStatus,
+  CreateSettlementInput,
 } from './types';
 
 // --- Consignor CRUD ---
@@ -68,16 +69,6 @@ export async function deactivateConsignor(id: string): Promise<void> {
 }
 
 // --- Settlement ---
-
-export interface CreateSettlementInput {
-  consignorId: string;
-  periodStart: string;
-  periodEnd: string;
-  totalSales: number;
-  commissionRate: number;
-  staffId: string;
-  notes?: string;
-}
 
 export async function createSettlement(input: CreateSettlementInput): Promise<ConsignmentSettlement> {
   const commission = Math.round(input.totalSales * (input.commissionRate / 100));
@@ -165,6 +156,6 @@ export async function getUnsettledTotal(): Promise<number> {
     .select('payout')
     .in('status', ['draft', 'confirmed']);
 
-  if (error) return 0;
+  if (error) throw new Error(`Failed to fetch unsettled total: ${error.message}`);
   return (data ?? []).reduce((sum: number, s: any) => sum + (s.payout ?? 0), 0);
 }

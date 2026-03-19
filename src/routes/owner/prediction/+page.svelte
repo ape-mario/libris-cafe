@@ -31,6 +31,10 @@
     </button>
   </div>
 
+  {#if prediction.error}
+    <div class="py-8 text-center text-sm text-berry">{prediction.error}</div>
+  {/if}
+
   <!-- Summary cards -->
   {#if prediction.summary}
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">

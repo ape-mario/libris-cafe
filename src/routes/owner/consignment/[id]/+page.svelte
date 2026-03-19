@@ -27,7 +27,7 @@
   let loadingSales = $state(false);
 
   const consignorId = page.params.id;
-  const staff = getCurrentStaff();
+  let staff = $derived(getCurrentStaff());
 
   onMount(async () => {
     try {
@@ -134,7 +134,7 @@
 </script>
 
 {#if loading}
-  <div class="py-8 text-center text-sm text-ink-muted">Loading...</div>
+  <div class="py-8 text-center text-sm text-ink-muted">{t('common.loading')}</div>
 {:else if !consignor}
   <div class="py-8 text-center text-sm text-ink-muted">Consignor not found</div>
 {:else}
@@ -192,7 +192,7 @@
 
         <button onclick={previewSales} disabled={loadingSales || !periodStart || !periodEnd}
           class="w-full py-2 rounded-lg bg-warm-100 text-ink text-sm font-medium disabled:opacity-50">
-          {loadingSales ? 'Loading...' : 'Preview Sales'}
+          {loadingSales ? t('common.loading') : 'Preview Sales'}
         </button>
 
         {#if salesPreview.length > 0}

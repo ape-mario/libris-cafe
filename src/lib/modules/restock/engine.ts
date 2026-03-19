@@ -1,4 +1,6 @@
 import type { RestockInput, RestockSuggestion, RestockUrgency } from './types';
+import { getSupabase } from '$lib/supabase/client';
+import { getBookById } from '$lib/services/books';
 
 /** Buffer multiplier: order enough for lead_time + 50% extra */
 const BUFFER_MULTIPLIER = 1.5;
@@ -86,7 +88,6 @@ export function generateRestockSuggestions(inputs: RestockInput[]): RestockSugge
 export async function fetchSalesData(
   outletId: string
 ): Promise<Map<string, number>> {
-  const { getSupabase } = await import('$lib/supabase/client');
   const supabase = getSupabase();
 
   const thirtyDaysAgo = new Date();
@@ -101,11 +102,12 @@ export async function fetchSalesData(
     `)
     .eq('transaction.outlet_id', outletId)
     .eq('transaction.payment_status', 'paid')
-    .gte('transaction.created_at', thirtyDaysAgo.toISOString());
+    .gte('transaction.created_at', thirtyDaysAgo.toISOString())
+    // TODO: For production scale, replace with a query against mv_sales_velocity
+    .limit(10000);
 
   if (error) {
-    console.error('Failed to fetch sales data:', error);
-    return new Map();
+    throw new Error(`Failed to fetch sales data: ${error.message}`);
   }
 
   const salesMap = new Map<string, number>();
@@ -121,8 +123,6 @@ export async function fetchSalesData(
  * Full pipeline: fetch inventory + sales data, generate suggestions.
  */
 export async function getRestockSuggestions(outletId: string): Promise<RestockSuggestion[]> {
-  const { getSupabase } = await import('$lib/supabase/client');
-  const { getBookById } = await import('$lib/services/books');
   const supabase = getSupabase();
 
   // Fetch inventory with supplier info

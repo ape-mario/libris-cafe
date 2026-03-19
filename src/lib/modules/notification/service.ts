@@ -89,9 +89,10 @@ export async function broadcastNotification(
   if (role !== 'all') query = query.eq('role', role);
 
   const { data: staffList, error } = await query;
-  if (error || !staffList) return;
+  if (error) throw new Error(`Failed to fetch staff for broadcast: ${error.message}`);
+  if (!staffList || staffList.length === 0) return;
 
-  const notifications = staffList.map((s: any) => ({
+  const notifications = staffList.map((s: { id: string }) => ({
     outlet_id: outletId,
     recipient_id: s.id,
     type: notification.type,
@@ -101,6 +102,7 @@ export async function broadcastNotification(
   }));
 
   if (notifications.length > 0) {
-    await supabase.from('notification').insert(notifications);
+    const { error: insertError } = await supabase.from('notification').insert(notifications);
+    if (insertError) throw new Error(`Failed to broadcast notifications: ${insertError.message}`);
   }
 }

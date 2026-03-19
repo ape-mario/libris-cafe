@@ -64,7 +64,7 @@
 </script>
 
 {#if loading}
-  <div class="py-8 text-center text-sm text-ink-muted">Loading...</div>
+  <div class="py-8 text-center text-sm text-ink-muted">{t('common.loading')}</div>
 {:else if !supplier}
   <div class="py-8 text-center text-sm text-ink-muted">Supplier not found</div>
 {:else}

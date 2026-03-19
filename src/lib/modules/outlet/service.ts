@@ -1,5 +1,6 @@
 import { getSupabase } from '$lib/supabase/client';
 import type { Outlet } from './types';
+import type { Staff } from '$lib/modules/auth/types';
 
 // -- Outlet CRUD ------------------------------------------------------
 
@@ -70,20 +71,24 @@ export async function updateOutlet(
 export async function deleteOutlet(id: string): Promise<void> {
   const supabase = getSupabase();
 
-  // Safety check: ensure no inventory or transactions reference this outlet
-  const { count: invCount } = await supabase
-    .from('inventory')
-    .select('id', { count: 'exact', head: true })
-    .eq('outlet_id', id);
+  // Safety check: ensure no inventory or transactions reference this outlet.
+  // NOTE: TOCTOU race — rows could be inserted between these checks and the
+  // DELETE below. Postgres FK constraints will reject the delete if that happens,
+  // so the worst case is a less-specific error message, not data corruption.
+  const [{ count: invCount }, { count: txCount }] = await Promise.all([
+    supabase
+      .from('inventory')
+      .select('id', { count: 'exact', head: true })
+      .eq('outlet_id', id),
+    supabase
+      .from('transaction')
+      .select('id', { count: 'exact', head: true })
+      .eq('outlet_id', id),
+  ]);
 
   if (invCount && invCount > 0) {
     throw new Error('Cannot delete outlet with existing inventory. Transfer or remove inventory first.');
   }
-
-  const { count: txCount } = await supabase
-    .from('transaction')
-    .select('id', { count: 'exact', head: true })
-    .eq('outlet_id', id);
 
   if (txCount && txCount > 0) {
     throw new Error('Cannot delete outlet with transaction history. Archive the outlet instead.');
@@ -99,11 +104,11 @@ export async function deleteOutlet(id: string): Promise<void> {
 
 // -- Staff Assignment -------------------------------------------------
 
-export async function fetchStaffByOutlet(outletId: string): Promise<any[]> {
+export async function fetchStaffByOutlet(outletId: string): Promise<Staff[]> {
   const supabase = getSupabase();
   const { data, error } = await supabase
     .from('staff')
-    .select('*')
+    .select('id, name, email, role, outlet_id, is_active, created_at')
     .eq('outlet_id', outletId)
     .eq('is_active', true)
     .order('name');
@@ -122,7 +127,7 @@ export async function reassignStaff(staffId: string, newOutletId: string): Promi
   if (error) throw new Error(`Failed to reassign staff: ${error.message}`);
 }
 
-export async function fetchAllStaffGroupedByOutlet(): Promise<Map<string, any[]>> {
+export async function fetchAllStaffGroupedByOutlet(): Promise<Map<string, Staff[]>> {
   const supabase = getSupabase();
   const { data, error } = await supabase
     .from('staff')
@@ -132,7 +137,7 @@ export async function fetchAllStaffGroupedByOutlet(): Promise<Map<string, any[]>
 
   if (error) throw new Error(`Failed to fetch all staff: ${error.message}`);
 
-  const grouped = new Map<string, any[]>();
+  const grouped = new Map<string, Staff[]>();
   for (const s of data ?? []) {
     const outletId = s.outlet_id ?? 'unassigned';
     if (!grouped.has(outletId)) grouped.set(outletId, []);

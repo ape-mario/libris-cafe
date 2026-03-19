@@ -7,11 +7,14 @@
 
   let suppliers = $state<Supplier[]>([]);
   let loading = $state(true);
+  let error = $state('');
   let showInactive = $state(false);
 
   onMount(async () => {
     try {
       suppliers = await getSuppliers(!showInactive);
+    } catch (err) {
+      error = err instanceof Error ? err.message : 'Load failed';
     } finally {
       loading = false;
     }
@@ -44,7 +47,9 @@
   </label>
 
   {#if loading}
-    <div class="py-8 text-center text-sm text-ink-muted">Loading...</div>
+    <div class="py-8 text-center text-sm text-ink-muted">{t('common.loading')}</div>
+  {:else if error}
+    <div class="py-8 text-center text-sm text-berry">{error}</div>
   {:else if suppliers.length === 0}
     <div class="py-8 text-center text-sm text-ink-muted">{t('supplier.no_suppliers')}</div>
   {:else}

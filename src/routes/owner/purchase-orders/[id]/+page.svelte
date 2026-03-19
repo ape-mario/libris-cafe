@@ -20,7 +20,7 @@
   let receivedQtys = $state<Record<string, number>>({});
 
   const poId = page.params.id;
-  const staff = getCurrentStaff();
+  let staff = $derived(getCurrentStaff());
 
   onMount(async () => {
     try {
@@ -157,7 +157,7 @@
 </script>
 
 {#if loading}
-  <div class="py-8 text-center text-sm text-ink-muted">Loading...</div>
+  <div class="py-8 text-center text-sm text-ink-muted">{t('common.loading')}</div>
 {:else if !po}
   <div class="py-8 text-center text-sm text-ink-muted">Purchase order not found</div>
 {:else}

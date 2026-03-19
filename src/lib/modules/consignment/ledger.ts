@@ -30,7 +30,8 @@ export async function getConsignmentSales(
     .eq('inventory.consignor_id', consignorId)
     .eq('transaction.payment_status', 'paid')
     .gte('transaction.created_at', periodStart)
-    .lte('transaction.created_at', `${periodEnd}T23:59:59Z`);
+    .lte('transaction.created_at', `${periodEnd}T23:59:59Z`)
+    .limit(5000);
 
   if (error) throw new Error(`Failed to fetch consignment sales: ${error.message}`);
 

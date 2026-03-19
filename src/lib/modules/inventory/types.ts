@@ -4,7 +4,8 @@ export type BookCondition = 'new' | 'good' | 'fair';
 export type StockMovementType =
   | 'purchase_in' | 'sale_out' | 'return_in' | 'return_out'
   | 'adjustment' | 'void_restore' | 'consignment_in'
-  | 'consignment_return' | 'buyback_in';
+  | 'consignment_return' | 'buyback_in'
+  | 'transfer_out' | 'transfer_in';
 
 export interface Inventory {
   id: string;

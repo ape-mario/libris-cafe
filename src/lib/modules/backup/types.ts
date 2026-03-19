@@ -29,4 +29,4 @@ export interface BackupData {
   };
 }
 
-export type ExportFormat = 'json' | 'sql';
+export type BackupFormat = 'json' | 'sql';

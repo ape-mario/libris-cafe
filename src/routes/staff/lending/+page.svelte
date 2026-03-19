@@ -4,6 +4,7 @@
   import { getLendingStore } from '$lib/modules/lending/stores.svelte';
   import { checkIn, checkOut } from '$lib/modules/lending/service';
   import { getCurrentStaff } from '$lib/modules/auth/stores.svelte';
+  import { showToast } from '$lib/stores/toast.svelte';
   import CheckInDialog from '$lib/components/lending/CheckInDialog.svelte';
   import CheckOutDialog from '$lib/components/lending/CheckOutDialog.svelte';
   import SessionCard from '$lib/components/lending/SessionCard.svelte';
@@ -27,18 +28,26 @@
   });
 
   async function handleCheckIn(params: Omit<CheckInParams, 'outlet_id' | 'staff_id'>) {
-    await checkIn({ ...params, outlet_id: outletId, staff_id: staffId });
-    showCheckIn = false;
-    await lending.refreshSessions(outletId);
-    await lending.refreshStats(outletId);
+    try {
+      await checkIn({ ...params, outlet_id: outletId, staff_id: staffId });
+      showCheckIn = false;
+      await lending.refreshSessions(outletId);
+      await lending.refreshStats(outletId);
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Check-in failed', 'error');
+    }
   }
 
   async function handleCheckOut(params: Omit<CheckOutParams, 'staff_id'>) {
-    await checkOut({ ...params, staff_id: staffId });
-    showCheckOut = false;
-    selectedSession = null;
-    await lending.refreshSessions(outletId);
-    await lending.refreshStats(outletId);
+    try {
+      await checkOut({ ...params, staff_id: staffId });
+      showCheckOut = false;
+      selectedSession = null;
+      await lending.refreshSessions(outletId);
+      await lending.refreshStats(outletId);
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Check-out failed', 'error');
+    }
   }
 
   function openCheckOut(session: SessionWithBook) {
