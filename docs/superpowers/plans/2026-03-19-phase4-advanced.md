@@ -3876,9 +3876,9 @@ Create `src/routes/staff/lending/+page.svelte`:
   let showCheckOut = $state(false);
   let selectedSession = $state<ReadingSession | null>(null);
 
-  // TODO: get from auth store
-  const outletId = 'current-outlet-id';
-  const staffId = 'current-staff-id';
+  const staff = getCurrentStaff();
+  const outletId = staff?.outlet_id ?? '';
+  const staffId = staff?.id ?? '';
 
   onMount(async () => {
     await lending.refreshSessions(outletId);
@@ -4049,8 +4049,16 @@ Create `src/lib/components/lending/CheckInDialog.svelte`:
         bind:value={bookSearch}
         class="w-full mt-1 px-3 py-2 rounded-lg border border-base-300 bg-base-200 text-sm"
       />
-      <!-- TODO: integrate with Yjs book search + inventory lookup -->
-      <p class="text-xs text-base-content/50 mt-1">{t('lending.scanOrSearch')}</p>
+      {#if bookSearch.length >= 2}
+        <div class="mt-1 bg-surface rounded-lg border border-warm-100 max-h-40 overflow-y-auto">
+          {#each searchBooks(bookSearch).slice(0, 10) as book}
+            <button class="w-full px-3 py-2 text-left text-sm hover:bg-warm-50" onclick={() => { selectedBookId = book.id; bookSearch = book.title; }}>
+              {book.title} — {book.authors.join(', ')}
+            </button>
+          {/each}
+        </div>
+      {/if}
+      <p class="text-xs text-ink-muted mt-1">{t('lending.scanOrSearch')}</p>
     </div>
 
     <!-- Level selection -->
@@ -4414,8 +4422,8 @@ Create `src/lib/components/reports/ReportBuilder.svelte`:
   let dateFrom = $state(new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]);
   let dateTo = $state(new Date().toISOString().split('T')[0]);
 
-  // TODO: get from auth store
-  const outletId = 'current-outlet-id';
+  const staff = getCurrentStaff();
+  const outletId = staff?.outlet_id ?? '';
 
   const reportTypes = Object.entries(REPORT_SCHEMAS).map(([key, schema]) => ({
     value: key as ReportType,
@@ -4554,8 +4562,8 @@ Create `src/routes/owner/prediction/+page.svelte`:
 
   const prediction = getPredictionStore();
 
-  // TODO: get from auth store
-  const outletId = 'current-outlet-id';
+  const staff = getCurrentStaff();
+  const outletId = staff?.outlet_id ?? '';
   let leadTimeDays = $state(7);
 
   onMount(() => {
