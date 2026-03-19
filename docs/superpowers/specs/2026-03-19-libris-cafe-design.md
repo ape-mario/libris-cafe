@@ -592,3 +592,35 @@ supabase/
 3. **Phase gates**: Feature flags per module. Later-phase features can be hidden.
 4. **Existing code preserved**: Yjs layer, components, design system, i18n, PWA — all kept. Extend, don't replace.
 5. **Clear data ownership**: Yjs owns book metadata. Supabase owns business data. Never duplicate ownership.
+
+---
+
+## 12. Implementation Notes
+
+Clarifications from spec review to guide planning:
+
+### RLS (Row Level Security) Strategy
+- All business tables scoped by `outlet_id` (future multi-outlet isolation)
+- Staff can only read/write data for their assigned outlet
+- Owner can read/write all outlets
+- Guest (pelanggan) has no Supabase access — browse is Yjs-only
+- `inventory` read access for authenticated staff only (prices, stock detail)
+
+### Tax Handling
+- Indonesian PPN (Pajak Pertambahan Nilai) 11% — configurable in outlet settings
+- Applied per-transaction (not per-item)
+- `outlet.tax_rate decimal(5,2) DEFAULT 11.00` — new field on outlet table
+- POS shows subtotal + tax + total breakdown
+- Tax can be set to 0 for cafes not registered as PKP
+
+### WhatsApp Provider
+- Start with **Fonnte** (simpler API, cheaper, widely used by Indonesian UMKM)
+- Abstract `MessagingProvider` interface from day one
+- API key stored in Supabase secrets (not in client code)
+
+### Midtrans Environment
+- Use Midtrans **Sandbox** for all development and testing
+- API keys (server key, client key) stored as Supabase secrets
+- Edge Functions access via `Deno.env.get('MIDTRANS_SERVER_KEY')`
+- Toggle sandbox/production via environment variable `MIDTRANS_IS_PRODUCTION`
+- Snap.js loaded from sandbox URL in dev, production URL in prod
