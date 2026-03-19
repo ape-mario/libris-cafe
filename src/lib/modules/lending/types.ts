@@ -45,6 +45,14 @@ export interface CheckOutParams {
   staff_id: string;
   refund_deposit: boolean;
   notes?: string;
+  fee_amount?: number;
+}
+
+export interface CheckOutResult {
+  session: ReadingSession;
+  fee_amount: number;
+  fee_hours: number;
+  fee_rate: number;
 }
 
 export interface SessionWithBook extends ReadingSession {

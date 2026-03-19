@@ -3,6 +3,7 @@ import type {
   ReadingSession,
   CheckInParams,
   CheckOutParams,
+  CheckOutResult,
   LendingStats,
   SessionStatus,
 } from './types';
@@ -49,10 +50,48 @@ export async function checkIn(params: CheckInParams): Promise<ReadingSession> {
 }
 
 /**
- * Check out (return) a book from a reading session.
+ * Calculate reading fee based on session duration and hourly rate.
+ * Returns { fee_amount, fee_hours, fee_rate }.
  */
-export async function checkOut(params: CheckOutParams): Promise<ReadingSession> {
+export function calculateReadingFee(
+  session: ReadingSession,
+  feePerHour: number
+): { fee_amount: number; fee_hours: number; fee_rate: number } {
+  if (feePerHour <= 0 || !session.checked_in_at) {
+    return { fee_amount: 0, fee_hours: 0, fee_rate: feePerHour };
+  }
+
+  const checkedInAt = new Date(session.checked_in_at).getTime();
+  const now = Date.now();
+  const durationMs = now - checkedInAt;
+  // Round up to nearest half-hour
+  const hours = Math.ceil((durationMs / (1000 * 60 * 30))) / 2;
+  const fee_amount = Math.round(hours * feePerHour);
+
+  return { fee_amount, fee_hours: hours, fee_rate: feePerHour };
+}
+
+/**
+ * Check out (return) a book from a reading session.
+ * If feePerHour is provided, calculates a reading fee based on session duration.
+ */
+export async function checkOut(
+  params: CheckOutParams,
+  feePerHour: number = 0
+): Promise<CheckOutResult> {
   const supabase = getSupabase();
+
+  // First, fetch the session to calculate fee
+  const { data: sessionData, error: fetchError } = await supabase
+    .from('reading_session')
+    .select()
+    .eq('id', params.session_id)
+    .single();
+
+  if (fetchError) throw new Error(`Check-out failed: ${fetchError.message}`);
+
+  const session = sessionData as ReadingSession;
+  const { fee_amount, fee_hours, fee_rate } = calculateReadingFee(session, feePerHour);
 
   const updates: Record<string, unknown> = {
     status: 'returned',
@@ -78,7 +117,13 @@ export async function checkOut(params: CheckOutParams): Promise<ReadingSession> 
     .single();
 
   if (error) throw new Error(`Check-out failed: ${error.message}`);
-  return data as ReadingSession;
+
+  return {
+    session: data as ReadingSession,
+    fee_amount: params.fee_amount ?? fee_amount,
+    fee_hours,
+    fee_rate,
+  };
 }
 
 /**
