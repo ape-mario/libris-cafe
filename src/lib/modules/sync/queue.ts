@@ -1,7 +1,7 @@
 export interface QueueEntry {
   id: string;
   type: 'transaction' | 'stock_adjustment';
-  payload: any;
+  payload: Record<string, unknown>;
   status: 'pending' | 'syncing' | 'synced' | 'failed';
   retries: number;
   error: string | null;
@@ -35,7 +35,11 @@ export class OfflineQueue {
     });
   }
 
-  async enqueue(type: QueueEntry['type'], payload: any): Promise<string> {
+  async enqueue(type: QueueEntry['type'], payload: Record<string, unknown>): Promise<string> {
+    const count = await this.getCount();
+    if (count >= OfflineQueue.MAX_QUEUE_SIZE) {
+      throw new Error(`Offline queue is full (${OfflineQueue.MAX_QUEUE_SIZE} items). Please connect to internet to sync.`);
+    }
     const db = await this.open();
     const entry: QueueEntry = {
       id: crypto.randomUUID(),

@@ -136,7 +136,7 @@
 </script>
 
 <div class="p-4 max-w-3xl mx-auto">
-  <a href="{base}/owner/transfers" class="text-sm text-warm-400 hover:text-warm-600 mb-4 inline-block">
+  <a href="{base}/owner/transfers" class="text-sm text-warm-400 hover:text-ink-light mb-4 inline-block">
     &larr; {t('transfer.title')}
   </a>
 
@@ -149,10 +149,10 @@
     <div class="flex items-center justify-between mb-6">
       <div>
         <div class="flex items-center gap-3 mb-1">
-          <h1 class="text-2xl font-bold text-warm-800">Transfer</h1>
+          <h1 class="text-2xl font-bold text-ink">Transfer</h1>
           <TransferStatusBadge status={transfer.status} />
         </div>
-        <div class="text-sm text-warm-500">
+        <div class="text-sm text-ink-muted">
           {transfer.from_outlet?.name ?? '—'}
           &rarr;
           {transfer.to_outlet?.name ?? '—'}
@@ -161,27 +161,27 @@
     </div>
 
     <!-- Timeline -->
-    <div class="bg-white rounded-xl border border-warm-200 p-4 mb-4">
+    <div class="bg-surface rounded-xl border border-warm-200 p-4 mb-4">
       <div class="space-y-3 text-sm">
         <div class="flex justify-between">
-          <span class="text-warm-500">{t('transfer.requested_at')}</span>
+          <span class="text-ink-muted">{t('transfer.requested_at')}</span>
           <span class="text-warm-700">{formatDateTime(transfer.requested_at)}</span>
         </div>
         {#if transfer.approved_at}
           <div class="flex justify-between">
-            <span class="text-warm-500">{t('transfer.approved_at')}</span>
+            <span class="text-ink-muted">{t('transfer.approved_at')}</span>
             <span class="text-warm-700">{formatDateTime(transfer.approved_at)}</span>
           </div>
         {/if}
         {#if transfer.shipped_at}
           <div class="flex justify-between">
-            <span class="text-warm-500">{t('transfer.shipped_at')}</span>
+            <span class="text-ink-muted">{t('transfer.shipped_at')}</span>
             <span class="text-warm-700">{formatDateTime(transfer.shipped_at)}</span>
           </div>
         {/if}
         {#if transfer.received_at}
           <div class="flex justify-between">
-            <span class="text-warm-500">{t('transfer.received_at')}</span>
+            <span class="text-ink-muted">{t('transfer.received_at')}</span>
             <span class="text-warm-700">{formatDateTime(transfer.received_at)}</span>
           </div>
         {/if}
@@ -193,7 +193,7 @@
         {/if}
         {#if transfer.notes}
           <div class="flex justify-between">
-            <span class="text-warm-500">{t('transfer.notes')}</span>
+            <span class="text-ink-muted">{t('transfer.notes')}</span>
             <span class="text-warm-700">{transfer.notes}</span>
           </div>
         {/if}
@@ -201,8 +201,8 @@
     </div>
 
     <!-- Items -->
-    <div class="bg-white rounded-xl border border-warm-200 p-4 mb-4">
-      <h2 class="font-semibold text-warm-800 mb-3">{t('transfer.items')}</h2>
+    <div class="bg-surface rounded-xl border border-warm-200 p-4 mb-4">
+      <h2 class="font-semibold text-ink mb-3">{t('transfer.items')}</h2>
       <div class="space-y-2">
         {#each transfer.items ?? [] as item (item.id)}
           <div class="flex items-center gap-3 py-2 border-b border-warm-100 last:border-0">
@@ -255,8 +255,8 @@
         {#if nextStatuses.includes('approved')}
           <button
             disabled={acting}
-            class="px-4 py-2 bg-sky-500 text-white rounded-lg font-medium
-                   hover:bg-sky-600 transition-colors disabled:opacity-50"
+            class="px-4 py-2 bg-accent text-white rounded-lg font-medium
+                   hover:bg-accent/80 transition-colors disabled:opacity-50"
             onclick={handleApprove}
           >
             {t('transfer.approve')}
@@ -294,8 +294,8 @@
               />
               <button
                 disabled={acting || !cancelReason.trim()}
-                class="px-4 py-2 bg-red-500 text-white rounded-lg font-medium
-                       hover:bg-red-600 transition-colors disabled:opacity-50"
+                class="px-4 py-2 bg-berry text-white rounded-lg font-medium
+                       hover:bg-berry/80 transition-colors disabled:opacity-50"
                 onclick={handleCancel}
               >
                 {t('transfer.cancel')}
@@ -303,7 +303,7 @@
             </div>
           {:else}
             <button
-              class="px-4 py-2 bg-warm-100 text-warm-600 rounded-lg font-medium
+              class="px-4 py-2 bg-warm-100 text-ink-light rounded-lg font-medium
                      hover:bg-warm-200 transition-colors"
               onclick={() => { showCancelForm = true; }}
             >

@@ -102,7 +102,14 @@ export async function checkout(request: CheckoutRequest): Promise<CheckoutResult
     } catch (err) {
       // For digital payments, don't fall back to offline — throw
       if (isDigital) throw err;
-      // For cash, fall through to offline queue
+
+      // For stock errors, don't queue — the transaction is genuinely invalid
+      const msg = err instanceof Error ? err.message : String(err);
+      if (msg.includes('Insufficient stock') || msg.includes('stock')) {
+        throw new Error(msg);
+      }
+
+      // For network errors only, fall through to offline queue
     }
   }
 

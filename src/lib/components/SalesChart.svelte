@@ -1,9 +1,7 @@
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte';
-  import { Chart, registerables } from 'chart.js';
+  import type { Chart as ChartType } from 'chart.js';
   import type { SalesTrendPoint } from '$lib/modules/dashboard/types';
-
-  Chart.register(...registerables);
 
   interface Props {
     data: SalesTrendPoint[];
@@ -12,18 +10,19 @@
   let { data }: Props = $props();
 
   let canvas: HTMLCanvasElement;
-  let chart: Chart | null = null;
+  let chart: ChartType | null = null;
+  let ChartCtor: typeof ChartType | null = null;
 
   function buildChart() {
     if (chart) chart.destroy();
-    if (!canvas || data.length === 0) return;
+    if (!canvas || !ChartCtor || data.length === 0) return;
 
     const labels = data.map(d => {
       const date = new Date(d.date);
       return date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
     });
 
-    chart = new Chart(canvas, {
+    chart = new ChartCtor(canvas, {
       type: 'line',
       data: {
         labels,
@@ -71,7 +70,10 @@
     });
   }
 
-  onMount(() => {
+  onMount(async () => {
+    const { Chart, registerables } = await import('chart.js');
+    Chart.register(...registerables);
+    ChartCtor = Chart;
     buildChart();
   });
 

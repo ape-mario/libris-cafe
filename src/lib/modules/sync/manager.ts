@@ -1,5 +1,6 @@
 import { OfflineQueue } from './queue';
 import { getSupabase } from '$lib/supabase/client';
+import type { SupabaseClient } from '@supabase/supabase-js';
 
 const queue = new OfflineQueue();
 let isOnline = typeof navigator !== 'undefined' ? navigator.onLine : true;
@@ -50,7 +51,7 @@ async function processQueue(): Promise<void> {
   }
 }
 
-async function syncTransaction(supabase: any, payload: any): Promise<void> {
+async function syncTransaction(supabase: SupabaseClient, payload: Record<string, unknown>): Promise<void> {
   const { items, ...transaction } = payload;
 
   // Use atomic checkout RPC — single DB transaction
@@ -74,7 +75,7 @@ async function syncTransaction(supabase: any, payload: any): Promise<void> {
   if (error) throw new Error(error.message);
 }
 
-async function syncStockAdjustment(supabase: any, payload: any): Promise<void> {
+async function syncStockAdjustment(supabase: SupabaseClient, payload: Record<string, unknown>): Promise<void> {
   const { error } = await supabase.from('stock_movement').insert(payload);
   if (error) throw new Error(error.message);
 }

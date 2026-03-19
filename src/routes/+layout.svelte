@@ -130,7 +130,8 @@
           setNotifications(notifs);
           setUnreadCount(notifs.filter(n => !n.read).length);
 
-          subscribeToNotifications(session.staff.id);
+          const { showToast } = await import('$lib/stores/toast.svelte');
+          subscribeToNotifications(session.staff.id, (title) => showToast(title, 'info'));
         } catch {
           // Notification module not available or error — continue silently
         }
@@ -138,6 +139,20 @@
     } catch {
       // Supabase not configured or session expired — continue as guest
     }
+
+    // Listen for auth state changes (session expiry, logout in another tab)
+    try {
+      const { supabase } = await import('$lib/supabase/client');
+      if (supabase) {
+        supabase.auth.onAuthStateChange((event: string, session: unknown) => {
+          if (event === 'SIGNED_OUT' || !session) {
+            import('$lib/modules/auth/stores.svelte').then(({ setCurrentStaff }) => {
+              setCurrentStaff(null);
+            });
+          }
+        });
+      }
+    } catch {}
 
     // Signal that auth restoration is complete
     {

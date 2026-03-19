@@ -111,7 +111,7 @@
 
 <div class="p-4 max-w-3xl mx-auto">
   <div class="flex items-center justify-between mb-6">
-    <h1 class="text-2xl font-bold text-warm-800">{t('transfer.title')}</h1>
+    <h1 class="text-2xl font-bold text-ink">{t('transfer.title')}</h1>
     <button
       class="px-4 py-2 bg-sage text-white rounded-lg font-medium
              hover:bg-sage-600 transition-colors"
@@ -123,12 +123,12 @@
 
   {#if showForm}
     <form
-      class="bg-white rounded-xl border border-warm-200 p-4 mb-6 space-y-4"
+      class="bg-surface rounded-xl border border-warm-200 p-4 mb-6 space-y-4"
       onsubmit={(e) => { e.preventDefault(); handleCreateTransfer(); }}
     >
       <div class="grid grid-cols-2 gap-4">
         <div>
-          <label class="block text-sm font-medium text-warm-600 mb-1">{t('transfer.from')}</label>
+          <label class="block text-sm font-medium text-ink-light mb-1">{t('transfer.from')}</label>
           <select
             bind:value={fromOutletId}
             class="w-full px-3 py-2 rounded-lg border border-warm-200
@@ -140,7 +140,7 @@
           </select>
         </div>
         <div>
-          <label class="block text-sm font-medium text-warm-600 mb-1">{t('transfer.to')}</label>
+          <label class="block text-sm font-medium text-ink-light mb-1">{t('transfer.to')}</label>
           <select
             bind:value={toOutletId}
             class="w-full px-3 py-2 rounded-lg border border-warm-200
@@ -156,7 +156,7 @@
 
       <!-- Inventory picker -->
       <div>
-        <label class="block text-sm font-medium text-warm-600 mb-1">{t('transfer.items')}</label>
+        <label class="block text-sm font-medium text-ink-light mb-1">{t('transfer.items')}</label>
         {#if inventoryList.length > 0}
           <div class="max-h-40 overflow-y-auto border border-warm-100 rounded-lg p-2 space-y-1">
             {#each inventoryList as inv (inv.id)}
@@ -203,7 +203,7 @@
       {/if}
 
       <div>
-        <label class="block text-sm font-medium text-warm-600 mb-1">{t('transfer.notes')}</label>
+        <label class="block text-sm font-medium text-ink-light mb-1">{t('transfer.notes')}</label>
         <textarea
           bind:value={transferNotes}
           rows="2"
@@ -224,7 +224,7 @@
         <button
           type="button"
           onclick={() => { showForm = false; }}
-          class="px-4 py-2 bg-warm-100 text-warm-600 rounded-lg font-medium
+          class="px-4 py-2 bg-warm-100 text-ink-light rounded-lg font-medium
                  hover:bg-warm-200 transition-colors"
         >
           Cancel
@@ -237,7 +237,7 @@
   <div class="flex gap-2 mb-4 overflow-x-auto">
     <button
       class="px-3 py-1 rounded-full text-sm font-medium transition-colors
-             {statusFilter === '' ? 'bg-warm-800 text-white' : 'bg-warm-100 text-warm-600'}"
+             {statusFilter === '' ? 'bg-warm-800 text-white' : 'bg-warm-100 text-ink-light'}"
       onclick={() => { statusFilter = ''; }}
     >
       All
@@ -245,7 +245,7 @@
     {#each ['requested', 'approved', 'shipped', 'received', 'cancelled'] as s}
       <button
         class="px-3 py-1 rounded-full text-sm font-medium transition-colors
-               {statusFilter === s ? 'bg-warm-800 text-white' : 'bg-warm-100 text-warm-600'}"
+               {statusFilter === s ? 'bg-warm-800 text-white' : 'bg-warm-100 text-ink-light'}"
         onclick={() => { statusFilter = s as TransferStatus; }}
       >
         {t(`transfer.status.${s}`)}
@@ -263,7 +263,7 @@
       {#each filteredTransfers as tx (tx.id)}
         <a
           href="{base}/owner/transfers/{tx.id}"
-          class="block bg-white rounded-xl border border-warm-200 p-4
+          class="block bg-surface rounded-xl border border-warm-200 p-4
                  hover:border-warm-300 transition-colors"
         >
           <div class="flex items-center justify-between mb-2">

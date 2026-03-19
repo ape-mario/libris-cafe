@@ -1,15 +1,18 @@
 import { getSupabase } from '$lib/supabase/client';
 import type { Notification } from './types';
 import { addNotification, incrementUnread } from './stores.svelte';
-import { showToast } from '$lib/stores/toast.svelte';
+import type { RealtimeChannel } from '@supabase/supabase-js';
 
-let subscription: any = null;
+let subscription: RealtimeChannel | null = null;
 
 /**
  * Subscribe to new notifications for the current staff member via Supabase Realtime.
  * Call once after login. Call unsubscribe() on logout.
  */
-export function subscribeToNotifications(staffId: string): void {
+export function subscribeToNotifications(
+  staffId: string,
+  onNotification?: (title: string) => void
+): void {
   if (subscription) return; // Already subscribed
 
   const supabase = getSupabase();
@@ -24,15 +27,15 @@ export function subscribeToNotifications(staffId: string): void {
         table: 'notification',
         filter: `recipient_id=eq.${staffId}`,
       },
-      (payload: any) => {
+      (payload: { new: Record<string, unknown> }) => {
         const notif = payload.new as Notification;
         addNotification(notif);
         incrementUnread();
 
-        // Show toast for urgent notification types
+        // Notify caller for urgent notification types
         const urgentTypes = ['low_stock', 'out_of_stock', 'payment_failed', 'settlement_due'];
         if (urgentTypes.includes(notif.type)) {
-          showToast(notif.title, 'info');
+          onNotification?.(notif.title);
         }
       }
     )

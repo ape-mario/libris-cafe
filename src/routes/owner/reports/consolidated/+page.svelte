@@ -47,13 +47,13 @@
 </script>
 
 <div class="p-4 max-w-4xl mx-auto">
-  <h1 class="text-2xl font-bold text-warm-800 mb-6">{t('consolidated.title')}</h1>
+  <h1 class="text-2xl font-bold text-ink mb-6">{t('consolidated.title')}</h1>
 
   <!-- Filters -->
-  <div class="bg-white rounded-xl border border-warm-200 p-4 mb-6">
+  <div class="bg-surface rounded-xl border border-warm-200 p-4 mb-6">
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
       <div>
-        <label class="block text-sm font-medium text-warm-600 mb-1">{t('consolidated.date_range')}</label>
+        <label class="block text-sm font-medium text-ink-light mb-1">{t('consolidated.date_range')}</label>
         <div class="flex gap-2">
           <input type="date" bind:value={dateFrom}
                  class="flex-1 px-2 py-1.5 rounded-lg border border-warm-200 text-sm
@@ -64,14 +64,14 @@
         </div>
       </div>
       <div>
-        <label class="block text-sm font-medium text-warm-600 mb-1">{t('consolidated.filter_outlets')}</label>
+        <label class="block text-sm font-medium text-ink-light mb-1">{t('consolidated.filter_outlets')}</label>
         <div class="flex flex-wrap gap-1">
           {#each outlets as outlet (outlet.id)}
             <button
               class="px-2 py-1 rounded-full text-xs font-medium transition-colors
                      {selectedOutletIds.includes(outlet.id)
                        ? 'bg-sage text-white'
-                       : 'bg-warm-100 text-warm-600 hover:bg-warm-200'}"
+                       : 'bg-warm-100 text-ink-light hover:bg-warm-200'}"
               onclick={() => toggleOutletFilter(outlet.id)}
             >
               {outlet.name}
@@ -96,44 +96,44 @@
   {:else if dashboard}
     <!-- Grand Totals -->
     <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-      <div class="bg-white rounded-xl border border-warm-200 p-4">
-        <div class="text-sm text-warm-500">{t('consolidated.total_sales')}</div>
-        <div class="text-xl font-bold text-warm-800">{formatRupiah(dashboard.totals.totalSales)}</div>
+      <div class="bg-surface rounded-xl border border-warm-200 p-4">
+        <div class="text-sm text-ink-muted">{t('consolidated.total_sales')}</div>
+        <div class="text-xl font-bold text-ink">{formatRupiah(dashboard.totals.totalSales)}</div>
       </div>
-      <div class="bg-white rounded-xl border border-warm-200 p-4">
-        <div class="text-sm text-warm-500">{t('consolidated.total_transactions')}</div>
-        <div class="text-xl font-bold text-warm-800">{dashboard.totals.totalTransactions}</div>
+      <div class="bg-surface rounded-xl border border-warm-200 p-4">
+        <div class="text-sm text-ink-muted">{t('consolidated.total_transactions')}</div>
+        <div class="text-xl font-bold text-ink">{dashboard.totals.totalTransactions}</div>
       </div>
-      <div class="bg-white rounded-xl border border-warm-200 p-4">
-        <div class="text-sm text-warm-500">{t('consolidated.avg_transaction')}</div>
-        <div class="text-xl font-bold text-warm-800">{formatRupiah(dashboard.totals.avgTransactionValue)}</div>
+      <div class="bg-surface rounded-xl border border-warm-200 p-4">
+        <div class="text-sm text-ink-muted">{t('consolidated.avg_transaction')}</div>
+        <div class="text-xl font-bold text-ink">{formatRupiah(dashboard.totals.avgTransactionValue)}</div>
       </div>
-      <div class="bg-white rounded-xl border border-warm-200 p-4">
-        <div class="text-sm text-warm-500">{t('consolidated.stock_value')}</div>
-        <div class="text-xl font-bold text-warm-800">{formatRupiah(dashboard.totals.totalStockValue)}</div>
+      <div class="bg-surface rounded-xl border border-warm-200 p-4">
+        <div class="text-sm text-ink-muted">{t('consolidated.stock_value')}</div>
+        <div class="text-xl font-bold text-ink">{formatRupiah(dashboard.totals.totalStockValue)}</div>
       </div>
     </div>
 
     <!-- Daily Trend Chart -->
     {#if dashboard.dailyTrend.length > 0}
-      <div class="bg-white rounded-xl border border-warm-200 p-4 mb-6">
-        <h2 class="font-semibold text-warm-800 mb-3">{t('consolidated.daily_trend')}</h2>
+      <div class="bg-surface rounded-xl border border-warm-200 p-4 mb-6">
+        <h2 class="font-semibold text-ink mb-3">{t('consolidated.daily_trend')}</h2>
         <ConsolidatedChart trendData={dashboard.dailyTrend} />
       </div>
     {/if}
 
     <!-- Sales by Outlet -->
-    <div class="bg-white rounded-xl border border-warm-200 p-4 mb-6">
-      <h2 class="font-semibold text-warm-800 mb-3">{t('consolidated.sales_comparison')}</h2>
+    <div class="bg-surface rounded-xl border border-warm-200 p-4 mb-6">
+      <h2 class="font-semibold text-ink mb-3">{t('consolidated.sales_comparison')}</h2>
       <div class="overflow-x-auto">
         <table class="w-full text-sm">
           <thead>
             <tr class="border-b border-warm-200">
-              <th class="text-left py-2 px-2 text-warm-500 font-medium">Outlet</th>
-              <th class="text-right py-2 px-2 text-warm-500 font-medium">{t('consolidated.total_sales')}</th>
-              <th class="text-right py-2 px-2 text-warm-500 font-medium">{t('consolidated.total_transactions')}</th>
-              <th class="text-right py-2 px-2 text-warm-500 font-medium">{t('consolidated.total_items')}</th>
-              <th class="text-right py-2 px-2 text-warm-500 font-medium">{t('consolidated.avg_transaction')}</th>
+              <th class="text-left py-2 px-2 text-ink-muted font-medium">Outlet</th>
+              <th class="text-right py-2 px-2 text-ink-muted font-medium">{t('consolidated.total_sales')}</th>
+              <th class="text-right py-2 px-2 text-ink-muted font-medium">{t('consolidated.total_transactions')}</th>
+              <th class="text-right py-2 px-2 text-ink-muted font-medium">{t('consolidated.total_items')}</th>
+              <th class="text-right py-2 px-2 text-ink-muted font-medium">{t('consolidated.avg_transaction')}</th>
             </tr>
           </thead>
           <tbody>
@@ -154,16 +154,16 @@
     </div>
 
     <!-- Inventory by Outlet -->
-    <div class="bg-white rounded-xl border border-warm-200 p-4 mb-6">
-      <h2 class="font-semibold text-warm-800 mb-3">{t('consolidated.inventory_overview')}</h2>
+    <div class="bg-surface rounded-xl border border-warm-200 p-4 mb-6">
+      <h2 class="font-semibold text-ink mb-3">{t('consolidated.inventory_overview')}</h2>
       <div class="overflow-x-auto">
         <table class="w-full text-sm">
           <thead>
             <tr class="border-b border-warm-200">
-              <th class="text-left py-2 px-2 text-warm-500 font-medium">Outlet</th>
-              <th class="text-right py-2 px-2 text-warm-500 font-medium">{t('consolidated.total_skus')}</th>
-              <th class="text-right py-2 px-2 text-warm-500 font-medium">{t('consolidated.total_stock')}</th>
-              <th class="text-right py-2 px-2 text-warm-500 font-medium">{t('consolidated.stock_value')}</th>
+              <th class="text-left py-2 px-2 text-ink-muted font-medium">Outlet</th>
+              <th class="text-right py-2 px-2 text-ink-muted font-medium">{t('consolidated.total_skus')}</th>
+              <th class="text-right py-2 px-2 text-ink-muted font-medium">{t('consolidated.total_stock')}</th>
+              <th class="text-right py-2 px-2 text-ink-muted font-medium">{t('consolidated.stock_value')}</th>
             </tr>
           </thead>
           <tbody>
@@ -184,8 +184,8 @@
 
     <!-- Top Books across Outlets -->
     {#if dashboard.topBooks.length > 0}
-      <div class="bg-white rounded-xl border border-warm-200 p-4 mb-6">
-        <h2 class="font-semibold text-warm-800 mb-3">{t('consolidated.top_books')}</h2>
+      <div class="bg-surface rounded-xl border border-warm-200 p-4 mb-6">
+        <h2 class="font-semibold text-ink mb-3">{t('consolidated.top_books')}</h2>
         <div class="space-y-2">
           {#each dashboard.topBooks as book, i (book.book_id)}
             <div class="flex items-center gap-3 py-2 border-b border-warm-100 last:border-0">
@@ -196,7 +196,7 @@
                   {book.total_sold} sold across {book.outlet_count} outlet{book.outlet_count !== 1 ? 's' : ''}
                 </div>
               </div>
-              <span class="text-sm font-medium text-warm-600">{formatRupiah(book.total_revenue)}</span>
+              <span class="text-sm font-medium text-ink-light">{formatRupiah(book.total_revenue)}</span>
             </div>
           {/each}
         </div>
