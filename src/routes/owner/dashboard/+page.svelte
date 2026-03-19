@@ -31,6 +31,15 @@
     return `Rp ${amount.toLocaleString('id-ID')}`;
   }
 
+  function deltaLabel(today: number, yesterday: number): { text: string; color: string } {
+    if (yesterday === 0 && today === 0) return { text: `— ${t('dashboard.same')}`, color: 'text-ink-muted' };
+    if (yesterday === 0) return { text: `▲ +100% ${t('dashboard.vs_yesterday')}`, color: 'text-sage' };
+    const pct = Math.round(((today - yesterday) / yesterday) * 100);
+    if (pct > 0) return { text: `▲ +${pct}% ${t('dashboard.vs_yesterday')}`, color: 'text-sage' };
+    if (pct < 0) return { text: `▼ ${pct}% ${t('dashboard.vs_yesterday')}`, color: 'text-berry' };
+    return { text: `— ${t('dashboard.same')}`, color: 'text-ink-muted' };
+  }
+
   async function handleRefresh() {
     if (staff) await loadDashboard(staff.outlet_id);
   }
@@ -58,27 +67,43 @@
     <div>
       <h2 class="text-xs font-semibold text-ink-muted uppercase tracking-wide mb-2">{t('dashboard.today')}</h2>
       <div class="grid grid-cols-2 gap-3">
-        <DashboardCard
-          label={t('dashboard.total_sales')}
-          value={formatRp(dashboard.metrics.total_sales)}
-          subtitle="{dashboard.metrics.transaction_count} {t('dashboard.transactions').toLowerCase()}"
-          color="accent"
-        />
-        <DashboardCard
-          label={t('dashboard.margin')}
-          value={formatRp(dashboard.metrics.total_margin)}
-          color="sage"
-        />
-        <DashboardCard
-          label={t('dashboard.low_stock')}
-          value={String(dashboard.metrics.low_stock_count)}
-          color="gold"
-        />
-        <DashboardCard
-          label={t('dashboard.out_of_stock')}
-          value={String(dashboard.metrics.out_of_stock_count)}
-          color="berry"
-        />
+        <div>
+          <DashboardCard
+            label={t('dashboard.total_sales')}
+            value={formatRp(dashboard.metrics.total_sales)}
+            subtitle="{dashboard.metrics.transaction_count} {t('dashboard.transactions').toLowerCase()}"
+            color="accent"
+          />
+          {#if dashboard.yesterdayMetrics}
+            {@const d = deltaLabel(dashboard.metrics.total_sales, dashboard.yesterdayMetrics.total_sales)}
+            <p class="text-[10px] mt-1 {d.color} text-center">{d.text}</p>
+          {/if}
+        </div>
+        <div>
+          <DashboardCard
+            label={t('dashboard.margin')}
+            value={formatRp(dashboard.metrics.total_margin)}
+            color="sage"
+          />
+          {#if dashboard.yesterdayMetrics}
+            {@const d = deltaLabel(dashboard.metrics.total_margin, dashboard.yesterdayMetrics.total_margin)}
+            <p class="text-[10px] mt-1 {d.color} text-center">{d.text}</p>
+          {/if}
+        </div>
+        <div>
+          <DashboardCard
+            label={t('dashboard.low_stock')}
+            value={String(dashboard.metrics.low_stock_count)}
+            color="gold"
+          />
+        </div>
+        <div>
+          <DashboardCard
+            label={t('dashboard.out_of_stock')}
+            value={String(dashboard.metrics.out_of_stock_count)}
+            color="berry"
+          />
+        </div>
       </div>
     </div>
 

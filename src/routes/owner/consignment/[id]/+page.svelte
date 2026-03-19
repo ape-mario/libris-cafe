@@ -12,10 +12,15 @@
     confirmSettlement, markSettlementPaid,
   } from '$lib/modules/consignment/service';
   import { getConsignmentSales, calculateSettlementTotals } from '$lib/modules/consignment/ledger';
+  import { getSupabase } from '$lib/supabase/client';
+  import { getBookById } from '$lib/services/books';
   import type { Consignor, ConsignmentSettlement, ConsignmentSaleRecord } from '$lib/modules/consignment/types';
+  import type { Inventory } from '$lib/modules/inventory/types';
+  import type { Book } from '$lib/db';
 
   let consignor = $state<Consignor | null>(null);
   let settlements = $state<ConsignmentSettlement[]>([]);
+  let consignorInventory = $state<(Inventory & { book?: Book | null })[]>([]);
   let loading = $state(true);
   let creating = $state(false);
 
@@ -33,6 +38,21 @@
     try {
       consignor = await getConsignorById(consignorId);
       settlements = await getSettlements(consignorId);
+
+      // Fetch inventory items for this consignor
+      const supabase = getSupabase();
+      const { data: invData } = await supabase
+        .from('inventory')
+        .select()
+        .eq('consignor_id', consignorId)
+        .order('created_at', { ascending: false });
+
+      if (invData) {
+        consignorInventory = (invData as Inventory[]).map(inv => ({
+          ...inv,
+          book: getBookById(inv.book_id) ?? null,
+        }));
+      }
     } finally {
       loading = false;
     }
@@ -261,6 +281,42 @@
               {/if}
             </div>
           {/each}
+        </div>
+      {/if}
+    </div>
+
+    <!-- Consignor Inventory -->
+    <div class="bg-surface rounded-xl border border-warm-100">
+      <div class="px-4 py-3 border-b border-warm-50">
+        <h2 class="text-sm font-semibold text-ink uppercase tracking-wide">{t('inventory.title')}</h2>
+      </div>
+
+      {#if consignorInventory.length === 0}
+        <div class="px-4 py-6 text-center text-sm text-ink-muted">{t('inventory.empty')}</div>
+      {:else}
+        <div class="divide-y divide-warm-50">
+          {#each consignorInventory as inv}
+            <div class="px-4 py-3 flex items-center justify-between">
+              <div class="flex-1 min-w-0">
+                <p class="text-sm font-medium text-ink truncate">{inv.book?.title ?? 'Unknown'}</p>
+                <p class="text-xs text-ink-muted">
+                  {inv.condition === 'new' ? t('inventory.condition_new')
+                    : inv.condition === 'good' ? t('inventory.condition_good')
+                    : t('inventory.condition_fair')}
+                </p>
+              </div>
+              <div class="text-right">
+                <p class="text-sm font-semibold text-ink">{formatPrice(inv.price ?? 0)}</p>
+                <p class="text-xs text-ink-muted">{t('inventory.stock')}: {inv.stock}</p>
+              </div>
+            </div>
+          {/each}
+        </div>
+
+        <!-- Totals -->
+        <div class="px-4 py-3 border-t border-warm-100 flex justify-between text-sm">
+          <span class="text-ink-muted">{consignorInventory.length} {t('common.books')}</span>
+          <span class="font-semibold text-ink">{formatPrice(consignorInventory.reduce((sum, inv) => sum + (inv.price ?? 0) * inv.stock, 0))}</span>
         </div>
       {/if}
     </div>
