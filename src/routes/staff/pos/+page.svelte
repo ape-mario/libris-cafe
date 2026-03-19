@@ -86,6 +86,14 @@
       return;
     }
 
+    // Check if adding would exceed stock (considering existing cart quantity)
+    const existingInCart = cart.items.find(i => i.inventory.id === inventory.id);
+    const currentQty = existingInCart?.quantity ?? 0;
+    if (currentQty + 1 > inventory.stock) {
+      showToast(`Max stock: ${inventory.stock}`, 'error');
+      return;
+    }
+
     setCart(addToCart(cart, inventory, book));
     searchQuery = '';
     searchResults = [];
@@ -97,6 +105,12 @@
   }
 
   function handleQuantityChange(inventoryId: string, qty: number) {
+    // Validate against available stock
+    const item = cart.items.find(i => i.inventory.id === inventoryId);
+    if (item && qty > item.inventory.stock) {
+      showToast(`Max stock: ${item.inventory.stock}`, 'error');
+      return;
+    }
     setCart(updateQuantity(cart, inventoryId, qty));
   }
 
