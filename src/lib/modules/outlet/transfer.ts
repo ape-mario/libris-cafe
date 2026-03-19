@@ -132,6 +132,12 @@ export async function shipTransfer(
 ): Promise<void> {
   const supabase = getSupabase();
 
+  // Re-check transfer status to prevent double-shipping
+  const { data: currentTransfer } = await supabase.from('outlet_transfer').select('status').eq('id', transferId).single();
+  if (currentTransfer?.status !== 'approved') {
+    throw new Error(`Cannot ship transfer: current status is ${currentTransfer?.status}`);
+  }
+
   // Pre-fetch transfer to validate stock availability before any mutations
   const preTransfer = await fetchTransfer(transferId);
   if (!preTransfer?.items) throw new Error('Transfer not found');
@@ -176,23 +182,29 @@ export async function shipTransfer(
   // Create stock_movement entries (transfer_out from source outlet)
   // Stock trigger uses SELECT FOR UPDATE, so concurrent decrements are safe
   // Re-use preTransfer (already fetched) with shippedQuantities to avoid a redundant DB round-trip
-  for (const sq of shippedQuantities) {
-    if (sq.quantity <= 0) continue;
-    const item = preTransfer.items.find((i: OutletTransferItem) => i.id === sq.itemId);
-    if (!item) continue;
+  try {
+    for (const sq of shippedQuantities) {
+      if (sq.quantity <= 0) continue;
+      const item = preTransfer.items.find((i: OutletTransferItem) => i.id === sq.itemId);
+      if (!item) continue;
 
-    const { error } = await supabase
-      .from('stock_movement')
-      .insert({
-        inventory_id: item.inventory_id,
-        type: 'transfer_out',
-        quantity: -sq.quantity,
-        reference_id: transferId,
-        reason: `Transfer to ${preTransfer.to_outlet?.name ?? preTransfer.to_outlet_id}`,
-        staff_id: staffId,
-      });
+      const { error } = await supabase
+        .from('stock_movement')
+        .insert({
+          inventory_id: item.inventory_id,
+          type: 'transfer_out',
+          quantity: -sq.quantity,
+          reference_id: transferId,
+          reason: `Transfer to ${preTransfer.to_outlet?.name ?? preTransfer.to_outlet_id}`,
+          staff_id: staffId,
+        });
 
-    if (error) throw new Error(`Failed to create transfer_out movement: ${error.message}`);
+      if (error) throw new Error(`Failed to create transfer_out movement: ${error.message}`);
+    }
+  } catch (err) {
+    // Attempt to revert status to 'approved' since stock movements failed
+    await supabase.from('outlet_transfer').update({ status: 'approved', shipped_by: null, shipped_at: null }).eq('id', transferId);
+    throw err;
   }
 }
 
@@ -271,10 +283,10 @@ export async function cancelTransfer(
           .from('stock_movement')
           .insert({
             inventory_id: item.inventory_id,
-            type: 'transfer_in',
+            type: 'adjustment',
             quantity: item.quantity_shipped,
             reference_id: transferId,
-            reason: `Transfer cancelled: ${reason}`,
+            reason: `Transfer ${transferId} cancelled — stock restored`,
             staff_id: staffId,
           });
 

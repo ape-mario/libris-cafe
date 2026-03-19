@@ -10,6 +10,8 @@ function createChainable(data: any) {
   chain.insert = mockInsert.mockReturnValue(chain);
   chain.update = mockUpdate.mockReturnValue(chain);
   chain.eq = vi.fn().mockReturnValue(chain);
+  chain.neq = vi.fn().mockReturnValue(chain);
+  chain.in = vi.fn().mockReturnValue(chain);
   chain.gte = vi.fn().mockReturnValue(chain);
   chain.lte = vi.fn().mockReturnValue(chain);
   chain.order = vi.fn().mockReturnValue(chain);

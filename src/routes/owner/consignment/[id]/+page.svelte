@@ -65,7 +65,8 @@
         periodStart,
         periodEnd,
         totalSales: totals.totalSales,
-        commissionRate: consignor.commission_rate,
+        commission: totals.totalCommission,
+        payout: totals.totalPayout,
         staffId: staff.id,
       });
 

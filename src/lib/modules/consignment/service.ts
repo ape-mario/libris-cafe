@@ -71,10 +71,23 @@ export async function deactivateConsignor(id: string): Promise<void> {
 // --- Settlement ---
 
 export async function createSettlement(input: CreateSettlementInput): Promise<ConsignmentSettlement> {
-  const commission = Math.round(input.totalSales * (input.commissionRate / 100));
-  const payout = input.totalSales - commission;
+  const commission = input.commission;
+  const payout = input.payout;
 
   const supabase = getSupabase();
+
+  // Check for existing settlement in this period
+  const { count } = await supabase
+    .from('consignment_settlement')
+    .select('id', { count: 'exact', head: true })
+    .eq('consignor_id', input.consignorId)
+    .eq('period_start', input.periodStart)
+    .eq('period_end', input.periodEnd)
+    .neq('status', 'cancelled');
+  if (count && count > 0) {
+    throw new Error('Settlement already exists for this period');
+  }
+
   const { data, error } = await supabase
     .from('consignment_settlement')
     .insert({
@@ -130,7 +143,8 @@ export async function confirmSettlement(id: string): Promise<void> {
   const { error } = await supabase
     .from('consignment_settlement')
     .update({ status: 'confirmed' })
-    .eq('id', id);
+    .eq('id', id)
+    .eq('status', 'draft');
 
   if (error) throw new Error(`Failed to confirm settlement: ${error.message}`);
 }
@@ -140,7 +154,8 @@ export async function markSettlementPaid(id: string): Promise<void> {
   const { error } = await supabase
     .from('consignment_settlement')
     .update({ status: 'paid', paid_at: new Date().toISOString() })
-    .eq('id', id);
+    .eq('id', id)
+    .eq('status', 'confirmed');
 
   if (error) throw new Error(`Failed to mark settlement paid: ${error.message}`);
 }

@@ -50,8 +50,11 @@
       try {
         const { getSupabase } = await import('$lib/supabase/client');
         const supabase = getSupabase();
-        const { data } = await supabase.from('outlet').select('name, address, phone').eq('id', currentStaff.outlet_id).single();
-        if (data) outletInfo = data;
+        const { data } = await supabase.from('outlet').select('name, address, phone, tax_rate').eq('id', currentStaff.outlet_id).single();
+        if (data) {
+          outletInfo = data;
+          resetCart(data.tax_rate ?? 11);
+        }
       } catch {}
     }
   });
