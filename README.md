@@ -21,12 +21,12 @@ Sistem manajemen toko buku kafe — kelola inventori buku (dijual, baca di tempa
 - [x] Dashboard owner + staff
 - [x] Pelanggan browse (availability badges, harga)
 
-### Phase 3: Supply Chain & Consignment — Planned
-- [ ] Manajemen supplier + purchase orders
-- [ ] Integrasi API supplier (abstract adapter)
-- [ ] Konsinyasi (consignor, settlement)
-- [ ] Notifikasi (in-app + WhatsApp)
-- [ ] Restock suggestion engine
+### Phase 3: Supply Chain & Consignment — Done
+- [x] Manajemen supplier + purchase orders
+- [x] Integrasi API supplier (abstract adapter)
+- [x] Konsinyasi (consignor, settlement)
+- [x] Notifikasi (in-app + WhatsApp)
+- [x] Restock suggestion engine
 
 ### Phase 4: Advanced Features — Planned
 - [ ] Lending module (tracking baca di tempat)
