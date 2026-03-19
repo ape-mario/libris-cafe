@@ -28,12 +28,12 @@ Sistem manajemen toko buku kafe — kelola inventori buku (dijual, baca di tempa
 - [x] Notifikasi (in-app + WhatsApp)
 - [x] Restock suggestion engine
 
-### Phase 4: Advanced Features — Planned
-- [ ] Lending module (tracking baca di tempat)
-- [ ] Kiosk mode (tablet di cafe)
-- [ ] Thermal printer
-- [ ] Export laporan (CSV/PDF/Excel)
-- [ ] Prediction engine (demand forecast)
+### Phase 4: Advanced Features — Done
+- [x] Lending module (tracking baca di tempat)
+- [x] Kiosk mode (tablet di cafe)
+- [x] Thermal printer
+- [x] Export laporan (CSV/PDF/Excel)
+- [x] Prediction engine (demand forecast)
 
 ### Phase 5: Scale — Planned
 - [ ] Multi-outlet
