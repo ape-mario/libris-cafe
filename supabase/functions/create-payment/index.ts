@@ -37,11 +37,37 @@ serve(async (req: Request) => {
       );
     }
 
+    // Verify gross_amount matches actual transaction total from DB
+    const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    const { data: txData, error: txError } = await supabase
+      .from('transaction')
+      .select('total')
+      .eq('id', transaction_id)
+      .single();
+
+    if (txError || !txData) {
+      return new Response(
+        JSON.stringify({ error: 'Transaction not found' }),
+        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const verifiedAmount = Math.round(txData.total);
+    if (Math.abs(verifiedAmount - Math.round(gross_amount)) > 1) {
+      return new Response(
+        JSON.stringify({ error: 'Amount mismatch' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     // Build Midtrans Snap request
     const snapPayload = {
       transaction_details: {
         order_id,
-        gross_amount: Math.round(gross_amount), // Midtrans requires integer
+        gross_amount: verifiedAmount, // Use verified amount, not client-supplied
       },
       customer_details: {
         first_name: customer_name ?? 'Customer',
@@ -87,14 +113,10 @@ serve(async (req: Request) => {
     }
 
     // Store payment record in database
-    const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
-
     await supabase.from('payment').insert({
       transaction_id,
       midtrans_order_id: order_id,
-      gross_amount: Math.round(gross_amount),
+      gross_amount: verifiedAmount,
       snap_token: result.token,
       snap_redirect_url: result.redirect_url,
       status: 'pending',

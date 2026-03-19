@@ -14,6 +14,7 @@
   let testingConnection = $state(false);
   let connectionError = $state('');
   let connectionOk = $state(false);
+  let showEnvInstructions = $state(false);
 
   // Step 3: Owner account
   let ownerName = $state('');
@@ -39,9 +40,7 @@
         connectionError = error.message;
       } else {
         connectionOk = true;
-        // Save to localStorage
-        localStorage.setItem('libris_supabase_url', dbUrl.trim());
-        localStorage.setItem('libris_supabase_anon_key', dbAnonKey.trim());
+        showEnvInstructions = true;
       }
     } catch (err: any) {
       connectionError = err.message ?? t('setup.connection_failed');
@@ -51,10 +50,6 @@
   }
 
   function proceedToOwner() {
-    // Re-init the supabase client with saved credentials
-    import('$lib/supabase/client').then(({ reinitSupabase }) => {
-      reinitSupabase();
-    });
     step = 3;
   }
 
@@ -69,13 +64,11 @@
     ownerError = '';
 
     try {
-      // Use the stored credentials to call the Edge Function directly.
+      // Use the credentials entered in the setup form to call the Edge Function.
       // Since there's no authenticated user yet, we create the first owner
       // by calling the Supabase Auth admin API via the Edge Function.
       // For the very first setup, the Edge Function needs a special bootstrap mode.
-      const url = localStorage.getItem('libris_supabase_url') ?? '';
-      const key = localStorage.getItem('libris_supabase_anon_key') ?? '';
-      const client = createClient(url, key);
+      const client = createClient(dbUrl.trim(), dbAnonKey.trim());
 
       // First, check if any staff exist (bootstrap mode)
       const { data: existingStaff } = await client
@@ -192,6 +185,14 @@
 
           {#if connectionOk}
             <p class="text-sm text-sage bg-sage/10 p-3 rounded-lg">{t('setup.connection_success')}</p>
+          {/if}
+
+          {#if showEnvInstructions}
+            <div class="bg-warm-50 border border-warm-200 rounded-lg p-4 text-sm">
+              <p class="font-medium text-ink mb-2">Add these to your .env file and restart the app:</p>
+              <pre class="bg-white rounded p-3 overflow-x-auto text-xs font-mono text-ink-light">VITE_SUPABASE_URL={dbUrl.trim()}
+VITE_SUPABASE_ANON_KEY={dbAnonKey.trim()}</pre>
+            </div>
           {/if}
 
           <div class="flex gap-3 pt-2">

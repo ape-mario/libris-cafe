@@ -1,5 +1,6 @@
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { getAuthenticatedUser, unauthorizedResponse } from '../_shared/auth.ts';
 
 const FONNTE_API_KEY = Deno.env.get('FONNTE_API_KEY') ?? '';
 const FONNTE_API_URL = 'https://api.fonnte.com/send';
@@ -13,6 +14,9 @@ serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
   }
+
+  const user = await getAuthenticatedUser(req);
+  if (!user) return unauthorizedResponse(corsHeaders);
 
   try {
     const { receipt_id, recipient, message } = await req.json();

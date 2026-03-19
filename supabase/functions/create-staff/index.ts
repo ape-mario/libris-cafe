@@ -41,10 +41,31 @@ serve(async (req: Request) => {
       );
     }
 
-    // Validate PIN format (4-6 digits)
-    if (!/^\d{4,6}$/.test(pin)) {
+    // Validate PIN minimum length
+    if (!pin || pin.length < 6) {
       return new Response(
-        JSON.stringify({ error: 'PIN must be 4-6 digits' }),
+        JSON.stringify({ error: 'PIN must be at least 6 digits' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Validate PIN format (6+ digits)
+    if (!/^\d{6,}$/.test(pin)) {
+      return new Response(
+        JSON.stringify({ error: 'PIN must contain only digits (minimum 6)' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // MED-7: Rate limit staff creation (max 50 per outlet)
+    const { count } = await adminClient
+      .from('staff')
+      .select('id', { count: 'exact', head: true })
+      .eq('outlet_id', outlet_id);
+
+    if (count && count >= 50) {
+      return new Response(
+        JSON.stringify({ error: 'Maximum staff limit reached (50 per outlet)' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }

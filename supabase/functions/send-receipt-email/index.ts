@@ -1,5 +1,13 @@
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { getAuthenticatedUser, unauthorizedResponse } from '../_shared/auth.ts';
+
+function sanitizeHtml(html: string): string {
+  return html
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+    .replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, '')
+    .replace(/\son\w+\s*=/gi, ' data-removed=');
+}
 
 const SMTP_HOST = Deno.env.get('SMTP_HOST') ?? '';
 const SMTP_PORT = parseInt(Deno.env.get('SMTP_PORT') ?? '587', 10);
@@ -16,6 +24,9 @@ serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
   }
+
+  const user = await getAuthenticatedUser(req);
+  if (!user) return unauthorizedResponse(corsHeaders);
 
   try {
     const { receipt_id, recipient, message } = await req.json();
@@ -52,7 +63,7 @@ serve(async (req: Request) => {
       from: SMTP_FROM,
       to: recipient,
       subject: 'Struk Pembelian - Libris Cafe',
-      html: message,
+      html: sanitizeHtml(message),
     };
 
     // Use fetch-based email API (e.g., Resend, Mailgun, or similar)

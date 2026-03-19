@@ -53,6 +53,10 @@ serve(async (req) => {
   try {
     const { report, lang = 'en' }: { report: ReportData; lang: 'en' | 'id' } = await req.json();
 
+    if (report.rows && report.rows.length > 10000) {
+      return new Response(JSON.stringify({ error: 'Too many rows (max 10,000)' }), { status: 400, headers: corsHeaders });
+    }
+
     const title = lang === 'id' ? report.title_id : report.title_en;
     const headers = report.columns.map(c => lang === 'id' ? c.label_id : c.label_en);
 
