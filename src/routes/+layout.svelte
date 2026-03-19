@@ -139,6 +139,12 @@
       // Supabase not configured or session expired — continue as guest
     }
 
+    // Signal that auth restoration is complete
+    {
+      const { setAuthReady } = await import('$lib/modules/auth/stores.svelte');
+      setAuthReady(true);
+    }
+
     // Init sync manager for offline queue
     try {
       const { initSyncManager } = await import('$lib/modules/sync/manager');

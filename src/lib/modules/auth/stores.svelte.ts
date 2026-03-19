@@ -3,6 +3,15 @@ import { restoreActiveOutlet, setActiveOutletId, setOutlets } from '../outlet/st
 import { fetchOutlets } from '../outlet/service';
 
 let currentStaff = $state<Staff | null>(null);
+let authReady = $state(false);
+
+export function getAuthReady(): boolean {
+  return authReady;
+}
+
+export function setAuthReady(ready: boolean): void {
+  authReady = ready;
+}
 
 export function getCurrentStaff(): Staff | null {
   return currentStaff;

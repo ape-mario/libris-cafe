@@ -60,7 +60,6 @@ export async function updateSupplier(id: string, updates: Partial<NewSupplier>):
 }
 
 export async function deactivateSupplier(id: string): Promise<void> {
-  await updateSupplier(id, { name: '' } as any);
   const supabase = getSupabase();
   const { error } = await supabase
     .from('supplier')

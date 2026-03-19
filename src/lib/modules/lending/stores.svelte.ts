@@ -5,8 +5,8 @@ let activeSessions = $state<SessionWithBook[]>([]);
 let lendingStats = $state<LendingStats>({
   active_count: 0,
   overdue_count: 0,
-  today_checkins: 0,
-  today_checkouts: 0,
+  today_checkin: 0,
+  today_checkout: 0,
   avg_duration_minutes: 0,
 });
 let isLoading = $state(false);

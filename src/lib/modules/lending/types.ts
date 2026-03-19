@@ -57,7 +57,7 @@ export interface SessionWithBook extends ReadingSession {
 export interface LendingStats {
   active_count: number;
   overdue_count: number;
-  today_checkins: number;
-  today_checkouts: number;
+  today_checkin: number;
+  today_checkout: number;
   avg_duration_minutes: number;
 }
