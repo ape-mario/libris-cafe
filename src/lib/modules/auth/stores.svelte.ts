@@ -1,4 +1,6 @@
 import type { Staff, AppRole } from './types';
+import { restoreActiveOutlet, setActiveOutletId, setOutlets } from '../outlet/stores.svelte';
+import { fetchOutlets } from '../outlet/service';
 
 let currentStaff = $state<Staff | null>(null);
 
@@ -25,4 +27,19 @@ export function isStaff(): boolean {
 
 export function isGuest(): boolean {
   return currentStaff === null;
+}
+
+export async function initOutletContext(): Promise<void> {
+  try {
+    const outlets = await fetchOutlets();
+    setOutlets(outlets);
+
+    // Restore previously selected outlet, or default to first
+    const restored = restoreActiveOutlet();
+    if (!restored && outlets.length > 0) {
+      setActiveOutletId(outlets[0].id);
+    }
+  } catch {
+    // Supabase not configured or fetch failed — single-outlet mode
+  }
 }

@@ -20,6 +20,7 @@ vi.mock('$lib/supabase/client', () => ({
 // Mock auth store
 vi.mock('./stores.svelte', () => ({
   setCurrentStaff: vi.fn(),
+  initOutletContext: vi.fn().mockResolvedValue(undefined),
 }));
 
 import { loginWithPin, logout, getStaffByAuthId, restoreSession } from './service';

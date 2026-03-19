@@ -1,5 +1,5 @@
 import { getSupabase } from '$lib/supabase/client';
-import { setCurrentStaff } from './stores.svelte';
+import { setCurrentStaff, initOutletContext } from './stores.svelte';
 import type { Staff, AuthSession } from './types';
 
 const STAFF_COLUMNS = 'id, name, email, role, outlet_id, is_active, created_at';
@@ -22,6 +22,9 @@ export async function loginWithPin(email: string, pin: string): Promise<AuthSess
   const staff = await getStaffByAuthId(data.user.id);
   if (!staff) throw new Error('Staff record not found');
   if (!staff.is_active) throw new Error('Account is deactivated');
+
+  setCurrentStaff(staff);
+  await initOutletContext();
 
   return {
     staff,
@@ -60,6 +63,9 @@ export async function restoreSession(): Promise<AuthSession | null> {
 
   const staff = await getStaffByAuthId(session.user.id);
   if (!staff || !staff.is_active) return null;
+
+  setCurrentStaff(staff);
+  await initOutletContext();
 
   return { staff, token: session.access_token };
 }
