@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { base } from '$app/paths';
+  import { goto } from '$app/navigation';
   import { t } from '$lib/i18n/index.svelte';
   import { getCurrentStaff } from '$lib/modules/auth/stores.svelte';
   import { getSupabase } from '$lib/supabase/client';
@@ -16,6 +17,7 @@
   interface Transaction {
     id: string;
     created_at: string;
+    type: string;
     total: number;
     subtotal: number;
     discount: number;
@@ -90,6 +92,10 @@
   function toggleExpand(id: string) {
     expandedId = expandedId === id ? null : id;
   }
+
+  function navigateToDetail(id: string) {
+    goto(`${base}/staff/transactions/${id}`);
+  }
 </script>
 
 <div class="space-y-4">
@@ -122,51 +128,32 @@
       {#each transactions as tx (tx.id)}
         <button
           class="w-full text-left bg-surface rounded-xl border border-warm-100 px-4 py-3 hover:border-accent/30 transition-colors"
-          onclick={() => toggleExpand(tx.id)}
+          onclick={() => navigateToDetail(tx.id)}
         >
           <div class="flex items-center gap-3">
             <div class="flex-1 min-w-0">
               <div class="flex items-center gap-2">
                 <span class="text-sm font-medium text-ink">{formatTime(tx.created_at)}</span>
-                <span class="text-[10px] px-1.5 py-0.5 rounded-full font-medium {tx.payment_status === 'paid' ? 'bg-sage/10 text-sage' : 'bg-gold/10 text-gold'}">
+                <span class="text-[10px] px-1.5 py-0.5 rounded-full font-medium {tx.payment_status === 'paid' ? 'bg-sage/10 text-sage' : tx.payment_status === 'refunded' ? 'bg-berry/10 text-berry' : 'bg-gold/10 text-gold'}">
                   {tx.payment_status}
                 </span>
+                {#if tx.type === 'void'}
+                  <span class="text-[10px] px-1.5 py-0.5 rounded-full font-bold bg-berry/10 text-berry uppercase">
+                    {t('pos.voided')}
+                  </span>
+                {/if}
               </div>
               <p class="text-xs text-ink-muted">
                 {totalItems(tx)} item{totalItems(tx) !== 1 ? 's' : ''} · {paymentLabel(tx.payment_method)}
                 {#if tx.customer_name} · {tx.customer_name}{/if}
               </p>
             </div>
-            <div class="text-right">
-              <p class="text-sm font-semibold text-ink">{formatPrice(tx.total)}</p>
+            <div class="text-right flex items-center gap-2">
+              <p class="text-sm font-semibold {tx.type === 'void' ? 'text-ink-muted line-through' : 'text-ink'}">{formatPrice(tx.total)}</p>
+              <span class="text-ink-muted text-xs">&#8250;</span>
             </div>
           </div>
 
-          {#if expandedId === tx.id && tx.transaction_item?.length > 0}
-            <div class="mt-3 pt-3 border-t border-warm-100 space-y-1.5">
-              {#each tx.transaction_item as item}
-                <div class="flex justify-between text-xs">
-                  <span class="text-ink-muted truncate flex-1 mr-2">{item.title} x{item.quantity}</span>
-                  <span class="text-ink font-medium">{formatPrice(item.total)}</span>
-                </div>
-              {/each}
-              {#if tx.discount > 0}
-                <div class="flex justify-between text-xs">
-                  <span class="text-ink-muted">Discount</span>
-                  <span class="text-berry">-{formatPrice(tx.discount)}</span>
-                </div>
-              {/if}
-              {#if tx.tax > 0}
-                <div class="flex justify-between text-xs">
-                  <span class="text-ink-muted">Tax</span>
-                  <span class="text-ink">{formatPrice(tx.tax)}</span>
-                </div>
-              {/if}
-              {#if tx.notes}
-                <p class="text-xs text-ink-muted italic mt-1">{tx.notes}</p>
-              {/if}
-            </div>
-          {/if}
         </button>
       {/each}
     </div>

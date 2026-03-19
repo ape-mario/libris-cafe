@@ -384,6 +384,8 @@ export default {
   'payment.cancelled': 'Pembayaran dibatalkan',
   'payment.pending': 'Menunggu pembayaran',
   'payment.retry': 'Coba Lagi',
+  'payment.pending_banner': 'Pembayaran tertunda',
+  'payment.cancel_pending': 'Batalkan Pembayaran',
   'payment.digital_disabled_offline': 'Pembayaran digital tidak tersedia offline. Gunakan tunai.',
 
   // Receipt
