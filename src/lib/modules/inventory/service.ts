@@ -1,5 +1,5 @@
 import { getSupabase } from '$lib/supabase/client';
-import type { Inventory, NewInventoryItem, StockMovementType } from './types';
+import type { Inventory, NewInventoryItem, StockMovement, StockMovementType } from './types';
 
 export async function addInventoryItem(item: NewInventoryItem): Promise<Inventory> {
   const supabase = getSupabase();
@@ -69,9 +69,10 @@ export async function adjustStock(
     });
 
   if (error) throw new Error(`Failed to record stock movement: ${error.message}`);
+  // Note: inventory.stock is auto-updated by the DB trigger (trg_stock_movement_update)
 }
 
-export async function getStockMovements(inventoryId: string): Promise<any[]> {
+export async function getStockMovements(inventoryId: string): Promise<StockMovement[]> {
   const supabase = getSupabase();
   const { data, error } = await supabase
     .from('stock_movement')
