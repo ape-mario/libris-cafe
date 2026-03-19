@@ -119,6 +119,21 @@
       const session = await restoreSession();
       if (session) {
         setCurrentStaff(session.staff);
+
+        // Init notification subscription
+        try {
+          const { subscribeToNotifications } = await import('$lib/modules/notification/realtime');
+          const { getNotifications: fetchNotifs } = await import('$lib/modules/notification/service');
+          const { setNotifications, setUnreadCount } = await import('$lib/modules/notification/stores.svelte');
+
+          const notifs = await fetchNotifs(session.staff.id);
+          setNotifications(notifs);
+          setUnreadCount(notifs.filter(n => !n.read).length);
+
+          subscribeToNotifications(session.staff.id);
+        } catch {
+          // Notification module not available or error — continue silently
+        }
       }
     } catch {
       // Supabase not configured or session expired — continue as guest

@@ -6,6 +6,7 @@
   import { getSyncStatus, getRoomCode, onSyncStatusChange } from '$lib/sync/manager';
   import type { SyncStatus } from '$lib/sync/provider';
   import { getCurrentStaff, isStaff } from '$lib/modules/auth/stores.svelte';
+  import { getUnreadCount } from '$lib/modules/notification/stores.svelte';
   import { getIsOnline } from '$lib/modules/sync/manager';
 
   let user = $derived(getCurrentUser());
@@ -64,6 +65,20 @@
         <span class="text-xs bg-berry/10 text-berry px-2 py-0.5 rounded-full font-medium">
           Offline
         </span>
+      {/if}
+      <!-- Notification bell -->
+      {#if isStaff()}
+        <a href="{base}/staff/notifications" class="relative w-9 h-9 rounded-lg flex items-center justify-center text-ink-muted hover:bg-warm-100 transition-colors" aria-label={t('nav.notifications')}>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/>
+            <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
+          </svg>
+          {#if getUnreadCount() > 0}
+            <span class="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full bg-berry text-cream text-[10px] font-bold flex items-center justify-center">
+              {getUnreadCount() > 9 ? '9+' : getUnreadCount()}
+            </span>
+          {/if}
+        </a>
       {/if}
       <!-- Sync indicator -->
       {#if !online}
