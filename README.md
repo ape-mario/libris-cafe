@@ -1,48 +1,87 @@
-# Libris
+# Libris Cafe
 
-A personal book collection manager built as a Progressive Web App. Track your reading, organize with shelves, and share a single library across family profiles — all offline-first with no account required.
+> **Status: Work In Progress** — Transformasi dari Libris (personal book tracker) menjadi sistem manajemen toko buku kafe.
 
-**[Live Demo](https://ape-mario.github.io/libris/)** — demo berjalan di GitHub Pages. Semua fitur berfungsi secara offline. Untuk sync antar perangkat, kamu perlu deploy sync server sendiri (lihat bagian [Sinkronisasi](#sinkronisasi)).
+Sistem manajemen toko buku kafe — kelola inventori buku (dijual, baca di tempat, preloved, konsinyasi), POS dengan pembayaran digital, dan dashboard analitik. Offline-first PWA yang bisa jalan di tablet kasir tanpa internet stabil.
 
-## Fitur
+## Progress
 
-- **Multi-profil** — Satu katalog buku bersama, tracking bacaan per orang ("Siapa yang membaca hari ini?")
-- **Kelola koleksi** — Tambah buku manual, cari via Open Library API, atau scan barcode pakai kamera
-- **Bulk import ISBN** — Paste daftar ISBN, auto-fetch metadata dari Open Library sekaligus
-- **Metadata lengkap** — Penerbit, tahun terbit, cetakan, kategori, seri — otomatis terisi dari Open Library
-- **Deteksi duplikat** — Cek ISBN dan fuzzy matching judul saat tambah buku
-- **Banyak kopi** — Simpan buku duplikat (edisi berbeda atau kopi tambahan) dengan tracking terpisah
-- **Status bacaan** — Tandai buku sebagai sedang dibaca, selesai, DNF, atau wishlist per profil
-- **Quick status** — Long-press cover buku untuk ubah status langsung tanpa buka detail
-- **Bulk actions** — Pilih banyak buku sekaligus, ubah status atau tambah ke rak secara batch
-- **Rak buku** — Buat rak kustom untuk mengatur buku sesukamu
-- **Seri buku** — Kelompokkan buku berdasarkan seri dengan urutan baca
-- **Jelajahi** — Telusuri koleksi berdasarkan kategori, seri, atau penulis
-- **Filter & sort lanjutan** — Filter by status, rating minimum, kategori. Sort by judul, penulis, rating, tahun terbit, penerbit
-- **Pencarian cepat** — Cari by judul, penulis, penerbit, atau ISBN dengan prefix index
-- **Buku terkait** — Lihat rekomendasi buku terkait berdasarkan seri, penulis, dan kategori yang sama
-- **Statistik** — Statistik per user dengan filter tahunan: buku selesai, halaman, rating, genre, progres bulanan, dan penulis favorit
-- **Target membaca** — Atur dan pantau target bacaan tahunan dengan confetti saat tercapai
-- **Rekomendasi** — Dapat saran buku berdasarkan riwayat bacaan (via Open Library)
-- **Peminjaman** — Catat siapa yang meminjam bukumu
-- **Catatan & rating** — Tambah catatan pribadi dan beri rating
-- **Progres baca** — Tandai halaman, lihat grafik riwayat progres harian
-- **Ekspor/Impor** — Backup dan restore koleksi sebagai JSON atau CSV
-- **Impor Goodreads** — Migrasi koleksi dari file CSV ekspor Goodreads (termasuk penerbit, tahun, cetakan)
-- **Sync antar perangkat** — Sync real-time via room code menggunakan Yjs CRDTs
-- **Offline-first** — Berfungsi penuh tanpa internet, data di IndexedDB dengan cache sampul (LRU eviction)
-- **PWA** — Installable sebagai app di HP dan desktop
-- **Bilingual** — English dan Bahasa Indonesia
+### Phase 1: Foundation (MVP) — Done
+- [x] Supabase setup (6 tabel, RLS, triggers)
+- [x] Staff auth (PIN login, role-based access)
+- [x] Inventory module (CRUD, stock movements, Yjs bridge)
+- [x] Offline queue (IndexedDB, auto-sync)
+- [x] POS — cash only (cart, checkout, barcode scan)
+- [x] Login page, staff layout, conditional navigation
+- [x] i18n bilingual (EN/ID)
+
+### Phase 2: Payments & Visibility — Planned
+- [ ] Integrasi Midtrans (QRIS, eWallet, kartu, VA)
+- [ ] Digital receipt (WhatsApp + email)
+- [ ] Dashboard owner + staff
+- [ ] Pelanggan browse (availability badges, harga)
+
+### Phase 3: Supply Chain & Consignment — Planned
+- [ ] Manajemen supplier + purchase orders
+- [ ] Integrasi API supplier (abstract adapter)
+- [ ] Konsinyasi (consignor, settlement)
+- [ ] Notifikasi (in-app + WhatsApp)
+- [ ] Restock suggestion engine
+
+### Phase 4: Advanced Features — Planned
+- [ ] Lending module (tracking baca di tempat)
+- [ ] Kiosk mode (tablet di cafe)
+- [ ] Thermal printer
+- [ ] Export laporan (CSV/PDF/Excel)
+- [ ] Prediction engine (demand forecast)
+
+### Phase 5: Scale — Planned
+- [ ] Multi-outlet
+- [ ] Transfer antar outlet
+- [ ] Consolidated reporting
+
+## Arsitektur
+
+Hybrid data layer — dua sumber data yang jelas terpisah:
+
+```
+┌─────────────────────────────────────────────┐
+│           Yjs + IndexedDB (existing)        │
+│  Katalog buku, cover, search, categories,   │
+│  seri, reading tracker, shelves, goals      │
+│  → Offline-first, eventual consistency      │
+├─────────────────────────────────────────────┤
+│              Supabase (new)                 │
+│  Inventori, transaksi, pembayaran,          │
+│  auth/roles, supplier, konsinyasi           │
+│  → ACID, server-authoritative               │
+├─────────────────────────────────────────────┤
+│           Bridge: Book UUID                 │
+│  Yjs Book.id = Supabase inventory.book_id   │
+└─────────────────────────────────────────────┘
+```
+
+## User Roles
+
+| Fitur | Owner | Staff | Pelanggan (guest) |
+|-------|-------|-------|--------------------|
+| Browse katalog | Ya | Ya | Ya |
+| Lihat harga & ketersediaan | Ya | Ya | Ya |
+| POS / jual buku | Ya | Ya | Tidak |
+| Kelola inventori | Ya | Ya | Tidak |
+| Dashboard penuh | Ya | Terbatas | Tidak |
+| Settings & supplier | Ya | Tidak | Tidak |
 
 ## Tech Stack
 
 - [SvelteKit](https://svelte.dev) (Svelte 5 with runes)
 - [Tailwind CSS](https://tailwindcss.com) v4
-- [Yjs](https://yjs.dev) (CRDT-based data layer with y-indexeddb persistence)
-- [PartyKit](https://partykit.io) / [Hocuspocus](https://tiptap.dev/hocuspocus) (WebSocket sync providers)
+- [Supabase](https://supabase.com) (Postgres, Auth, Edge Functions, Realtime)
+- [Yjs](https://yjs.dev) (CRDT-based catalog with y-indexeddb persistence)
+- [PartyKit](https://partykit.io) / [Hocuspocus](https://tiptap.dev/hocuspocus) (catalog sync)
+- [Midtrans](https://midtrans.com) (payment gateway — Phase 2)
 - [QuaggaJS](https://github.com/ericblade/quagga2) (barcode scanning)
 - [Vite PWA](https://vite-pwa-org.netlify.app) (service worker & manifest)
-- Static adapter (deploy anywhere)
 
 ## Mulai
 
@@ -51,14 +90,23 @@ npm install
 npm run dev
 ```
 
-App langsung bisa dipakai tanpa sync server — semua data disimpan lokal di browser.
+### Supabase Setup
+
+Untuk fitur bisnis (POS, inventori, auth), kamu perlu Supabase:
+
+1. Buat project di [supabase.com](https://supabase.com)
+2. Copy `.env.example` ke `.env` dan isi URL + anon key
+3. Jalankan migration: `npx supabase db push`
+4. Buat staff account di Supabase Auth + tabel staff
+
+Tanpa Supabase, app tetap jalan dalam mode guest (browse katalog saja).
 
 ## Skrip
 
 | Perintah | Keterangan |
 |----------|------------|
-| `npm run dev` | Jalankan dev server (terbuka ke jaringan lokal) |
-| `npm run build` | Build produksi ke `build/` |
+| `npm run dev` | Jalankan dev server |
+| `npm run build` | Build produksi |
 | `npm run preview` | Preview build produksi |
 | `npm run check` | Type-check dengan svelte-check |
 | `npm run test` | Jalankan unit test (Vitest) |
@@ -68,118 +116,49 @@ App langsung bisa dipakai tanpa sync server — semua data disimpan lokal di bro
 ```
 src/
 ├── lib/
-│   ├── components/    # Komponen UI
-│   ├── db/            # Yjs Y.Doc, query helpers, reactive stores, migrasi
-│   ├── i18n/          # Terjemahan (en, id)
-│   ├── services/      # Business logic (books, stats, backup, dll.)
-│   ├── stores/        # Svelte stores (user, theme, toast, dialog)
-│   └── sync/          # Room codes, provider interface, PartyKit/Hocuspocus
+│   ├── components/        # Komponen UI (BookCard, TopBar, BottomNav, dll)
+│   ├── db/                # Yjs Y.Doc, query helpers, migrasi
+│   ├── i18n/              # Terjemahan (en, id)
+│   ├── modules/           # Modul bisnis (baru)
+│   │   ├── auth/          # PIN login, role store, route guard
+│   │   ├── inventory/     # CRUD, stock movements, Yjs bridge
+│   │   ├── pos/           # Cart logic, checkout, offline fallback
+│   │   └── sync/          # Offline queue, sync manager
+│   ├── services/          # Business logic (books, stats, backup, dll)
+│   ├── shared/            # Shared utilities (book-id bridge)
+│   ├── stores/            # Svelte stores (user, theme, toast, dialog)
+│   ├── supabase/          # Supabase client & types
+│   └── sync/              # Room codes, provider, PartyKit/Hocuspocus
 ├── routes/
-│   ├── add/           # Tambah buku (cari, manual, scan)
-│   ├── book/[id]/     # Detail & edit buku
-│   ├── browse/        # Jelajahi per kategori, seri, penulis
-│   ├── join/[code]/   # Link join room yang bisa dibagikan
-│   ├── mine/          # Status bacaan per user
-│   ├── settings/      # Pengaturan, backup, sync
-│   ├── shelves/       # Rak buku kustom
-│   └── stats/         # Statistik & target membaca
-├── static/            # Ikon PWA & aset
-partykit/              # PartyKit sync server
+│   ├── add/               # Tambah buku
+│   ├── book/[id]/         # Detail & edit buku
+│   ├── browse/            # Jelajahi per kategori, seri, penulis
+│   ├── login/             # Staff PIN login
+│   ├── mine/              # Status bacaan per user
+│   ├── settings/          # Pengaturan, backup, sync
+│   ├── shelves/           # Rak buku kustom
+│   ├── staff/             # Staff-only routes (auth guarded)
+│   │   ├── pos/           # Point of Sale
+│   │   └── inventory/     # Inventory management
+│   └── stats/             # Statistik & target membaca
+supabase/
+├── migrations/            # SQL migrations
+└── config.toml            # Supabase project config
+partykit/                  # PartyKit sync server (catalog)
 ```
 
-## Sinkronisasi
+## Sinkronisasi Katalog
 
-> **Penting:** Fitur sync membutuhkan sync server. Tanpa server, app tetap berfungsi penuh secara offline — data tersimpan lokal di browser. Deploy sync server hanya diperlukan jika kamu ingin sync data antar perangkat (misalnya laptop dan HP).
+Data katalog buku (Yjs) bisa di-sync antar perangkat via room code. Lihat [docs sync](docs/) untuk setup PartyKit atau Hocuspocus.
 
-Data disimpan lokal di IndexedDB via Yjs CRDTs. Sync bersifat opsional — buat atau join room dengan kode (format: `XXXX-XXXX`) untuk sync antar device secara real-time.
+## Dokumentasi
 
-Buka **Settings > Device Sync**, lalu **Create Room** atau **Join Room**.
-
-### Pilihan Provider
-
-| Provider | Biaya | Kelebihan | Kekurangan |
-|----------|-------|-----------|------------|
-| **PartyKit** (default) | Free tier (20 koneksi) | Data persist di cloud, offline-to-online sync | Perlu deploy server |
-| **Hocuspocus** | Self-hosted | Full kontrol, unlimited | Perlu VPS sendiri |
-
-### PartyKit (Rekomendasi)
-
-PartyKit menyimpan Y.Doc di cloud, jadi device bisa sync meskipun tidak online bersamaan. Free tier cukup untuk penggunaan pribadi/keluarga (20 concurrent connections, 1GB storage).
-
-```
-Device A  ←──WebSocket──→  PartyKit Server  ←──WebSocket──→  Device B
-                                ↕
-                         Durable Storage
-                        (data persist di cloud)
-```
-
-**Cara kerja:**
-
-1. Client membuat WebSocket connection ke `wss://<project>.partykit.dev/party/<room-code>`
-2. PartyKit server (`partykit/server.ts`) menggunakan `y-partykit` yang handle:
-   - **Initial sync:** Saat client baru connect, server kirim full Y.Doc state
-   - **Incremental updates:** Setiap perubahan dikirim sebagai binary diff ke semua client di room yang sama
-   - **Persistence:** Y.Doc state disimpan di Cloudflare Durable Objects (persist antar restart)
-3. Room code jadi room ID — semua device dengan code yang sama terhubung ke Y.Doc yang sama
-
-**Setup:**
-
-```sh
-# 1. Install PartyKit CLI & login
-npm install -g partykit
-npx partykit login
-
-# 2. Deploy server
-cd partykit
-npm install
-npm run deploy
-# Output: https://libris-sync.<username>.partykit.dev
-```
-
-```sh
-# 3. Build app dengan PartyKit host
-VITE_PARTYKIT_HOST=libris-sync.<username>.partykit.dev npm run build
-```
-
-Atau untuk development lokal:
-```sh
-# Terminal 1: jalankan PartyKit server lokal
-cd partykit && npm install && npm run dev
-# Server jalan di localhost:1999
-
-# Terminal 2: jalankan app (otomatis connect ke localhost:1999)
-npm run dev
-```
-
-Lalu buka Settings → **Create Room** atau **Join Room**.
-
-#### Deploy dengan GitHub Pages
-
-Kalau kamu deploy frontend ke GitHub Pages, set `VITE_PARTYKIT_HOST` sebagai repository secret:
-
-1. Buka repo Settings → Secrets and variables → Actions
-2. Tambah secret: `VITE_PARTYKIT_HOST` = `libris-sync.<username>.partykit.dev`
-3. GitHub Actions workflow akan otomatis pakai secret ini saat build
-
-### Hocuspocus (Self-Hosted)
-
-Untuk yang punya VPS dan mau full kontrol.
-
-```sh
-# Di VPS
-mkdir hocuspocus && cd hocuspocus
-npm init -y
-npm install @hocuspocus/server
-
-cat > index.js << 'EOF'
-import { Hocuspocus } from "@hocuspocus/server";
-new Hocuspocus({ port: 1234 }).listen();
-EOF
-
-node index.js
-```
-
-Di Settings, pilih **Self-hosted** → masukkan `wss://your-vps:1234` → Create/Join Room.
+- [Design Spec](docs/superpowers/specs/2026-03-19-libris-cafe-design.md) — Arsitektur, data model, flow lengkap
+- [Phase 1 Plan](docs/superpowers/plans/2026-03-19-phase1-foundation.md)
+- [Phase 2 Plan](docs/superpowers/plans/2026-03-19-phase2-payments-visibility.md)
+- [Phase 3 Plan](docs/superpowers/plans/2026-03-19-phase3-supply-chain.md)
+- [Phase 4 Plan](docs/superpowers/plans/2026-03-19-phase4-advanced.md)
+- [Phase 5 Plan](docs/superpowers/plans/2026-03-19-phase5-scale.md)
 
 ## Lisensi
 
