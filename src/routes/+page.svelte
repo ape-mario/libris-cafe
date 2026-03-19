@@ -379,33 +379,35 @@
 </div>
 
 {#if selectMode && selected.size > 0}
-  <div class="fixed bottom-16 left-0 right-0 z-40 flex justify-center px-4 animate-fade-up">
-    <div class="card p-3 flex items-center gap-2 shadow-lg max-w-lg w-full">
-      <span class="text-xs font-semibold text-ink mr-auto">{selected.size} {t('library.bulk.selected')}</span>
-      <button class="text-xs text-ink-muted hover:text-ink" onclick={selectAll}>{t('library.bulk.select_all')}</button>
-      <span class="text-warm-200">|</span>
-      <button class="tab-pill !py-1 !px-2.5 !text-[10px] tab-pill-inactive" onclick={() => bulkSetStatus('read')}>{t('book.status_read')}</button>
-      <button class="tab-pill !py-1 !px-2.5 !text-[10px] tab-pill-inactive" onclick={() => bulkSetStatus('reading')}>{t('book.status_reading')}</button>
-      <button class="tab-pill !py-1 !px-2.5 !text-[10px] tab-pill-inactive" onclick={() => bulkSetStatus('dnf')}>{t('book.status_dnf')}</button>
-      {#if shelves.length > 0}
-        <span class="text-warm-200">|</span>
-        <div class="relative">
-          <button class="tab-pill !py-1 !px-2.5 !text-[10px] tab-pill-inactive" onclick={() => showBulkShelf = !showBulkShelf}>
-            + {t('shelves.add_to')}
-          </button>
-          {#if showBulkShelf}
-            <div class="absolute bottom-full mb-1 right-0 card p-2 shadow-lg min-w-[10rem] animate-scale-in">
-              {#each shelves as shelf}
-                <button
-                  class="block w-full text-left text-xs text-ink-light hover:bg-warm-100 px-3 py-1.5 rounded-lg transition-colors"
-                  onclick={() => bulkAddToShelf(shelf.id)}
-                >{shelf.name}</button>
-              {/each}
-            </div>
-          {/if}
-        </div>
-      {/if}
-      <button class="text-xs text-warm-400 hover:text-ink ml-1" onclick={clearSelection}>✕</button>
+  <div class="fixed bottom-16 left-0 right-0 z-40 flex justify-center px-3 animate-fade-up">
+    <div class="card p-2.5 shadow-lg max-w-lg w-full">
+      <div class="flex items-center gap-2 mb-2">
+        <span class="text-xs font-semibold text-ink">{selected.size} {t('library.bulk.selected')}</span>
+        <button class="text-xs text-ink-muted hover:text-ink ml-auto" onclick={selectAll}>{t('library.bulk.select_all')}</button>
+      </div>
+      <div class="flex items-center gap-1.5 flex-wrap">
+        <button class="tab-pill !py-1 !px-2.5 !text-[10px] tab-pill-inactive" onclick={() => bulkSetStatus('read')}>{t('book.status_read')}</button>
+        <button class="tab-pill !py-1 !px-2.5 !text-[10px] tab-pill-inactive" onclick={() => bulkSetStatus('reading')}>{t('book.status_reading')}</button>
+        <button class="tab-pill !py-1 !px-2.5 !text-[10px] tab-pill-inactive" onclick={() => bulkSetStatus('dnf')}>{t('book.status_dnf')}</button>
+        {#if shelves.length > 0}
+          <div class="relative">
+            <button class="tab-pill !py-1 !px-2.5 !text-[10px] tab-pill-inactive" onclick={() => showBulkShelf = !showBulkShelf}>
+              + {t('shelves.add_to')}
+            </button>
+            {#if showBulkShelf}
+              <div class="absolute bottom-full mb-1 right-0 card p-2 shadow-lg min-w-[10rem] animate-scale-in">
+                {#each shelves as shelf}
+                  <button
+                    class="block w-full text-left text-xs text-ink-light hover:bg-warm-100 px-3 py-1.5 rounded-lg transition-colors"
+                    onclick={() => bulkAddToShelf(shelf.id)}
+                  >{shelf.name}</button>
+                {/each}
+              </div>
+            {/if}
+          </div>
+        {/if}
+        <button class="tab-pill !py-1 !px-2.5 !text-[10px] tab-pill-inactive !text-warm-400" onclick={clearSelection}>✕</button>
+      </div>
     </div>
   </div>
 {/if}

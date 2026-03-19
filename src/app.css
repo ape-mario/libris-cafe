@@ -31,6 +31,7 @@
 
 * {
   -webkit-tap-highlight-color: transparent;
+  -webkit-overflow-scrolling: touch;
 }
 
 html {
@@ -38,6 +39,12 @@ html {
   background: var(--color-cream);
   color: var(--color-ink);
   transition: background-color 0.3s ease, color 0.3s ease;
+  overflow-x: hidden;
+  scroll-behavior: smooth;
+}
+
+body {
+  overflow-x: hidden;
 }
 
 /* Dark mode overrides */
@@ -74,6 +81,21 @@ html.dark {
 ::selection {
   background: var(--color-warm-200);
   color: var(--color-ink);
+}
+
+/* Mobile-native scroll feel */
+main {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+}
+
+/* Hide horizontal scrollbar on overflow-x-auto elements but keep scrollability */
+.overflow-x-auto {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.overflow-x-auto::-webkit-scrollbar {
+  display: none;
 }
 
 /* Scrollbar styling */
