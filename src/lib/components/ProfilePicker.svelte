@@ -6,6 +6,7 @@
   import { t } from '$lib/i18n/index.svelte';
   import { getLocale, setLocale } from '$lib/i18n/index.svelte';
   import { getRoomCode } from '$lib/sync/manager';
+  import { base } from '$app/paths';
 
   interface UserWithStats extends User {
     bookCount: number;
@@ -135,5 +136,9 @@
         <button type="submit" class="btn-primary">{t('profile.go')}</button>
       </form>
     {/if}
+
+    <a href="{base}/login" class="text-sm text-ink-muted hover:text-accent transition-colors mt-4 inline-block">
+      Staff Login &rarr;
+    </a>
   </div>
 </div>

@@ -39,7 +39,7 @@
     if (!po) return;
     const confirmed = await showConfirm({
       title: t('po.mark_ordered'),
-      message: 'This will mark the PO as sent to supplier.',
+      message: t('po.mark_ordered_confirm'),
     });
     if (!confirmed) return;
 
@@ -47,9 +47,9 @@
     try {
       await updatePOStatus(po.id, 'ordered');
       po = { ...po, status: 'ordered', ordered_at: new Date().toISOString() };
-      showToast('PO marked as ordered', 'success');
+      showToast(t('po.marked_ordered'), 'success');
     } catch (err) {
-      showToast('Failed to update PO', 'error');
+      showToast(t('po.update_failed'), 'error');
     } finally {
       processing = false;
     }
@@ -108,9 +108,9 @@
 
       await receivePurchaseOrder(po.id, receivedItems, staff.id);
       po = { ...po, status: 'received', received_at: new Date().toISOString() };
-      showToast('Goods received and stock updated', 'success');
+      showToast(t('po.received_success'), 'success');
     } catch (err) {
-      showToast(err instanceof Error ? err.message : 'Failed to receive goods', 'error');
+      showToast(err instanceof Error ? err.message : t('po.receive_failed'), 'error');
     } finally {
       processing = false;
     }
@@ -120,7 +120,7 @@
     if (!po) return;
     const confirmed = await showConfirm({
       title: t('po.cancel'),
-      message: 'Cancel this purchase order?',
+      message: t('po.cancel_confirm'),
     });
     if (!confirmed) return;
 
@@ -128,9 +128,9 @@
     try {
       await updatePOStatus(po.id, 'cancelled');
       po = { ...po, status: 'cancelled' };
-      showToast('PO cancelled', 'success');
+      showToast(t('po.cancelled'), 'success');
     } catch (err) {
-      showToast('Failed to cancel PO', 'error');
+      showToast(t('po.cancel_failed'), 'error');
     } finally {
       processing = false;
     }
@@ -159,7 +159,7 @@
 {#if loading}
   <div class="py-8 text-center text-sm text-ink-muted">{t('common.loading')}</div>
 {:else if !po}
-  <div class="py-8 text-center text-sm text-ink-muted">Purchase order not found</div>
+  <div class="py-8 text-center text-sm text-ink-muted">{t('po.not_found')}</div>
 {:else}
   <div class="space-y-4">
     <button class="text-sm text-ink-muted hover:text-accent" onclick={() => goto(`${base}/owner/purchase-orders`)}>
@@ -171,14 +171,14 @@
       <div class="flex items-start justify-between">
         <div>
           <h1 class="font-display text-lg font-bold text-ink">
-            {(po.supplier as any)?.name ?? 'Unknown Supplier'}
+            {(po.supplier as any)?.name ?? t('supplier.unknown')}
           </h1>
-          <p class="text-xs text-ink-muted">Created: {formatDate(po.created_at)}</p>
+          <p class="text-xs text-ink-muted">{t('po.created_at')}: {formatDate(po.created_at)}</p>
           {#if po.ordered_at}
-            <p class="text-xs text-ink-muted">Ordered: {formatDate(po.ordered_at)}</p>
+            <p class="text-xs text-ink-muted">{t('po.ordered_at')}: {formatDate(po.ordered_at)}</p>
           {/if}
           {#if po.received_at}
-            <p class="text-xs text-ink-muted">Received: {formatDate(po.received_at)}</p>
+            <p class="text-xs text-ink-muted">{t('po.received_at')}: {formatDate(po.received_at)}</p>
           {/if}
         </div>
         <span class="text-xs px-2 py-0.5 rounded-full font-medium {statusClass(po.status)}">

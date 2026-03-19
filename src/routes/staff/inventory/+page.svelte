@@ -45,7 +45,7 @@
   <div class="flex items-center justify-between">
     <h1 class="font-display text-xl font-bold text-ink">{t('inventory.title')}</h1>
     <a
-      href="{base}/add"
+      href="{base}/staff/inventory/new"
       class="px-4 py-2 rounded-xl bg-accent text-cream text-sm font-medium"
     >
       + {t('inventory.add')}
@@ -59,7 +59,7 @@
         class="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors {filter === f ? 'bg-accent text-cream' : 'bg-surface text-ink-muted border border-warm-100'}"
         onclick={() => filter = f as any}
       >
-        {f === 'all' ? 'All' : f === 'low_stock' ? t('inventory.low_stock') : t('inventory.out_of_stock')}
+        {f === 'all' ? t('library.filter.all') : f === 'low_stock' ? t('inventory.low_stock') : t('inventory.out_of_stock')}
         {#if f === 'low_stock'}
           ({items.filter(i => i.stock > 0 && i.stock <= i.min_stock).length})
         {:else if f === 'out_of_stock'}
@@ -73,7 +73,7 @@
   {#if loading}
     <div class="py-8 text-center text-sm text-ink-muted">{t('common.loading')}</div>
   {:else if filtered.length === 0}
-    <div class="py-8 text-center text-sm text-ink-muted">No items</div>
+    <div class="py-8 text-center text-sm text-ink-muted">{t('inventory.empty')}</div>
   {:else}
     <div class="space-y-2">
       {#each filtered as item}

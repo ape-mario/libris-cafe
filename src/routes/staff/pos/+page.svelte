@@ -91,15 +91,15 @@
 
     const inventory = await getInventoryByBookId(book.id, staff.outlet_id);
     if (!inventory) {
-      showToast('Book not in inventory', 'error');
+      showToast(t('pos.not_in_inventory'), 'error');
       return;
     }
     if (inventory.type === 'read_in_store') {
-      showToast('This book is for reading in store only', 'error');
+      showToast(t('pos.read_only'), 'error');
       return;
     }
     if (inventory.stock <= 0) {
-      showToast('Out of stock', 'error');
+      showToast(t('inventory.out_of_stock'), 'error');
       return;
     }
 
@@ -107,14 +107,14 @@
     const existingInCart = cart.items.find(i => i.inventory.id === inventory.id);
     const currentQty = existingInCart?.quantity ?? 0;
     if (currentQty + 1 > inventory.stock) {
-      showToast(`Max stock: ${inventory.stock}`, 'error');
+      showToast(t('pos.max_stock', { count: String(inventory.stock) }), 'error');
       return;
     }
 
     setCart(addToCart(cart, inventory, book));
     searchQuery = '';
     searchResults = [];
-    showToast(`${book.title} added`, 'success');
+    showToast(t('pos.item_added', { title: book.title }), 'success');
   }
 
   function handleRemove(inventoryId: string) {
@@ -125,7 +125,7 @@
     // Validate against available stock
     const item = cart.items.find(i => i.inventory.id === inventoryId);
     if (item && qty > item.inventory.stock) {
-      showToast(`Max stock: ${item.inventory.stock}`, 'error');
+      showToast(t('pos.max_stock', { count: String(item.inventory.stock) }), 'error');
       return;
     }
     setCart(updateQuantity(cart, inventoryId, qty));

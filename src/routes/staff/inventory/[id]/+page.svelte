@@ -48,15 +48,15 @@
 
     const input = await showPrompt({
       title: t('inventory.adjust_stock'),
-      message: 'Enter quantity (+/- number)',
-      placeholder: 'e.g. +5 or -2',
+      message: t('inventory.adjust_prompt'),
+      placeholder: t('inventory.adjust_placeholder'),
     });
 
     if (!input) return;
 
     const qty = parseInt(input, 10);
     if (isNaN(qty) || qty === 0) {
-      showToast('Invalid quantity', 'error');
+      showToast(t('inventory.invalid_qty'), 'error');
       return;
     }
 
@@ -72,9 +72,9 @@
       // Refresh
       item = { ...item, stock: item.stock + qty };
       movements = await getStockMovements(inventoryId);
-      showToast('Stock adjusted', 'success');
+      showToast(t('inventory.adjusted'), 'success');
     } catch (err) {
-      showToast('Failed to adjust stock', 'error');
+      showToast(t('inventory.adjust_failed'), 'error');
     }
   }
 
@@ -163,7 +163,7 @@
         <h2 class="text-sm font-semibold text-ink uppercase tracking-wide">{t('inventory.movement_history')}</h2>
       </div>
       {#if movements.length === 0}
-        <div class="px-4 py-6 text-center text-sm text-ink-muted">No movements yet</div>
+        <div class="px-4 py-6 text-center text-sm text-ink-muted">{t('inventory.no_movements')}</div>
       {:else}
         <div class="divide-y divide-warm-50 max-h-80 overflow-y-auto">
           {#each movements as m}

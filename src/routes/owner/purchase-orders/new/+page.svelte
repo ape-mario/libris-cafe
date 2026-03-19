@@ -39,7 +39,7 @@
   async function handleSubmit() {
     if (!staff || !selectedSupplierId || saving) return;
     if (items.length === 0 || items.some(i => !i.title.trim())) {
-      showToast('Please fill all item titles', 'error');
+      showToast(t('po.fill_titles'), 'error');
       return;
     }
 
@@ -57,10 +57,10 @@
         })),
       });
 
-      showToast('Purchase order created', 'success');
+      showToast(t('po.created'), 'success');
       goto(`${base}/owner/purchase-orders/${po.id}`);
     } catch (err) {
-      showToast(err instanceof Error ? err.message : 'Failed to create PO', 'error');
+      showToast(err instanceof Error ? err.message : t('po.create_failed'), 'error');
     } finally {
       saving = false;
     }
@@ -86,7 +86,7 @@
       </label>
       <select id="supplier" bind:value={selectedSupplierId} required
         class="w-full px-4 py-3 rounded-xl bg-surface border border-warm-100 text-sm focus:outline-none focus:ring-2 focus:ring-accent/30">
-        <option value="">Select supplier...</option>
+        <option value="">{t('po.select_supplier')}</option>
         {#each suppliers as s}
           <option value={s.id}>{s.name}</option>
         {/each}
@@ -109,7 +109,7 @@
             <span class="text-xs font-semibold text-ink-muted">Item {i + 1}</span>
             {#if items.length > 1}
               <button type="button" onclick={() => removeItem(item._key)}
-                class="text-xs text-berry hover:text-berry/80">Remove</button>
+                class="text-xs text-berry hover:text-berry/80">{t('po.remove_item')}</button>
             {/if}
           </div>
           <input type="text" bind:value={item.title} placeholder={t('po.book_title')} required

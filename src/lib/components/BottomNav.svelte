@@ -39,22 +39,22 @@
     { href: `${base}/stats`, label: t('nav.stats'), icon: icons.chart },
   ]);
 
-  // Staff tabs (includes dashboard)
+  // Staff tabs (includes lending)
   let staffTabs = $derived([
     { href: `${base}/staff/pos`, label: t('nav.pos'), icon: icons.pos },
     { href: `${base}/staff/inventory`, label: t('nav.inventory'), icon: icons.inventory },
-    { href: `${base}/staff/dashboard`, label: t('nav.dashboard'), icon: icons.chart },
-    { href: `${base}/`, label: t('nav.library'), icon: icons.book },
+    { href: `${base}/staff/lending`, label: t('lending.title'), icon: icons.book },
     { href: `${base}/browse`, label: t('nav.browse'), icon: icons.grid },
+    { href: `${base}/staff/dashboard`, label: t('nav.dashboard'), icon: icons.chart },
   ]);
 
-  // Owner tabs (full dashboard)
+  // Owner tabs (full dashboard + manage hub)
   let ownerTabs = $derived([
     { href: `${base}/staff/pos`, label: t('nav.pos'), icon: icons.pos },
-    { href: `${base}/staff/inventory`, label: t('nav.inventory'), icon: icons.inventory },
     { href: `${base}/owner/dashboard`, label: t('nav.dashboard'), icon: icons.chart },
-    { href: `${base}/`, label: t('nav.library'), icon: icons.book },
-    { href: `${base}/browse`, label: t('nav.browse'), icon: icons.grid },
+    { href: `${base}/staff/inventory`, label: t('nav.inventory'), icon: icons.inventory },
+    { href: `${base}/staff/lending`, label: t('lending.title'), icon: icons.book },
+    { href: `${base}/owner/manage`, label: 'Manage', icon: icons.list },
   ]);
 
   let tabs = $derived(isOwner() ? ownerTabs : isStaff() ? staffTabs : guestTabs);

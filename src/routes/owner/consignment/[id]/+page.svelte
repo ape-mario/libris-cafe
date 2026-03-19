@@ -44,7 +44,7 @@
     try {
       salesPreview = await getConsignmentSales(consignorId, periodStart, periodEnd);
     } catch (err) {
-      showToast('Failed to load sales data', 'error');
+      showToast(t('consignment.sales_load_failed'), 'error');
     } finally {
       loadingSales = false;
     }
@@ -53,7 +53,7 @@
   async function handleCreateSettlement() {
     if (!consignor || !staff || creating) return;
     if (salesPreview.length === 0) {
-      showToast('No sales in this period', 'error');
+      showToast(t('consignment.no_sales_period'), 'error');
       return;
     }
 
@@ -70,12 +70,12 @@
         staffId: staff.id,
       });
 
-      showToast('Settlement created', 'success');
+      showToast(t('consignment.settlement_created'), 'success');
       settlements = await getSettlements(consignorId);
       showCreateForm = false;
       salesPreview = [];
     } catch (err) {
-      showToast(err instanceof Error ? err.message : 'Failed', 'error');
+      showToast(err instanceof Error ? err.message : t('consignment.create_failed'), 'error');
     } finally {
       creating = false;
     }
@@ -84,23 +84,23 @@
   async function handleConfirm(settlementId: string) {
     const confirmed = await showConfirm({
       title: t('consignment.confirm'),
-      message: 'Confirm this settlement?',
+      message: t('consignment.confirm_message'),
     });
     if (!confirmed) return;
 
     try {
       await confirmSettlement(settlementId);
       settlements = settlements.map(s => s.id === settlementId ? { ...s, status: 'confirmed' as const } : s);
-      showToast('Settlement confirmed', 'success');
+      showToast(t('consignment.settlement_confirmed'), 'success');
     } catch (err) {
-      showToast('Failed', 'error');
+      showToast(t('consignment.confirm_failed'), 'error');
     }
   }
 
   async function handleMarkPaid(settlementId: string) {
     const confirmed = await showConfirm({
       title: t('consignment.mark_paid'),
-      message: 'Mark this settlement as paid?',
+      message: t('consignment.mark_paid_confirm'),
     });
     if (!confirmed) return;
 
@@ -109,9 +109,9 @@
       settlements = settlements.map(s =>
         s.id === settlementId ? { ...s, status: 'paid' as const, paid_at: new Date().toISOString() } : s
       );
-      showToast('Settlement marked as paid', 'success');
+      showToast(t('consignment.settlement_paid'), 'success');
     } catch (err) {
-      showToast('Failed', 'error');
+      showToast(t('consignment.pay_failed'), 'error');
     }
   }
 
@@ -137,7 +137,7 @@
 {#if loading}
   <div class="py-8 text-center text-sm text-ink-muted">{t('common.loading')}</div>
 {:else if !consignor}
-  <div class="py-8 text-center text-sm text-ink-muted">Consignor not found</div>
+  <div class="py-8 text-center text-sm text-ink-muted">{t('consignment.not_found')}</div>
 {:else}
   <div class="space-y-4">
     <button class="text-sm text-ink-muted hover:text-accent" onclick={() => goto(`${base}/owner/consignment`)}>
@@ -180,12 +180,12 @@
         <h3 class="text-sm font-semibold text-ink">{t('consignment.create_settlement')}</h3>
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block text-xs text-ink-muted mb-1">Start Date</label>
+            <label class="block text-xs text-ink-muted mb-1">{t('consignment.start_date')}</label>
             <input type="date" bind:value={periodStart}
               class="w-full px-3 py-2 rounded-lg bg-cream border border-warm-100 text-sm" />
           </div>
           <div>
-            <label class="block text-xs text-ink-muted mb-1">End Date</label>
+            <label class="block text-xs text-ink-muted mb-1">{t('consignment.end_date')}</label>
             <input type="date" bind:value={periodEnd}
               class="w-full px-3 py-2 rounded-lg bg-cream border border-warm-100 text-sm" />
           </div>
@@ -193,7 +193,7 @@
 
         <button onclick={previewSales} disabled={loadingSales || !periodStart || !periodEnd}
           class="w-full py-2 rounded-lg bg-warm-100 text-ink text-sm font-medium disabled:opacity-50">
-          {loadingSales ? t('common.loading') : 'Preview Sales'}
+          {loadingSales ? t('common.loading') : t('consignment.preview_sales')}
         </button>
 
         {#if salesPreview.length > 0}
@@ -218,7 +218,7 @@
             {creating ? '...' : t('consignment.create_settlement')}
           </button>
         {:else if !loadingSales && periodStart && periodEnd}
-          <p class="text-xs text-ink-muted text-center">No sales found in this period</p>
+          <p class="text-xs text-ink-muted text-center">{t('consignment.no_sales_period')}</p>
         {/if}
       </div>
     {/if}

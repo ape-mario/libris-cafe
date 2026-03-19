@@ -30,16 +30,16 @@
     if (!supplier) return;
     const confirmed = await showConfirm({
       title: t('supplier.deactivate'),
-      message: `Deactivate ${supplier.name}?`,
+      message: t('supplier.deactivate_confirm', { name: supplier.name }),
     });
     if (!confirmed) return;
 
     try {
       await deactivateSupplier(supplier.id);
-      showToast('Supplier deactivated', 'success');
+      showToast(t('supplier.deactivated'), 'success');
       goto(`${base}/owner/suppliers`);
     } catch (err) {
-      showToast('Failed to deactivate', 'error');
+      showToast(t('supplier.deactivate_failed'), 'error');
     }
   }
 
@@ -66,7 +66,7 @@
 {#if loading}
   <div class="py-8 text-center text-sm text-ink-muted">{t('common.loading')}</div>
 {:else if !supplier}
-  <div class="py-8 text-center text-sm text-ink-muted">Supplier not found</div>
+  <div class="py-8 text-center text-sm text-ink-muted">{t('supplier.not_found')}</div>
 {:else}
   <div class="space-y-4">
     <button class="text-sm text-ink-muted hover:text-accent" onclick={() => goto(`${base}/owner/suppliers`)}>
@@ -102,7 +102,7 @@
         </div>
         <div>
           <span class="text-xs text-ink-muted uppercase">{t('supplier.lead_time')}</span>
-          <p class="font-medium text-ink">{supplier.lead_time_days} days</p>
+          <p class="font-medium text-ink">{supplier.lead_time_days} {t('common.days')}</p>
         </div>
       </div>
 
