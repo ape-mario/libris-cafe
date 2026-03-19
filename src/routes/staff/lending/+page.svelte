@@ -70,11 +70,11 @@
       <div class="text-xs text-ink-muted">{t('lending.overdue')}</div>
     </div>
     <div class="bg-surface rounded-xl border border-warm-100 p-3 text-center">
-      <div class="text-2xl font-bold text-ink">{lending.stats.today_checkins}</div>
+      <div class="text-2xl font-bold text-ink">{lending.stats.today_checkin}</div>
       <div class="text-xs text-ink-muted">{t('lending.todayIn')}</div>
     </div>
     <div class="bg-surface rounded-xl border border-warm-100 p-3 text-center">
-      <div class="text-2xl font-bold text-ink">{lending.stats.today_checkouts}</div>
+      <div class="text-2xl font-bold text-ink">{lending.stats.today_checkout}</div>
       <div class="text-xs text-ink-muted">{t('lending.todayOut')}</div>
     </div>
   </div>

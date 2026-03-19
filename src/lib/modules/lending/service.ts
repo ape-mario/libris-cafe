@@ -148,68 +148,13 @@ export async function getSessions(
 }
 
 /**
- * Get lending stats for today.
+ * Get lending stats for today (single RPC call).
  */
 export async function getLendingStats(outletId: string): Promise<LendingStats> {
   const supabase = getSupabase();
-  const todayStart = new Date();
-  todayStart.setHours(0, 0, 0, 0);
-
-  // Active and overdue counts
-  const { count: activeCount } = await supabase
-    .from('reading_session')
-    .select('*', { count: 'exact', head: true })
-    .eq('outlet_id', outletId)
-    .eq('status', 'active');
-
-  const { count: overdueCount } = await supabase
-    .from('reading_session')
-    .select('*', { count: 'exact', head: true })
-    .eq('outlet_id', outletId)
-    .eq('status', 'overdue');
-
-  // Today's check-ins
-  const { count: todayCheckins } = await supabase
-    .from('reading_session')
-    .select('*', { count: 'exact', head: true })
-    .eq('outlet_id', outletId)
-    .gte('checked_in_at', todayStart.toISOString());
-
-  // Today's check-outs
-  const { count: todayCheckouts } = await supabase
-    .from('reading_session')
-    .select('*', { count: 'exact', head: true })
-    .eq('outlet_id', outletId)
-    .eq('status', 'returned')
-    .gte('checked_out_at', todayStart.toISOString());
-
-  // Average duration of completed sessions (last 30 days)
-  const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
-  const { data: completedSessions } = await supabase
-    .from('reading_session')
-    .select('checked_in_at, checked_out_at')
-    .eq('outlet_id', outletId)
-    .eq('status', 'returned')
-    .gte('checked_out_at', thirtyDaysAgo)
-    .not('checked_out_at', 'is', null);
-
-  let avgDuration = 0;
-  if (completedSessions && completedSessions.length > 0) {
-    const totalMinutes = completedSessions.reduce((sum, s) => {
-      const inTime = new Date(s.checked_in_at).getTime();
-      const outTime = new Date(s.checked_out_at!).getTime();
-      return sum + (outTime - inTime) / (1000 * 60);
-    }, 0);
-    avgDuration = Math.round(totalMinutes / completedSessions.length);
-  }
-
-  return {
-    active_count: activeCount ?? 0,
-    overdue_count: overdueCount ?? 0,
-    today_checkins: todayCheckins ?? 0,
-    today_checkouts: todayCheckouts ?? 0,
-    avg_duration_minutes: avgDuration,
-  };
+  const { data, error } = await supabase.rpc('get_lending_stats', { p_outlet_id: outletId });
+  if (error) throw new Error(`Failed to fetch lending stats: ${error.message}`);
+  return data as LendingStats;
 }
 
 /**

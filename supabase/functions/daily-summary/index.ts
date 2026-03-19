@@ -15,12 +15,11 @@ Deno.serve(async (req: Request) => {
     const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, serviceRoleKey);
 
-    // Get today's date range
+    // Get today's date range in Jakarta timezone
     const today = new Date();
-    const startOfDay = new Date(today);
-    startOfDay.setHours(0, 0, 0, 0);
-    const endOfDay = new Date(today);
-    endOfDay.setHours(23, 59, 59, 999);
+    const jakartaDate = today.toLocaleDateString('en-CA', { timeZone: 'Asia/Jakarta' });
+    const startOfDay = new Date(`${jakartaDate}T00:00:00+07:00`);
+    const endOfDay = new Date(`${jakartaDate}T23:59:59.999+07:00`);
 
     // Get all outlets
     const { data: outlets } = await supabase.from('outlet').select('id, name');
@@ -68,7 +67,7 @@ Deno.serve(async (req: Request) => {
             totalSales,
             transactionCount,
             outOfStockCount,
-            date: today.toISOString().split('T')[0],
+            date: jakartaDate,
           },
         });
 
@@ -83,7 +82,7 @@ Deno.serve(async (req: Request) => {
               `Transaksi: ${transactionCount}`,
               `Stok habis: ${outOfStockCount} item`,
               '',
-              `_${today.toLocaleDateString('id-ID', { dateStyle: 'full' })}_`,
+              `_${today.toLocaleDateString('id-ID', { timeZone: 'Asia/Jakarta', dateStyle: 'full' })}_`,
             ].join('\n');
 
             await fetch('https://api.fonnte.com/send', {
