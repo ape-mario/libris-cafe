@@ -45,6 +45,19 @@ export function updateQuantity(cart: Cart, inventoryId: string, quantity: number
   return recalculate({ ...cart, items });
 }
 
+export function setCartDiscount(cart: Cart, amount: number): Cart {
+  return recalculate({ ...cart, discount: Math.max(0, amount) });
+}
+
+export function setItemDiscount(cart: Cart, inventoryId: string, discount: number): Cart {
+  const items = cart.items.map(item =>
+    item.inventory.id === inventoryId
+      ? { ...item, discount: Math.max(0, discount), total: item.quantity * item.unitPrice - Math.max(0, discount) }
+      : item
+  );
+  return recalculate({ ...cart, items });
+}
+
 export function clearCart(cart: Cart): Cart {
   return recalculate({ ...cart, items: [], discount: 0 });
 }

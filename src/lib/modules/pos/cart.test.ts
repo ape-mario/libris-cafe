@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { createCart, addToCart, removeFromCart, updateQuantity, clearCart } from './cart';
+import { createCart, addToCart, removeFromCart, updateQuantity, clearCart, setCartDiscount, setItemDiscount } from './cart';
 import type { Inventory } from '../inventory/types';
 import type { Book } from '$lib/db';
 
@@ -65,5 +65,36 @@ describe('Cart', () => {
     cart = addToCart(cart, mockInventory, mockBook);
     cart = clearCart(cart);
     expect(cart.items).toHaveLength(0);
+  });
+
+  it('should apply cart discount and reduce total but not subtotal', () => {
+    let cart = createCart(0);
+    cart = addToCart(cart, mockInventory, mockBook);
+    cart = setCartDiscount(cart, 10000);
+    expect(cart.subtotal).toBe(89000);
+    expect(cart.discount).toBe(10000);
+    expect(cart.total).toBe(79000);
+  });
+
+  it('should apply item discount and update item total and cart total', () => {
+    let cart = createCart(0);
+    cart = addToCart(cart, mockInventory, mockBook);
+    cart = setItemDiscount(cart, 'inv-1', 5000);
+    expect(cart.items[0].discount).toBe(5000);
+    expect(cart.items[0].total).toBe(84000);
+    expect(cart.subtotal).toBe(84000);
+    expect(cart.total).toBe(84000);
+  });
+
+  it('should not allow negative discount', () => {
+    let cart = createCart(0);
+    cart = addToCart(cart, mockInventory, mockBook);
+    cart = setCartDiscount(cart, -5000);
+    expect(cart.discount).toBe(0);
+    expect(cart.total).toBe(89000);
+
+    cart = setItemDiscount(cart, 'inv-1', -3000);
+    expect(cart.items[0].discount).toBe(0);
+    expect(cart.items[0].total).toBe(89000);
   });
 });

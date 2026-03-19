@@ -307,6 +307,19 @@ export default {
   'pos.read_only': 'Buku ini hanya untuk baca di tempat',
   'pos.max_stock': 'Stok maks: {count}',
   'pos.item_added': '{title} ditambahkan',
+  'pos.cash_tendered': 'Uang Diterima',
+  'pos.change': 'Kembalian',
+  'pos.done': 'Selesai',
+  'pos.add_discount': 'Tambah Diskon',
+  'pos.discount_amount': 'Jumlah Diskon',
+  'pos.discount_percent': 'Persen Diskon',
+  'pos.remove_discount': 'Hapus Diskon',
+  'pos.void': 'Batalkan Transaksi',
+  'pos.void_confirm': 'Batalkan transaksi ini?',
+  'pos.void_reason': 'Alasan pembatalan',
+  'pos.void_reason_placeholder': 'cth. Pelanggan minta refund, salah item...',
+  'pos.voided': 'Dibatalkan',
+  'pos.void_success': 'Transaksi berhasil dibatalkan',
 
   // Inventory
   'inventory.title': 'Inventori',
@@ -341,6 +354,10 @@ export default {
   'inventory.adjusted': 'Stok disesuaikan',
   'inventory.adjust_failed': 'Gagal menyesuaikan stok',
   'inventory.no_movements': 'Belum ada riwayat',
+  'inventory.edit': 'Edit',
+  'inventory.save': 'Simpan',
+  'inventory.saved': 'Tersimpan',
+  'inventory.min_stock': 'Stok Minimum',
 
   // Navigation (staff)
   'nav.pos': 'Kasir',
@@ -398,6 +415,10 @@ export default {
   'dashboard.sold': 'terjual',
   'dashboard.payment_breakdown': 'Per Metode Pembayaran',
   'dashboard.refresh': 'Segarkan',
+  'dashboard.vs_yesterday': 'vs kemarin',
+  'dashboard.up': 'naik',
+  'dashboard.down': 'turun',
+  'dashboard.same': 'sama dengan kemarin',
 
   // Browse (pelanggan)
   'browse.available': 'Tersedia',

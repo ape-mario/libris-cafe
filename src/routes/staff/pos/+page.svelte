@@ -9,7 +9,7 @@
   import { showConfirm } from '$lib/stores/dialog.svelte';
   import { getCurrentStaff } from '$lib/modules/auth/stores.svelte';
   import { getInventoryByBookId } from '$lib/modules/inventory/service';
-  import { addToCart, removeFromCart, updateQuantity } from '$lib/modules/pos/cart';
+  import { addToCart, removeFromCart, updateQuantity, setCartDiscount } from '$lib/modules/pos/cart';
   import { getCart, setCart, resetCart } from '$lib/modules/pos/stores.svelte';
   import { checkout } from '$lib/modules/pos/checkout';
   import { getIsOnline } from '$lib/modules/sync/manager';
@@ -19,6 +19,8 @@
   import type { Book } from '$lib/db';
   import type { PaymentMethod } from '$lib/modules/payment/types';
   import type { ReceiptData } from '$lib/modules/receipt/types';
+  import { openSnapPayment } from '$lib/modules/payment/snap';
+  import { getActivePayment, clearActivePayment } from '$lib/modules/payment/stores.svelte';
 
   let outletInfo = $state({ name: 'Libris Cafe', address: '', phone: '' });
 
@@ -35,12 +37,25 @@
   let showPaymentModal = $state(false);
   let pendingTransactionId = $state<string | null>(null);
 
+  // Cash change calculator
+  let cashTendered = $state(0);
+  let showChangeModal = $state(false);
+  let changeTotal = $state(0);
+
+  // Discount state
+  let showDiscountInput = $state(false);
+  let discountMode = $state<'fixed' | 'percent'>('fixed');
+  let discountValue = $state(0);
+
   // Receipt state
   let showReceipt = $state(false);
   let receiptData = $state<ReceiptData | null>(null);
 
   // Printer receipt state
   let printerReceiptData = $state<PrinterReceiptData | null>(null);
+
+  // Pending payment recovery (Task 7)
+  let pendingPayment = $state<{ orderId: string; snapToken: string; transactionId: string; total: number } | null>(null);
 
   let searchTimeout: ReturnType<typeof setTimeout>;
 
@@ -131,6 +146,21 @@
     setCart(updateQuantity(cart, inventoryId, qty));
   }
 
+  function applyDiscount() {
+    if (discountMode === 'percent') {
+      const amount = Math.round(cart.subtotal * discountValue / 100);
+      setCart(setCartDiscount(cart, amount));
+    } else {
+      setCart(setCartDiscount(cart, discountValue));
+    }
+  }
+
+  function removeDiscount() {
+    discountValue = 0;
+    showDiscountInput = false;
+    setCart(setCartDiscount(cart, 0));
+  }
+
   async function handleCheckout() {
     if (!staff || cart.items.length === 0 || processing) return;
 
@@ -161,9 +191,16 @@
         pendingTransactionId = result.transactionId;
         showPaymentModal = true;
       } else if (result.synced) {
-        // Cash payment — success
-        showToast(t('pos.checkout_success'), 'success');
-        prepareReceipt(result.transactionId, result.offlineId);
+        // Cash payment — show change calculator
+        if (selectedPayment === 'cash') {
+          changeTotal = cart.total;
+          cashTendered = 0;
+          pendingTransactionId = result.transactionId;
+          showChangeModal = true;
+        } else {
+          showToast(t('pos.checkout_success'), 'success');
+          prepareReceipt(result.transactionId, result.offlineId);
+        }
       } else {
         // Offline queued
         showToast(t('pos.checkout_offline'), 'info');
@@ -190,6 +227,60 @@
 
   function handlePaymentClose() {
     showPaymentModal = false;
+
+    // Save pending payment info for recovery
+    const activePayment = getActivePayment();
+    if (activePayment && activePayment.snapToken && pendingTransactionId) {
+      pendingPayment = {
+        orderId: activePayment.orderId,
+        snapToken: activePayment.snapToken,
+        transactionId: pendingTransactionId,
+        total: cart.total,
+      };
+      clearActivePayment();
+    }
+
+    pendingTransactionId = null;
+    showToast(t('payment.cancelled'), 'info');
+  }
+
+  async function retryPayment() {
+    if (!pendingPayment) return;
+
+    const token = pendingPayment.snapToken;
+    const txId = pendingPayment.transactionId;
+
+    const result = await openSnapPayment(token);
+    if (result.success) {
+      pendingPayment = null;
+      showToast(t('payment.success'), 'success');
+      prepareReceipt(txId, null);
+    } else if (result.pending) {
+      pendingPayment = null;
+      showToast(t('payment.pending'), 'info');
+      prepareReceipt(txId, null);
+    } else {
+      // Still closed/failed — keep the banner
+      showToast(t('payment.cancelled'), 'info');
+    }
+  }
+
+  async function cancelPendingPayment() {
+    if (!pendingPayment) return;
+
+    // Void the pending transaction
+    try {
+      const { getSupabase } = await import('$lib/supabase/client');
+      const supabase = getSupabase();
+      await supabase
+        .from('transaction')
+        .update({ payment_status: 'failed', type: 'void' })
+        .eq('id', pendingPayment.transactionId);
+    } catch {
+      // Best effort — transaction will expire naturally
+    }
+
+    pendingPayment = null;
     pendingTransactionId = null;
     showToast(t('payment.cancelled'), 'info');
   }
@@ -238,6 +329,16 @@
     showReceipt = true;
   }
 
+  function handleChangeDone() {
+    showChangeModal = false;
+    showToast(t('pos.checkout_success'), 'success');
+    prepareReceipt(pendingTransactionId, null);
+  }
+
+  function setCashTendered(amount: number) {
+    cashTendered = amount;
+  }
+
   function handleReceiptDone() {
     showReceipt = false;
     receiptData = null;
@@ -252,6 +353,24 @@
 </script>
 
 <div class="space-y-4">
+  <!-- Pending Payment Recovery Banner -->
+  {#if pendingPayment}
+    <div class="bg-gold/10 border border-gold/30 rounded-xl px-4 py-3 mb-4 flex items-center justify-between">
+      <div>
+        <p class="text-sm font-medium text-ink">{t('payment.pending_banner')}</p>
+        <p class="text-xs text-ink-muted">Order #{pendingPayment.orderId} — {formatPrice(pendingPayment.total)}</p>
+      </div>
+      <div class="flex gap-2">
+        <button class="px-3 py-1.5 rounded-lg text-xs font-medium bg-accent text-cream" onclick={retryPayment}>
+          {t('payment.retry')}
+        </button>
+        <button class="px-3 py-1.5 rounded-lg text-xs font-medium text-berry" onclick={cancelPendingPayment}>
+          {t('payment.cancel_pending')}
+        </button>
+      </div>
+    </div>
+  {/if}
+
   <!-- Search Bar -->
   <div class="flex gap-2">
     <div class="flex-1 relative">
@@ -335,12 +454,66 @@
         {/each}
       </div>
 
+      <!-- Discount -->
+      <div class="px-4 py-3 border-t border-warm-100">
+        {#if !showDiscountInput && cart.discount === 0}
+          <button
+            class="text-sm text-accent font-medium"
+            onclick={() => showDiscountInput = true}
+          >{t('pos.add_discount')}</button>
+        {:else if showDiscountInput}
+          <div class="space-y-2">
+            <div class="flex gap-2">
+              <button
+                class="px-3 py-1.5 rounded-lg text-xs font-medium {discountMode === 'fixed' ? 'bg-accent text-cream' : 'bg-warm-50 text-ink-muted'}"
+                onclick={() => discountMode = 'fixed'}
+              >Rp</button>
+              <button
+                class="px-3 py-1.5 rounded-lg text-xs font-medium {discountMode === 'percent' ? 'bg-accent text-cream' : 'bg-warm-50 text-ink-muted'}"
+                onclick={() => discountMode = 'percent'}
+              >%</button>
+            </div>
+            <div class="flex gap-2 items-center">
+              <input
+                type="number"
+                min="0"
+                bind:value={discountValue}
+                placeholder={discountMode === 'percent' ? t('pos.discount_percent') : t('pos.discount_amount')}
+                class="flex-1 px-3 py-2 rounded-lg bg-warm-50 border border-warm-100 text-sm focus:outline-none focus:ring-2 focus:ring-accent/30"
+                oninput={applyDiscount}
+              />
+              <button
+                class="text-xs text-berry/60 hover:text-berry"
+                onclick={removeDiscount}
+              >{t('pos.remove_discount')}</button>
+            </div>
+          </div>
+        {:else}
+          <div class="flex justify-between items-center text-sm">
+            <span class="text-ink-muted">{t('pos.discount')}</span>
+            <div class="flex items-center gap-2">
+              <span class="text-berry font-medium">-{formatPrice(cart.discount)}</span>
+              <button
+                class="text-xs text-berry/60 hover:text-berry"
+                onclick={removeDiscount}
+              >{t('pos.remove_discount')}</button>
+            </div>
+          </div>
+        {/if}
+      </div>
+
       <!-- Totals -->
       <div class="px-4 py-3 border-t border-warm-100 space-y-1">
         <div class="flex justify-between text-sm text-ink-muted">
           <span>{t('pos.subtotal')}</span>
           <span>{formatPrice(cart.subtotal)}</span>
         </div>
+        {#if cart.discount > 0}
+          <div class="flex justify-between text-sm text-berry">
+            <span>{t('pos.discount')}</span>
+            <span>-{formatPrice(cart.discount)}</span>
+          </div>
+        {/if}
         {#if cart.tax > 0}
           <div class="flex justify-between text-sm text-ink-muted">
             <span>{t('pos.tax', { rate: String(cart.taxRate) })}</span>
@@ -399,6 +572,66 @@
     {/if}
   {/if}
 </div>
+
+<!-- Cash Change Calculator Modal -->
+{#if showChangeModal}
+  <div class="fixed inset-0 bg-ink/40 z-50 flex items-center justify-center p-4">
+    <div class="bg-surface rounded-2xl border border-warm-100 w-full max-w-sm p-5 space-y-4">
+      <h2 class="font-display text-lg font-bold text-ink text-center">{t('pos.cash_tendered')}</h2>
+
+      <!-- Total -->
+      <div class="text-center">
+        <p class="text-xs text-ink-muted uppercase">{t('pos.total')}</p>
+        <p class="text-xl font-bold text-ink">{formatPrice(changeTotal)}</p>
+      </div>
+
+      <!-- Cash tendered input -->
+      <div>
+        <input
+          type="number"
+          bind:value={cashTendered}
+          placeholder="0"
+          class="w-full px-4 py-3 rounded-xl bg-cream border border-warm-100 text-center text-2xl font-bold text-ink focus:outline-none focus:ring-2 focus:ring-accent/30"
+          autofocus
+          min="0"
+        />
+      </div>
+
+      <!-- Quick amount buttons -->
+      <div class="grid grid-cols-4 gap-2">
+        {#each [50000, 100000, 200000, 500000] as amount}
+          <button
+            class="py-2 rounded-lg bg-warm-50 text-ink text-xs font-medium hover:bg-warm-100 transition-colors"
+            onclick={() => setCashTendered(amount)}
+          >
+            {amount >= 1000 ? `${(amount / 1000)}k` : amount}
+          </button>
+        {/each}
+      </div>
+
+      <!-- Calculated change -->
+      {#if cashTendered >= changeTotal}
+        <div class="text-center py-3 rounded-xl bg-sage/10">
+          <p class="text-xs text-ink-muted uppercase">{t('pos.change')}</p>
+          <p class="text-3xl font-bold text-sage">{formatPrice(cashTendered - changeTotal)}</p>
+        </div>
+      {:else if cashTendered > 0}
+        <div class="text-center py-3 rounded-xl bg-berry/10">
+          <p class="text-xs text-ink-muted uppercase">{t('pos.change')}</p>
+          <p class="text-xl font-bold text-berry">-{formatPrice(changeTotal - cashTendered)}</p>
+        </div>
+      {/if}
+
+      <!-- Done button -->
+      <button
+        class="w-full py-3 rounded-xl bg-accent text-cream font-semibold text-sm hover:bg-accent/90 transition-colors"
+        onclick={handleChangeDone}
+      >
+        {t('pos.done')}
+      </button>
+    </div>
+  </div>
+{/if}
 
 <!-- Payment Modal (digital payments) -->
 {#if showPaymentModal && pendingTransactionId}
