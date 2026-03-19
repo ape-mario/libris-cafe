@@ -47,7 +47,7 @@
   interface BulkItem {
     isbn: string;
     result: OpenLibraryResult | null;
-    status: 'pending' | 'loading' | 'found' | 'not_found' | 'duplicate' | 'added';
+    status: 'pending' | 'loading' | 'found' | 'not_found' | 'error' | 'duplicate' | 'added';
   }
 
   let bulkInput = $state('');
@@ -89,11 +89,15 @@
         bulkItems[i] = { ...item, status: 'loading' };
         bulkItems = [...bulkItems]; // trigger reactivity
 
-        const result = await lookupByISBN(item.isbn);
-        if (result) {
-          bulkItems[i] = { ...item, result, status: 'found' };
+        if (!navigator.onLine) {
+          bulkItems[i] = { ...item, status: 'error' };
         } else {
-          bulkItems[i] = { ...item, status: 'not_found' };
+          const result = await lookupByISBN(item.isbn);
+          if (result) {
+            bulkItems[i] = { ...item, result, status: 'found' };
+          } else {
+            bulkItems[i] = { ...item, status: 'not_found' };
+          }
         }
         bulkProgress++;
         bulkItems = [...bulkItems];
@@ -360,6 +364,8 @@
                 <span class="text-xs text-warm-400 flex-1">{t('add.bulk.duplicate')}</span>
               {:else if item.status === 'not_found'}
                 <span class="text-xs text-warm-400 flex-1">{t('add.bulk.not_found')}</span>
+              {:else if item.status === 'error'}
+                <span class="text-xs text-berry flex-1">{t('add.bulk.error')}</span>
               {:else}
                 <span class="text-xs text-warm-300 flex-1">—</span>
               {/if}

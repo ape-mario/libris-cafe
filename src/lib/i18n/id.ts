@@ -97,6 +97,7 @@ export default {
   'add.bulk.added': '{count} buku berhasil ditambahkan',
   'add.bulk.duplicate': 'Sudah ada di koleksi',
   'add.bulk.not_found': 'Tidak ditemukan',
+  'add.bulk.error': 'Gagal (offline?)',
   'add.bulk.complete': 'Semua buku berhasil ditambahkan!',
   'add.bulk.go_library': 'Lihat koleksi →',
   'add.save': 'Tambah Buku',

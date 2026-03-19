@@ -50,5 +50,7 @@ export interface Shelf {
 }
 
 export interface ReadingGoal {
+  userId: string;
+  year: number;
   target: number;
 }

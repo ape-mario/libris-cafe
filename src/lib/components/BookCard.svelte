@@ -11,6 +11,7 @@
   let coverLoading = $state(!!book.coverUrl);
   let showQuickMenu = $state(false);
   let longPressTimer: ReturnType<typeof setTimeout> | null = null;
+  let menuJustOpened = false;
 
   onMount(async () => {
     const base64 = await getCoverBase64(book.id);
@@ -26,12 +27,19 @@
   });
 
   function closeMenu() {
+    // Skip close if menu was just opened (iOS Safari fires click after long-press)
+    if (menuJustOpened) {
+      menuJustOpened = false;
+      return;
+    }
     showQuickMenu = false;
   }
 
   function startLongPress() {
     longPressTimer = setTimeout(() => {
       showQuickMenu = true;
+      menuJustOpened = true;
+      setTimeout(() => { menuJustOpened = false; }, 100);
     }, 500);
   }
 
@@ -79,7 +87,7 @@
     {:else}
       <div class="w-full h-full flex flex-col items-center justify-center px-3 text-center bg-gradient-to-br from-warm-100 to-warm-200">
         <span class="font-display text-xs font-semibold text-ink-light leading-snug">{book.title}</span>
-        <span class="text-[9px] text-ink-muted mt-1">{book.authors.join(', ')}</span>
+        <span class="text-[9px] text-ink-muted mt-1">{(book.authors || []).join(', ')}</span>
       </div>
     {/if}
     <div class="absolute left-0 top-0 bottom-0 w-[3px] bg-black/[0.06] dark:bg-white/[0.08]"></div>
@@ -89,7 +97,7 @@
   </div>
   <div class="w-full px-0.5">
     <h3 class="font-display text-[11px] font-semibold text-ink leading-tight truncate">{book.title}</h3>
-    <p class="text-[10px] text-ink-muted truncate mt-0.5">{book.authors.join(', ')}</p>
+    <p class="text-[10px] text-ink-muted truncate mt-0.5">{(book.authors || []).join(', ')}</p>
   </div>
 
   {#if showQuickMenu}

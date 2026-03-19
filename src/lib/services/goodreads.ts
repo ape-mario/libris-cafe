@@ -102,8 +102,8 @@ function parseGoodreadsRow(row: Record<string, string>): GoodreadsRow | null {
 		Boolean
 	);
 
-	let isbn = (row['ISBN13'] || row['ISBN'] || '').replace(/[="]/g, '').trim();
-	if (!isbn || isbn === '') isbn = undefined as any;
+	const rawIsbn = (row['ISBN13'] || row['ISBN'] || '').replace(/[="]/g, '').trim();
+	const isbn: string | undefined = rawIsbn || undefined;
 
 	const rating = parseInt(row['My Rating'] || '0');
 	const numPages = parseInt(row['Number of Pages'] || '0') || undefined;

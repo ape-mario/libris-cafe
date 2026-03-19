@@ -205,7 +205,8 @@
       } else {
         history.push({ date: today, page: num });
       }
-      updates.progressHistory = history;
+      // Cap at 90 entries to prevent unbounded growth
+      updates.progressHistory = history.slice(-90);
     }
 
     userData = setUserBookData(user.id, book.id, updates);

@@ -5,8 +5,7 @@
   import { showToast } from '$lib/stores/toast.svelte';
   import { clearCoverCache } from '$lib/services/coverCache';
   import { getCurrentUser } from '$lib/stores/user.svelte';
-  import { t } from '$lib/i18n/index.svelte';
-  import { getLocale, setLocale, type Locale } from '$lib/i18n/index.svelte';
+  import { t, getLocale, setLocale, type Locale } from '$lib/i18n/index.svelte';
   import { getTheme, setTheme, type Theme } from '$lib/stores/theme.svelte';
   import { base } from '$app/paths';
   import { isValidRoomCode, formatRoomCode, getRoomLink } from '$lib/sync/room';

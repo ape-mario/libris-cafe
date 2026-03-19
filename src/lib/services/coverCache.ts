@@ -101,6 +101,21 @@ export async function getCoverBase64(bookId: string): Promise<string | null> {
 	}
 }
 
+export async function deleteCoverBase64(bookId: string): Promise<void> {
+	try {
+		const db = await openCoverDB();
+		const tx = db.transaction([COVER_STORE, META_STORE], 'readwrite');
+		tx.objectStore(COVER_STORE).delete(bookId);
+		tx.objectStore(META_STORE).delete(bookId);
+		await new Promise<void>((resolve, reject) => {
+			tx.oncomplete = () => resolve();
+			tx.onerror = () => reject(tx.error);
+		});
+	} catch {
+		// Best-effort cleanup
+	}
+}
+
 export async function cacheCoverIfNeeded(bookId: string): Promise<void> {
 	const book = q.getItem<Book>('books', bookId);
 	if (!book || !book.coverUrl) return;

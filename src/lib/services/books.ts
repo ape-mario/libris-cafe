@@ -86,7 +86,7 @@ function getSearchIndex(): { books: Book[]; index: Map<string, Set<string>> } {
 	for (const book of allBooks) {
 		const tokens = [
 			...book.title.toLowerCase().split(/\s+/),
-			...book.authors.flatMap((a) => a.toLowerCase().split(/\s+/)),
+			...(book.authors || []).flatMap((a) => a.toLowerCase().split(/\s+/)),
 			...(book.publisher?.toLowerCase().split(/\s+/) || []),
 			...(book.isbn ? [book.isbn.toLowerCase()] : [])
 		].filter(Boolean);
@@ -105,10 +105,16 @@ function getSearchIndex(): { books: Book[]; index: Map<string, Set<string>> } {
 	return searchCache;
 }
 
-// Invalidate on Y.Doc changes
-q.observe('books', () => { searchCache = null; });
+// Invalidate on Y.Doc changes (lazy init to avoid test module load issues)
+let searchObserverSet = false;
+function ensureSearchObserver() {
+	if (searchObserverSet) return;
+	searchObserverSet = true;
+	try { q.observe('books', () => { searchCache = null; }); } catch {}
+}
 
 export function searchBooks(query: string): Book[] {
+	ensureSearchObserver();
 	const lower = query.toLowerCase().trim();
 	if (!lower) return getBooks();
 
@@ -153,17 +159,6 @@ export function getBooksBySeries(seriesId: string): Book[] {
 }
 
 async function deleteCoverFromCache(bookId: string) {
-	try {
-		const db = await new Promise<IDBDatabase>((resolve, reject) => {
-			const req = indexedDB.open('libris-covers', 1);
-			req.onsuccess = () => resolve(req.result);
-			req.onerror = () => reject(req.error);
-		});
-		const tx = db.transaction('covers', 'readwrite');
-		tx.objectStore('covers').delete(bookId);
-		tx.oncomplete = () => db.close();
-		tx.onerror = () => db.close();
-	} catch {
-		// Cover cleanup is best-effort
-	}
+	const { deleteCoverBase64 } = await import('./coverCache');
+	await deleteCoverBase64(bookId);
 }

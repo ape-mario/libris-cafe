@@ -103,24 +103,6 @@ export function createQueryHelpers(doc: Y.Doc) {
 		return getAll<T>(mapName).filter(predicate);
 	}
 
-	function search<T = Record<string, unknown>>(mapName: string, query: string): T[] {
-		const words = query.toLowerCase().split(/\s+/).filter(Boolean);
-		if (words.length === 0) return getAll<T>(mapName);
-
-		return filter<T>(mapName, (item) => {
-			const parts: string[] = [];
-			for (const value of Object.values(item as Record<string, unknown>)) {
-				if (typeof value === 'string') {
-					parts.push(value);
-				} else if (Array.isArray(value)) {
-					parts.push(value.join(' '));
-				}
-			}
-			const text = parts.join(' ').toLowerCase();
-			return words.every((word) => text.includes(word));
-		});
-	}
-
 	function setItem(
 		mapName: string,
 		id: string,
@@ -226,5 +208,5 @@ export function createQueryHelpers(doc: Y.Doc) {
 		return entry as Y.Map<unknown>;
 	}
 
-	return { getItem, getAll, filter, search, setItem, updateItem, deleteItem, observe, getRawEntry };
+	return { getItem, getAll, filter, setItem, updateItem, deleteItem, observe, getRawEntry };
 }

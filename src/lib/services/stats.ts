@@ -50,10 +50,10 @@ export function getReadingStats(userId: string, year?: number): ReadingStats {
 	const userBookIds = new Set(userData.map((d) => d.bookId));
 	const userBooks = allBooks.filter((b) => userBookIds.has(b.id));
 
-	// For year filter: filter read books by read date, keep non-read as-is for counts
+	// For year filter: only include books read in that year
 	const filteredData = year
 		? userData.filter((d) => {
-			if (d.status !== 'read') return true;
+			if (d.status !== 'read') return false;
 			return matchesYear(d, userBooks, year);
 		})
 		: userData;
@@ -62,9 +62,9 @@ export function getReadingStats(userId: string, year?: number): ReadingStats {
 	const filteredBooks = userBooks.filter((b) => filteredBookIds.has(b.id));
 
 	const totalRead = filteredData.filter((d) => d.status === 'read').length;
-	const totalReading = year ? 0 : filteredData.filter((d) => d.status === 'reading').length;
-	const totalDnf = year ? 0 : filteredData.filter((d) => d.status === 'dnf').length;
-	const totalWishlist = year ? 0 : filteredData.filter((d) => d.isWishlist).length;
+	const totalReading = year ? 0 : userData.filter((d) => d.status === 'reading').length;
+	const totalDnf = year ? 0 : userData.filter((d) => d.status === 'dnf').length;
+	const totalWishlist = year ? 0 : userData.filter((d) => d.isWishlist).length;
 
 	const rated = filteredData.filter((d) => d.status === 'read' && d.rating && d.rating > 0);
 	const averageRating =

@@ -97,6 +97,7 @@ export default {
   'add.bulk.added': '{count} books added',
   'add.bulk.duplicate': 'Already in library',
   'add.bulk.not_found': 'Not found',
+  'add.bulk.error': 'Failed (offline?)',
   'add.bulk.complete': 'All books added!',
   'add.bulk.go_library': 'Go to library →',
   'add.save': 'Add Book',

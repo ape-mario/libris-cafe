@@ -51,12 +51,12 @@ export function exportCSV(userId: string): string {
 		const ubd = getUserBookData(userId, book.id);
 		return [
 			book.title,
-			book.authors.join('; '),
+			(book.authors || []).join('; '),
 			book.isbn || '',
 			book.publisher || '',
 			book.publishYear?.toString() || '',
 			book.edition || '',
-			book.categories.join('; '),
+			(book.categories || []).join('; '),
 			book.dateAdded,
 			ubd?.status || 'unread',
 			ubd?.rating?.toString() || '',

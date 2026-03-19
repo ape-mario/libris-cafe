@@ -53,45 +53,7 @@ describe('query helpers', () => {
 		expect(readBooks).toHaveLength(2);
 	});
 
-	it('search matches case-insensitive across fields (including array fields)', () => {
-		const { q } = setup();
-		q.setItem('books', 'b1', {
-			id: 'b1',
-			title: 'Dune',
-			authors: ['Frank Herbert']
-		});
-		q.setItem('books', 'b2', {
-			id: 'b2',
-			title: 'Neuromancer',
-			authors: ['William Gibson']
-		});
-
-		// Search by title
-		expect(q.search('books', 'dune')).toHaveLength(1);
-		// Search by author (array field joined to string)
-		expect(q.search('books', 'herbert')).toHaveLength(1);
-		// Case insensitive
-		expect(q.search('books', 'NEUROMANCER')).toHaveLength(1);
-	});
-
-	it('search with multi-word query uses AND logic', () => {
-		const { q } = setup();
-		q.setItem('books', 'b1', {
-			id: 'b1',
-			title: 'Dune',
-			authors: ['Frank Herbert']
-		});
-		q.setItem('books', 'b2', {
-			id: 'b2',
-			title: 'Foundation',
-			authors: ['Isaac Asimov']
-		});
-
-		// Both words must match
-		expect(q.search('books', 'dune herbert')).toHaveLength(1);
-		// "dune asimov" should match nothing (AND logic)
-		expect(q.search('books', 'dune asimov')).toHaveLength(0);
-	});
+	// search() was removed — search is now handled by the prefix index in books.ts
 
 	it('updateItem merges fields without overwriting others', () => {
 		const { q } = setup();
