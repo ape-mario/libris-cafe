@@ -13,8 +13,9 @@ export async function getConsignmentSales(
 ): Promise<ConsignmentSaleRecord[]> {
   const supabase = getSupabase();
 
-  // Use a raw query via RPC for the complex join.
-  // This function should be created as a Supabase RPC or we query with joins.
+  // Dot-notation filters (e.g. .eq('inventory.consignor_id', ...)) work correctly
+  // with supabase-js v2 when the joined table uses `!inner` syntax, which ensures
+  // the filter is applied on the joined table rather than silently ignored.
   const { data, error } = await supabase
     .from('transaction_item')
     .select(`

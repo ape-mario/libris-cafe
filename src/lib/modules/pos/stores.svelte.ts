@@ -14,3 +14,7 @@ export function setCart(cart: Cart): void {
 export function resetCart(taxRate: number = 11): void {
   currentCart = createCart(taxRate);
 }
+
+export const cartStore = {
+  get current() { return currentCart; },
+};

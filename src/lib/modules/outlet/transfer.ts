@@ -211,9 +211,14 @@ export async function shipTransfer(
 export async function receiveTransfer(
   transferId: string,
   staffId: string,
-  receivedQuantities: { itemId: string; inventoryId: string; quantity: number }[]
+  receivedQuantities: { itemId: string; quantity: number }[]
 ): Promise<void> {
   const supabase = getSupabase();
+
+  const { data: current } = await supabase.from('outlet_transfer').select('status').eq('id', transferId).single();
+  if (current?.status !== 'shipped') {
+    throw new Error(`Cannot receive transfer: current status is ${current?.status}`);
+  }
 
   // Update received quantities on items
   for (const rq of receivedQuantities) {
@@ -360,9 +365,9 @@ async function findOrCreateDestinationInventory(
 
   if (!source) throw new Error(`Source inventory not found: ${sourceInventoryId}`);
 
-  const { data: newInv, error } = await supabase
+  const { data: upserted, error: upsertError } = await supabase
     .from('inventory')
-    .insert({
+    .upsert({
       book_id: source.book_id,
       outlet_id: destOutletId,
       type: source.type,
@@ -374,10 +379,10 @@ async function findOrCreateDestinationInventory(
       min_stock: source.min_stock,
       location: null,  // Location will differ at destination
       condition: source.condition,
-    })
+    }, { onConflict: 'book_id,outlet_id', ignoreDuplicates: true })
     .select()
     .single();
 
-  if (error) throw new Error(`Failed to create destination inventory: ${error.message}`);
-  return newInv.id;
+  if (upsertError) throw new Error(`Failed to create destination inventory: ${upsertError.message}`);
+  return upserted.id;
 }

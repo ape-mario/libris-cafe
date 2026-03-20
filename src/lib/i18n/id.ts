@@ -320,6 +320,7 @@ export default {
   'pos.void_reason_placeholder': 'cth. Pelanggan minta refund, salah item...',
   'pos.voided': 'Dibatalkan',
   'pos.void_success': 'Transaksi berhasil dibatalkan',
+  'pos.receipt_after_sync': 'Struk tersedia setelah sinkronisasi',
 
   // Inventory
   'inventory.title': 'Inventori',

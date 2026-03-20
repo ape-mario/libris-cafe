@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
+  import { base } from '$app/paths';
   import { t } from '$lib/i18n/index.svelte';
   import { getLendingStore } from '$lib/modules/lending/stores.svelte';
   import { checkIn, checkOut } from '$lib/modules/lending/service';

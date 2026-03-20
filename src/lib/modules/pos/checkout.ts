@@ -89,7 +89,11 @@ export async function checkout(request: CheckoutRequest): Promise<CheckoutResult
           transaction_id: txData.id,
         }));
 
-        await supabase.from('transaction_item').insert(itemsWithTxId);
+        const { error: itemsError } = await supabase.from('transaction_item').insert(itemsWithTxId);
+        if (itemsError) {
+          await supabase.from('transaction').delete().eq('id', txData.id);
+          throw new Error(`Failed to create items: ${itemsError.message}`);
+        }
 
         return {
           transactionId: txData.id,

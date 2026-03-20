@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte';
   import { goto } from '$app/navigation';
+  import { base } from '$app/paths';
   import { IdleTimer } from '$lib/modules/kiosk/idle-timer';
   import { getKioskStore } from '$lib/modules/kiosk/stores.svelte';
   import { t } from '$lib/i18n/index.svelte';
@@ -15,7 +16,7 @@
   function handleIdle() {
     kiosk.setIdle();
     // Reset to kiosk home
-    goto('/kiosk');
+    goto(`${base}/kiosk`);
   }
 
   function handleCountdown(seconds: number) {

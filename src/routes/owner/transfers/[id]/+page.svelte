@@ -95,7 +95,6 @@
     try {
       const quantities = transfer.items.map(item => ({
         itemId: item.id,
-        inventoryId: item.inventory_id,
         quantity: receivedQtys[item.id] ?? item.quantity_shipped,
       }));
       await receiveTransfer(transferId, staff.id, quantities);

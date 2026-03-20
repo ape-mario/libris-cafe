@@ -132,6 +132,9 @@ export async function getPaymentByTransaction(transactionId: string): Promise<Pa
     .limit(1)
     .single();
 
-  if (error) return null;
+  if (error) {
+    if (error.code === 'PGRST116') return null; // not found
+    throw new Error(`Failed to fetch payment: ${error.message}`);
+  }
   return data as Payment;
 }

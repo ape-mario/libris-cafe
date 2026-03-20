@@ -320,6 +320,7 @@ export default {
   'pos.void_reason_placeholder': 'e.g. Customer requested refund, wrong item...',
   'pos.voided': 'Voided',
   'pos.void_success': 'Transaction voided successfully',
+  'pos.receipt_after_sync': 'Receipt available after sync',
 
   // Inventory
   'inventory.title': 'Inventory',

@@ -7,6 +7,7 @@
   let scannerRef: HTMLDivElement;
   let active = $state(false);
   let error = $state('');
+  let detectedHandler: ((result: any) => void) | null = null;
 
   onMount(() => {
     Quagga.init(
@@ -30,18 +31,20 @@
       }
     );
 
-    Quagga.onDetected((result: any) => {
+    detectedHandler = (result: any) => {
       const code = result.codeResult?.code;
       if (code) {
         Quagga.stop();
         active = false;
         onDetected(code);
       }
-    });
+    };
+    Quagga.onDetected(detectedHandler);
   });
 
   onDestroy(() => {
     if (active) Quagga.stop();
+    if (detectedHandler) Quagga.offDetected(detectedHandler);
   });
 </script>
 

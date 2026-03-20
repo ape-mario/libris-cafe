@@ -160,6 +160,12 @@
             import('$lib/modules/auth/stores.svelte').then(({ setCurrentStaff }) => {
               setCurrentStaff(null);
             });
+            // Unsubscribe from realtime notifications to prevent leaked subscriptions
+            try {
+              import('$lib/modules/notification/realtime').then(({ unsubscribeFromNotifications }) => {
+                unsubscribeFromNotifications();
+              });
+            } catch {}
             // Clear all session-scoped stores
             import('$lib/modules/notification/stores.svelte').then(({ clearNotifications }) => {
               clearNotifications();

@@ -17,7 +17,7 @@ const config = {
 			directives: {
 				'default-src': ['self'],
 				'script-src': ['self', 'https://app.sandbox.midtrans.com', 'https://app.midtrans.com'],
-				'connect-src': ['self', 'https://*.supabase.co', 'wss://*.supabase.co', 'https://api.fonnte.com'],
+				'connect-src': ['self', 'https://*.supabase.co', 'wss://*.supabase.co', 'https://api.fonnte.com', 'wss://*.partykit.dev'],
 				'frame-src': ['https://app.sandbox.midtrans.com', 'https://app.midtrans.com'],
 				'img-src': ['self', 'https://covers.openlibrary.org', 'data:', 'blob:'],
 				'style-src': ['self', 'unsafe-inline']

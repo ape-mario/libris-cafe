@@ -10,7 +10,7 @@
   import { getCurrentStaff } from '$lib/modules/auth/stores.svelte';
   import { getInventoryByBookId } from '$lib/modules/inventory/service';
   import { addToCart, removeFromCart, updateQuantity, setCartDiscount } from '$lib/modules/pos/cart';
-  import { getCart, setCart, resetCart } from '$lib/modules/pos/stores.svelte';
+  import { getCart, setCart, resetCart, cartStore } from '$lib/modules/pos/stores.svelte';
   import { checkout } from '$lib/modules/pos/checkout';
   import { getIsOnline } from '$lib/modules/sync/manager';
   import PrintButton from '$lib/components/printer/PrintButton.svelte';
@@ -28,7 +28,7 @@
   let searchResults = $state<Book[]>([]);
   let showScanner = $state(false);
   let processing = $state(false);
-  let cart = $derived(getCart());
+  let cart = $derived(cartStore.current);
   let staff = $derived(getCurrentStaff());
   let online = $derived(getIsOnline());
 
@@ -293,6 +293,7 @@
 
   function prepareReceipt(transactionId: string | null, offlineId: string | null) {
     if (!staff || !transactionId) {
+      showToast(t('pos.receipt_after_sync'), 'info');
       resetCart();
       return;
     }
