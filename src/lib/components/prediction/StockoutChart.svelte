@@ -17,9 +17,9 @@
   );
 
   function barColor(days: number | null): string {
-    if (days === null) return 'bg-base-300';
-    if (days <= 7) return 'bg-error';
-    if (days <= 14) return 'bg-warning';
+    if (days === null) return 'bg-warm-100';
+    if (days <= 7) return 'bg-berry';
+    if (days <= 14) return 'bg-gold';
     if (days <= 30) return 'bg-amber-400';
     return 'bg-success';
   }
@@ -27,15 +27,15 @@
 
 <div class="space-y-2">
   <h2 class="font-semibold">{t('prediction.stockoutTimeline')}</h2>
-  <div class="bg-base-200 rounded-xl p-3 space-y-1.5">
+  <div class="bg-warm-50 rounded-xl p-3 space-y-1.5">
     {#each chartData as item (item.inventory_id)}
       {@const days = item.days_until_stockout ?? 0}
       {@const pct = Math.max(2, (days / maxDays) * 100)}
       <div class="flex items-center gap-2">
-        <span class="text-xs w-24 truncate shrink-0 text-base-content/70">
+        <span class="text-xs w-24 truncate shrink-0 text-ink-muted">
           {item.book_id.substring(0, 12)}
         </span>
-        <div class="flex-1 h-4 bg-base-300 rounded-full overflow-hidden">
+        <div class="flex-1 h-4 bg-warm-100 rounded-full overflow-hidden">
           <div
             class="h-full rounded-full transition-all {barColor(item.days_until_stockout)}"
             style="width: {pct}%"
@@ -48,7 +48,7 @@
     {/each}
 
     {#if chartData.length === 0}
-      <div class="text-center text-sm text-base-content/40 py-4">
+      <div class="text-center text-sm text-ink-muted py-4">
         {t('prediction.noStockoutRisk')}
       </div>
     {/if}

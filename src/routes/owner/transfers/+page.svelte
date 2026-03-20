@@ -50,6 +50,7 @@
       inventoryList = await getInventoryByOutlet(outletId);
     } catch {
       inventoryList = [];
+      showToast(t('error.generic'), 'error');
     }
   }
 

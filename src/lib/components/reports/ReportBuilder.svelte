@@ -31,12 +31,12 @@
   });
 </script>
 
-<div class="bg-base-200 rounded-xl p-4 space-y-4">
+<div class="bg-warm-50 rounded-xl p-4 space-y-4">
   <!-- Report type -->
   <div>
     <label class="text-sm font-medium">{t('reports.type')}</label>
     <select bind:value={reportType}
-      class="w-full mt-1 px-3 py-2 rounded-lg border border-base-300 bg-base-100 text-sm">
+      class="w-full mt-1 px-3 py-2 rounded-lg border border-warm-100 bg-cream text-sm">
       {#each reportTypes as rt}
         <option value={rt.value}>{rt.label_en}</option>
       {/each}
@@ -48,12 +48,12 @@
     <div>
       <label class="text-sm font-medium">{t('reports.from')}</label>
       <input type="date" bind:value={dateFrom}
-        class="w-full mt-1 px-3 py-2 rounded-lg border border-base-300 bg-base-100 text-sm" />
+        class="w-full mt-1 px-3 py-2 rounded-lg border border-warm-100 bg-cream text-sm" />
     </div>
     <div>
       <label class="text-sm font-medium">{t('reports.to')}</label>
       <input type="date" bind:value={dateTo}
-        class="w-full mt-1 px-3 py-2 rounded-lg border border-base-300 bg-base-100 text-sm" />
+        class="w-full mt-1 px-3 py-2 rounded-lg border border-warm-100 bg-cream text-sm" />
     </div>
   </div>
 
@@ -63,7 +63,7 @@
     <div class="flex gap-2 mt-1">
       {#each ['csv', 'pdf', 'excel'] as fmt}
         <button
-          class="flex-1 py-2 rounded-lg text-sm font-medium transition-colors {format === fmt ? 'bg-primary text-primary-content' : 'bg-base-100 border border-base-300'}"
+          class="flex-1 py-2 rounded-lg text-sm font-medium transition-colors {format === fmt ? 'bg-accent text-cream' : 'bg-cream border border-warm-100'}"
           onclick={() => format = fmt as ExportFormat}
         >
           {fmt.toUpperCase()}

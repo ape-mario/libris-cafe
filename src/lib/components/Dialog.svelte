@@ -1,8 +1,8 @@
 <script lang="ts">
-  import { getDialog, setDialogInput, confirmDialog, cancelDialog } from '$lib/stores/dialog.svelte';
+  import { getDialog, setDialogInput, confirmDialog, cancelDialog, dialogStore } from '$lib/stores/dialog.svelte';
   import { t } from '$lib/i18n/index.svelte';
 
-  let dialog = $derived(getDialog());
+  let dialog = $derived(dialogStore.state);
   let inputRef: HTMLInputElement | undefined = $state();
 
   $effect(() => {

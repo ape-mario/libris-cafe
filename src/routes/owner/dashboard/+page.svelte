@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { t } from '$lib/i18n/index.svelte';
-  import { getCurrentStaff } from '$lib/modules/auth/stores.svelte';
+  import { getCurrentStaff, staffStore } from '$lib/modules/auth/stores.svelte';
   import {
     getDashboardState,
     loadDashboard,
@@ -11,7 +11,7 @@
   import SalesChart from '$lib/components/SalesChart.svelte';
   import type { DateRange } from '$lib/modules/dashboard/types';
 
-  let staff = $derived(getCurrentStaff());
+  let staff = $derived(staffStore.current);
   let dashboard = $derived(getDashboardState());
 
   onMount(async () => {

@@ -1,14 +1,14 @@
 <script lang="ts">
   import '../app.css';
   import { onMount, onDestroy } from 'svelte';
-  import { getCurrentUser, restoreUser } from '$lib/stores/user.svelte';
+  import { getCurrentUser, restoreUser, userStore } from '$lib/stores/user.svelte';
   import ProfilePicker from '$lib/components/ProfilePicker.svelte';
   import TopBar from '$lib/components/TopBar.svelte';
   import BottomNav from '$lib/components/BottomNav.svelte';
   import Toast from '$lib/components/Toast.svelte';
   import Dialog from '$lib/components/Dialog.svelte';
   import { t } from '$lib/i18n/index.svelte';
-  import { getLocale } from '$lib/i18n/index.svelte';
+  import { getLocale, localeStore } from '$lib/i18n/index.svelte';
   import { cacheAllCovers } from '$lib/services/coverCache';
   import { initTheme } from '$lib/stores/theme.svelte';
   import { initDoc } from '$lib/db';
@@ -17,14 +17,15 @@
   let { children } = $props();
   let loaded = $state(false);
   let initError = $state<string | null>(null);
-  let user = $derived(getCurrentUser());
-  let locale = $derived(getLocale());
+  let user = $derived(userStore.current);
+  let locale = $derived(localeStore.current);
 
   // PWA install prompt
   let deferredPrompt = $state<Event | null>(null);
   let showInstallBanner = $state(false);
   let pwaHandler: ((e: Event) => void) | null = null;
   let showScrollTop = $state(false);
+  let scrollHandler: (() => void) | null = null;
 
   function dismissInstall() {
     showInstallBanner = false;
@@ -49,9 +50,10 @@
     initTheme();
 
     // Scroll-to-top button visibility
-    window.addEventListener('scroll', () => {
+    scrollHandler = () => {
       showScrollTop = window.scrollY > 600;
-    }, { passive: true });
+    };
+    window.addEventListener('scroll', scrollHandler, { passive: true });
 
     // PWA install prompt
     const dismissed = localStorage.getItem('libris_pwa_dismissed');
@@ -211,6 +213,7 @@
 
   onDestroy(() => {
     if (pwaHandler) window.removeEventListener('beforeinstallprompt', pwaHandler);
+    if (scrollHandler) window.removeEventListener('scroll', scrollHandler);
   });
 </script>
 

@@ -62,7 +62,7 @@
   });
 </script>
 
-<div class="kiosk-container min-h-screen bg-base-100 flex flex-col select-none">
+<div class="kiosk-container min-h-screen bg-cream flex flex-col select-none">
   <KioskHeader cafeName={kiosk.config.cafe_name} logoUrl={kiosk.config.cafe_logo_url} />
 
   <main class="flex-1 overflow-y-auto p-4">

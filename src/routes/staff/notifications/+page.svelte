@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { t } from '$lib/i18n/index.svelte';
-  import { getCurrentStaff } from '$lib/modules/auth/stores.svelte';
+  import { getCurrentStaff, staffStore } from '$lib/modules/auth/stores.svelte';
   import {
     getNotifications as fetchNotifications,
     markAsRead,
@@ -9,17 +9,17 @@
   } from '$lib/modules/notification/service';
   import {
     getNotifications, setNotifications, getUnreadCount,
-    setUnreadCount, markNotificationRead,
+    setUnreadCount, markNotificationRead, notifStore,
   } from '$lib/modules/notification/stores.svelte';
   import { showToast } from '$lib/stores/toast.svelte';
   import type { Notification } from '$lib/modules/notification/types';
 
   let loading = $state(true);
   let error = $state('');
-  let notifications = $derived(getNotifications());
-  let unreadCount = $derived(getUnreadCount());
+  let notifications = $derived(notifStore.list);
+  let unreadCount = $derived(notifStore.unreadCount);
 
-  let staff = $derived(getCurrentStaff());
+  let staff = $derived(staffStore.current);
 
   onMount(async () => {
     if (!staff) return;
@@ -39,7 +39,7 @@
     try {
       await markAsRead(notif.id);
       markNotificationRead(notif.id);
-    } catch { showToast('Failed', 'error'); }
+    } catch { showToast(t('error.generic'), 'error'); }
   }
 
   async function handleMarkAllRead() {
@@ -48,7 +48,7 @@
       await markAllAsRead(staff.id);
       setNotifications(notifications.map(n => ({ ...n, read: true })));
       setUnreadCount(0);
-    } catch { showToast('Failed', 'error'); }
+    } catch { showToast(t('error.generic'), 'error'); }
   }
 
   function typeIcon(type: string): string {

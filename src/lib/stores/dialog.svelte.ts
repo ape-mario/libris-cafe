@@ -22,6 +22,8 @@ let dialog = $state<DialogState>({
   resolve: null
 });
 
+export const dialogStore = { get state() { return dialog; } };
+
 export function getDialog(): DialogState {
   return dialog;
 }

@@ -14,8 +14,8 @@
 
 {#if printer.isConnected}
   <button
-    class="flex items-center gap-2 py-2 px-4 rounded-lg border border-base-300 text-sm
-      {printer.isPrinting ? 'opacity-50' : 'hover:bg-base-200'}"
+    class="flex items-center gap-2 py-2 px-4 rounded-lg border border-warm-100 text-sm
+      {printer.isPrinting ? 'opacity-50' : 'hover:bg-warm-50'}"
     disabled={printer.isPrinting}
     onclick={handlePrint}
   >
@@ -25,6 +25,6 @@
     {printer.isPrinting ? t('printer.printing') : t('printer.printReceipt')}
   </button>
   {#if printer.error}
-    <p class="text-xs text-error mt-1">{printer.error}</p>
+    <p class="text-xs text-berry mt-1">{printer.error}</p>
   {/if}
 {/if}

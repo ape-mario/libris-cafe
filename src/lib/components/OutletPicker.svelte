@@ -5,12 +5,13 @@
     getActiveOutletId,
     getActiveOutlet,
     setActiveOutletId,
+    outletStore,
   } from '$lib/modules/outlet/stores.svelte';
 
   let open = $state(false);
-  let outlets = $derived(getOutlets());
-  let activeOutlet = $derived(getActiveOutlet());
-  let activeOutletId = $derived(getActiveOutletId());
+  let outlets = $derived(outletStore.outlets);
+  let activeOutlet = $derived(outletStore.activeOutlet);
+  let activeOutletId = $derived(outletStore.activeOutletId);
 
   function selectOutlet(outletId: string) {
     setActiveOutletId(outletId);
@@ -55,7 +56,7 @@
 
     {#if open}
       <div
-        class="absolute top-full left-0 mt-1 w-56 bg-white rounded-xl
+        class="absolute top-full left-0 mt-1 w-56 bg-surface rounded-xl
                shadow-lg border border-warm-200 py-1 z-50"
         role="listbox"
         aria-label={t('outlet.switch')}

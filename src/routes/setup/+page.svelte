@@ -190,7 +190,7 @@
           {#if showEnvInstructions}
             <div class="bg-warm-50 border border-warm-200 rounded-lg p-4 text-sm">
               <p class="font-medium text-ink mb-2">Add these to your .env file and restart the app:</p>
-              <pre class="bg-white rounded p-3 overflow-x-auto text-xs font-mono text-ink-light">VITE_SUPABASE_URL={dbUrl.trim()}
+              <pre class="bg-surface rounded p-3 overflow-x-auto text-xs font-mono text-ink-light">VITE_SUPABASE_URL={dbUrl.trim()}
 VITE_SUPABASE_ANON_KEY={dbAnonKey.trim()}</pre>
             </div>
           {/if}

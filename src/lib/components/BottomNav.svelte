@@ -5,7 +5,7 @@
   import { t } from '$lib/i18n/index.svelte';
   import { getBooks } from '$lib/services/books';
   import { q } from '$lib/db';
-  import { isStaff, isOwner } from '$lib/modules/auth/stores.svelte';
+  import { isStaff, isOwner, staffStore } from '$lib/modules/auth/stores.svelte';
 
   let bookCount = $state(0);
   let unsubBooks: (() => void) | null = null;

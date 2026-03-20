@@ -1,12 +1,12 @@
 <script lang="ts">
   import { t } from '$lib/i18n/index.svelte';
-  import { getCurrentStaff } from '$lib/modules/auth/stores.svelte';
+  import { getCurrentStaff, staffStore } from '$lib/modules/auth/stores.svelte';
   import { getActiveOutlet } from '$lib/modules/outlet/stores.svelte';
   import { showToast } from '$lib/stores/toast.svelte';
   import { exportFullBackup, downloadBackupJson, downloadBackupSql } from '$lib/modules/backup/service';
   import type { BackupData } from '$lib/modules/backup/types';
 
-  let staff = $derived(getCurrentStaff());
+  let staff = $derived(staffStore.current);
   let outlet = $derived(getActiveOutlet());
   let exporting = $state(false);
   let backupData = $state<BackupData | null>(null);

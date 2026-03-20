@@ -7,7 +7,7 @@
   import ReceiptSender from '$lib/components/ReceiptSender.svelte';
   import { showToast } from '$lib/stores/toast.svelte';
   import { showConfirm } from '$lib/stores/dialog.svelte';
-  import { getCurrentStaff } from '$lib/modules/auth/stores.svelte';
+  import { getCurrentStaff, staffStore } from '$lib/modules/auth/stores.svelte';
   import { getInventoryByBookId } from '$lib/modules/inventory/service';
   import { addToCart, removeFromCart, updateQuantity, setCartDiscount } from '$lib/modules/pos/cart';
   import { getCart, setCart, resetCart, cartStore } from '$lib/modules/pos/stores.svelte';
@@ -29,7 +29,7 @@
   let showScanner = $state(false);
   let processing = $state(false);
   let cart = $derived(cartStore.current);
-  let staff = $derived(getCurrentStaff());
+  let staff = $derived(staffStore.current);
   let online = $derived(getIsOnline());
 
   // Payment method selection
@@ -70,7 +70,9 @@
           outletInfo = data;
           resetCart(data.tax_rate ?? 11);
         }
-      } catch {}
+      } catch {
+        showToast(t('error.generic'), 'error');
+      }
     }
   });
 

@@ -15,6 +15,8 @@ export function setCurrentUser(user: User | null) {
 	}
 }
 
+export const userStore = { get current() { return currentUser; } };
+
 export function restoreUser(): User | null {
 	const id = localStorage.getItem('currentUserId');
 	if (id) {

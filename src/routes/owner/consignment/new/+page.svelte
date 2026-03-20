@@ -29,7 +29,7 @@
         notes: notes.trim() || undefined,
       });
 
-      showToast('Consignor added', 'success');
+      showToast(t('consignment.consignor_added'), 'success');
       goto(`${base}/owner/consignment`);
     } catch (err) {
       showToast(err instanceof Error ? err.message : 'Failed to add consignor', 'error');

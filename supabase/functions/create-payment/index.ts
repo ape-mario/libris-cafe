@@ -113,7 +113,7 @@ serve(async (req: Request) => {
     }
 
     // Store payment record in database
-    await supabase.from('payment').insert({
+    const { error: paymentError } = await supabase.from('payment').insert({
       transaction_id,
       midtrans_order_id: order_id,
       gross_amount: verifiedAmount,
@@ -122,11 +122,27 @@ serve(async (req: Request) => {
       status: 'pending',
     });
 
+    if (paymentError) {
+      console.error('Failed to insert payment record:', paymentError);
+      return new Response(
+        JSON.stringify({ error: 'Failed to store payment record' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     // Update transaction with midtrans_order_id
-    await supabase
+    const { error: updateError } = await supabase
       .from('transaction')
       .update({ midtrans_order_id: order_id })
       .eq('id', transaction_id);
+
+    if (updateError) {
+      console.error('Failed to update transaction:', updateError);
+      return new Response(
+        JSON.stringify({ error: 'Failed to update transaction' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     return new Response(
       JSON.stringify({

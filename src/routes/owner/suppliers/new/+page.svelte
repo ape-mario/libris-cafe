@@ -29,7 +29,7 @@
         notes: notes.trim() || undefined,
       });
 
-      showToast('Supplier added', 'success');
+      showToast(t('supplier.added'), 'success');
       goto(`${base}/owner/suppliers`);
     } catch (err) {
       showToast(err instanceof Error ? err.message : 'Failed to add supplier', 'error');

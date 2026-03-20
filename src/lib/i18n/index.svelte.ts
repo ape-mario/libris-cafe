@@ -10,6 +10,8 @@ let currentLocale = $state<Locale>(
   (typeof localStorage !== 'undefined' && localStorage.getItem('locale') as Locale) || 'id'
 );
 
+export const localeStore = { get current() { return currentLocale; } };
+
 export function getLocale(): Locale {
   return currentLocale;
 }

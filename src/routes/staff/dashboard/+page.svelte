@@ -1,11 +1,11 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { t } from '$lib/i18n/index.svelte';
-  import { getCurrentStaff } from '$lib/modules/auth/stores.svelte';
+  import { getCurrentStaff, staffStore } from '$lib/modules/auth/stores.svelte';
   import { getDashboardState, loadDashboard } from '$lib/modules/dashboard/stores.svelte';
   import DashboardCard from '$lib/components/DashboardCard.svelte';
 
-  let staff = $derived(getCurrentStaff());
+  let staff = $derived(staffStore.current);
   let dashboard = $derived(getDashboardState());
 
   onMount(async () => {

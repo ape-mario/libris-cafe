@@ -133,7 +133,7 @@
         <select
           bind:value={role}
           class="w-full px-3 py-2 rounded-lg border border-warm-200 focus:border-sage
-                 focus:ring-1 focus:ring-sage outline-none bg-white"
+                 focus:ring-1 focus:ring-sage outline-none bg-surface"
         >
           <option value="staff">{t('staff.role_staff')}</option>
           <option value="owner">{t('staff.role_owner')}</option>
@@ -147,7 +147,7 @@
           bind:value={outletId}
           required
           class="w-full px-3 py-2 rounded-lg border border-warm-200 focus:border-sage
-                 focus:ring-1 focus:ring-sage outline-none bg-white"
+                 focus:ring-1 focus:ring-sage outline-none bg-surface"
         >
           {#each outlets as outlet (outlet.id)}
             <option value={outlet.id}>{outlet.name}</option>

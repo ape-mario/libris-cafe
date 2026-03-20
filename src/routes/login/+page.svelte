@@ -25,7 +25,7 @@
     try {
       const session = await loginWithPin(email, pin);
       setCurrentStaff(session.staff);
-      showToast(`Welcome, ${session.staff.name}!`, 'success');
+      showToast(t('auth.welcome', { name: session.staff.name }), 'success');
       goto(`${base}/staff/pos`);
     } catch (e) {
       attempts++;

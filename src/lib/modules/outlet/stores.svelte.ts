@@ -51,6 +51,13 @@ export function setPendingTransfers(transfers: OutletTransfer[]): void {
   pendingTransfers = transfers;
 }
 
+export const outletStore = {
+  get outlets() { return outlets; },
+  get activeOutletId() { return activeOutletId; },
+  get activeOutlet() { return outlets.find(o => o.id === activeOutletId) ?? null; },
+  get pendingTransfers() { return pendingTransfers; }
+};
+
 export function getPendingTransferCount(): number {
   return pendingTransfers.filter(t =>
     t.status === 'requested' || t.status === 'approved' || t.status === 'shipped'

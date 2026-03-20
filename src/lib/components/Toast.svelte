@@ -1,7 +1,7 @@
 <script lang="ts">
-  import { getToasts } from '$lib/stores/toast.svelte';
+  import { getToasts, toastStore } from '$lib/stores/toast.svelte';
 
-  let toasts = $derived(getToasts());
+  let toasts = $derived(toastStore.list);
 
   const iconMap: Record<string, string> = {
     success: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>`,

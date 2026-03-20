@@ -286,6 +286,7 @@ export default {
   'auth.pin_placeholder': 'Enter 4-6 digit PIN',
   'auth.login_button': 'Login',
   'auth.login_error': 'Invalid email or PIN',
+  'auth.welcome': 'Welcome, {name}!',
   'auth.logout': 'Logout',
   'auth.guest_mode': 'Continue as Guest',
 
@@ -451,6 +452,7 @@ export default {
   'supplier.deactivate_confirm': 'Deactivate {name}?',
   'supplier.deactivated': 'Supplier deactivated',
   'supplier.deactivate_failed': 'Failed to deactivate',
+  'supplier.added': 'Supplier added',
 
   // Purchase Orders
   'po.title': 'Purchase Orders',
@@ -533,6 +535,7 @@ export default {
   'consignment.start_date': 'Start Date',
   'consignment.end_date': 'End Date',
   'consignment.preview_sales': 'Preview Sales',
+  'consignment.consignor_added': 'Consignor added',
 
   // Notification
   'notification.title': 'Notifications',

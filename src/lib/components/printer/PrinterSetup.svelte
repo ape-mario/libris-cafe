@@ -9,7 +9,7 @@
   const isSupported = hasBluetooth || hasUsb;
 </script>
 
-<div class="bg-base-200 rounded-xl p-4 space-y-3">
+<div class="bg-warm-50 rounded-xl p-4 space-y-3">
   <h3 class="font-semibold text-sm">{t('printer.setup')}</h3>
 
   {#if !isSupported}
@@ -22,10 +22,10 @@
     <div class="flex items-center gap-2">
       <div class="w-2 h-2 rounded-full bg-success"></div>
       <span class="text-sm">{printer.deviceName}</span>
-      <span class="text-xs text-base-content/50">({printer.connectionType})</span>
+      <span class="text-xs text-ink-muted">({printer.connectionType})</span>
     </div>
     <button
-      class="w-full py-2 rounded-lg border border-base-300 text-sm"
+      class="w-full py-2 rounded-lg border border-warm-100 text-sm"
       onclick={() => printer.disconnect()}
     >
       {t('printer.disconnect')}
@@ -34,14 +34,14 @@
     <!-- Disconnected state — show connection options -->
     <div class="flex gap-2">
       <button
-        class="flex-1 py-2 rounded-lg bg-primary text-primary-content text-sm font-medium disabled:opacity-40"
+        class="flex-1 py-2 rounded-lg bg-accent text-cream text-sm font-medium disabled:opacity-40"
         onclick={() => printer.connect('bluetooth')}
         disabled={!hasBluetooth}
       >
         Bluetooth
       </button>
       <button
-        class="flex-1 py-2 rounded-lg bg-primary text-primary-content text-sm font-medium disabled:opacity-40"
+        class="flex-1 py-2 rounded-lg bg-accent text-cream text-sm font-medium disabled:opacity-40"
         onclick={() => printer.connect('usb')}
         disabled={!hasUsb}
       >
@@ -50,7 +50,7 @@
     </div>
 
     {#if printer.error}
-      <p class="text-xs text-error">{printer.error}</p>
+      <p class="text-xs text-berry">{printer.error}</p>
     {/if}
   {/if}
 </div>

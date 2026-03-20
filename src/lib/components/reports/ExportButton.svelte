@@ -27,7 +27,7 @@
 <div class="space-y-2">
   <button
     class="w-full py-3 rounded-xl font-semibold transition-all disabled:opacity-50
-      {isExporting ? 'bg-base-300 text-base-content' : 'bg-primary text-primary-content'}"
+      {isExporting ? 'bg-warm-100 text-ink' : 'bg-accent text-cream'}"
     disabled={isExporting}
     onclick={onexport}
   >
@@ -45,9 +45,9 @@
   </button>
 
   {#if isExporting}
-    <div class="w-full bg-base-300 rounded-full h-1.5">
+    <div class="w-full bg-warm-100 rounded-full h-1.5">
       <div
-        class="bg-primary h-1.5 rounded-full transition-all duration-300"
+        class="bg-accent h-1.5 rounded-full transition-all duration-300"
         style="width: {progress.progress}%"
       ></div>
     </div>

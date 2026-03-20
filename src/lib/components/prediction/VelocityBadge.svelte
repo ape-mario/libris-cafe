@@ -12,7 +12,7 @@
   const colors: Record<string, string> = {
     high: 'bg-success/20 text-success',
     medium: 'bg-info/20 text-info',
-    low: 'bg-base-300 text-base-content/60',
+    low: 'bg-warm-100 text-ink-muted',
   };
 </script>
 

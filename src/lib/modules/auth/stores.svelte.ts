@@ -38,6 +38,9 @@ export function isGuest(): boolean {
   return currentStaff === null;
 }
 
+export const staffStore = { get current() { return currentStaff; } };
+export const authReadyStore = { get ready() { return authReady; } };
+
 export async function initOutletContext(): Promise<void> {
   try {
     const outlets = await fetchOutlets();

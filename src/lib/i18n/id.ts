@@ -286,6 +286,7 @@ export default {
   'auth.pin_placeholder': 'Masukkan PIN 4-6 digit',
   'auth.login_button': 'Masuk',
   'auth.login_error': 'Email atau PIN salah',
+  'auth.welcome': 'Selamat datang, {name}!',
   'auth.logout': 'Keluar',
   'auth.guest_mode': 'Lanjut sebagai Tamu',
 
@@ -451,6 +452,7 @@ export default {
   'supplier.deactivate_confirm': 'Nonaktifkan {name}?',
   'supplier.deactivated': 'Supplier dinonaktifkan',
   'supplier.deactivate_failed': 'Gagal menonaktifkan',
+  'supplier.added': 'Supplier ditambahkan',
 
   // Purchase Orders
   'po.title': 'Pesanan Pembelian',
@@ -533,6 +535,7 @@ export default {
   'consignment.start_date': 'Tanggal Mulai',
   'consignment.end_date': 'Tanggal Selesai',
   'consignment.preview_sales': 'Lihat Penjualan',
+  'consignment.consignor_added': 'Konsinyator ditambahkan',
 
   // Notification
   'notification.title': 'Notifikasi',

@@ -33,7 +33,7 @@
   {/if}
 
   {#if reports.progress.status === 'error'}
-    <div class="bg-error/10 text-error text-sm rounded-lg p-3">
+    <div class="bg-berry/10 text-berry text-sm rounded-lg p-3">
       {reports.progress.error}
     </div>
   {/if}

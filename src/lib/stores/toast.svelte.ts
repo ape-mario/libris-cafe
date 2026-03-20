@@ -8,6 +8,8 @@ interface ToastItem {
 let toasts = $state<ToastItem[]>([]);
 let nextId = 0;
 
+export const toastStore = { get list() { return toasts; } };
+
 export function getToasts(): ToastItem[] {
   return toasts;
 }

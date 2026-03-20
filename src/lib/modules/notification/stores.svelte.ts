@@ -38,6 +38,11 @@ export function markNotificationRead(id: string): void {
   decrementUnread();
 }
 
+export const notifStore = {
+  get list() { return notifications; },
+  get unreadCount() { return unreadCount; }
+};
+
 export function clearNotifications(): void {
   notifications = [];
   unreadCount = 0;

@@ -1,13 +1,13 @@
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte';
-  import { getCurrentUser, setCurrentUser } from '$lib/stores/user.svelte';
+  import { getCurrentUser, setCurrentUser, userStore } from '$lib/stores/user.svelte';
   import { base } from '$app/paths';
   import { t } from '$lib/i18n/index.svelte';
   import { getSyncStatus, getRoomCode, onSyncStatusChange } from '$lib/sync/manager';
   import type { SyncStatus } from '$lib/sync/provider';
-  import { getCurrentStaff, isStaff, isOwner } from '$lib/modules/auth/stores.svelte';
+  import { getCurrentStaff, isStaff, isOwner, staffStore } from '$lib/modules/auth/stores.svelte';
   import OutletPicker from './OutletPicker.svelte';
-  import { getUnreadCount } from '$lib/modules/notification/stores.svelte';
+  import { getUnreadCount, notifStore } from '$lib/modules/notification/stores.svelte';
   import { getIsOnline } from '$lib/modules/sync/manager';
   import { getPrinterStatus } from '$lib/modules/printer/service';
 
@@ -15,7 +15,7 @@
   const printerConnected = $derived(printerStatus.connected);
   const printerDeviceName = $derived(printerStatus.deviceName ?? '');
 
-  let user = $derived(getCurrentUser());
+  let user = $derived(userStore.current);
   let online = $state(true);
   let syncStatus = $state<SyncStatus>('disconnected');
   let roomCode = $state<string | null>(null);
