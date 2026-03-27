@@ -113,7 +113,7 @@
           bind:value={pin}
           required
           inputmode="numeric"
-          pattern="[0-9]{6,}"
+          pattern={'[0-9]{6,}'}
           minlength="6"
           maxlength="20"
           class="w-full px-3 py-2 rounded-lg border border-warm-200 focus:border-sage
